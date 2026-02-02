@@ -54,6 +54,11 @@ export function AuthProvider({ children }) {
       const response = await authAPI.login({ email, password });
       const { access, refresh, user: userData } = response.data;
 
+      // Validate response has required data
+      if (!access || !userData) {
+        throw new Error('Invalid response from server');
+      }
+
       // Store tokens
       setTokens(access, refresh);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -68,6 +73,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       const message = error.response?.data?.detail ||
         error.response?.data?.message ||
+        error.message ||
         t('auth.loginError');
 
       toast.error(message);
@@ -93,13 +99,29 @@ export function AuthProvider({ children }) {
 
       return { success: true, user: newUser };
     } catch (error) {
-      const message = error.response?.data?.detail ||
-        error.response?.data?.message ||
-        Object.values(error.response?.data || {}).flat().join(', ') ||
-        t('errors.serverError');
+      // Parse error message from various response formats
+      let message = t('errors.serverError');
+      const errorData = error.response?.data;
+
+      if (errorData) {
+        if (errorData.detail) {
+          message = errorData.detail;
+        } else if (errorData.message) {
+          message = errorData.message;
+        } else if (typeof errorData === 'object') {
+          // Handle field validation errors like { "email": ["This field is required"] }
+          const fieldErrors = Object.entries(errorData)
+            .filter(([key, value]) => Array.isArray(value) && value.length > 0)
+            .map(([key, value]) => `${key}: ${value.join(', ')}`)
+            .join('; ');
+          if (fieldErrors) {
+            message = fieldErrors;
+          }
+        }
+      }
 
       toast.error(message);
-      return { success: false, error: message, errors: error.response?.data };
+      return { success: false, error: message, errors: errorData };
     }
   }, [t]);
 

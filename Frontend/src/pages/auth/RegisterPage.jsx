@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { Shield, Eye, EyeOff, Globe, Loader2 } from 'lucide-react';
-import { useAuth } from '../../contexts';
-import { changeLanguage } from '../../i18n';
+import { toast } from 'react-hot-toast';
+import { Shield, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
 
-function RegisterPage() {
-  const { t, i18n } = useTranslation();
-  const { register, getDashboardPath } = useAuth();
+const RegisterPage = () => {
+  const { t } = useTranslation();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -15,262 +16,260 @@ function RegisterPage() {
     last_name: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    password_confirm: '',
+    company: '',
+    role: 'EMPLOYEE'
   });
+
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/v1/companies/');
+        setCompanies(response.data.results || response.data);
+        setLoadingCompanies(false);
+      } catch (error) {
+        console.error('Failed to fetch companies:', error);
+        toast.error('Failed to load companies');
+        setLoadingCompanies(false);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when field changes
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.first_name) {
-      newErrors.first_name = t('errors.required');
-    }
-    if (!formData.last_name) {
-      newErrors.last_name = t('errors.required');
-    }
-    if (!formData.email) {
-      newErrors.email = t('errors.required');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('errors.invalidEmail');
-    }
-    if (!formData.password) {
-      newErrors.password = t('errors.required');
-    } else if (formData.password.length < 8) {
-      newErrors.password = t('errors.minLength', { min: 8 });
-    }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = t('errors.required');
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('errors.passwordMismatch');
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+
+    // Validation
+    if (formData.password !== formData.password_confirm) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (!formData.company) {
+      toast.error('Please select a company');
+      return;
+    }
 
     setLoading(true);
-    const result = await register({
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      password: formData.password,
-    });
+
+    // Remove password_confirm before sending to backend (backend validates it optionally)
+    const { password_confirm, ...registerData } = formData;
+
+    const result = await register(registerData);
     setLoading(false);
 
+    // Only navigate on success - AuthContext already shows the toast
     if (result.success) {
-      navigate(getDashboardPath(), { replace: true });
-    } else if (result.errors) {
-      // Map API errors to form fields
-      const apiErrors = {};
-      Object.entries(result.errors).forEach(([key, value]) => {
-        apiErrors[key] = Array.isArray(value) ? value[0] : value;
-      });
-      setErrors(apiErrors);
+      navigate('/login');
     }
   };
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'ar' : 'en';
-    changeLanguage(newLang);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
-        >
-          <Globe className="h-5 w-5" />
-          <span>{i18n.language === 'en' ? 'العربية' : 'English'}</span>
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+        {/* Header */}
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
+            <Shield className="h-8 w-8 text-blue-600" />
+          </div>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            PhishAware
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Sign Up
+          </p>
+          <p className="mt-2 text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              Sign In
+            </Link>
+          </p>
+        </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Logo */}
-        <Link to="/" className="flex justify-center items-center gap-2 mb-6">
-          <Shield className="h-12 w-12 text-primary-600" />
-          <span className="text-2xl font-bold text-gray-900">
-            {t('common.appName')}
-          </span>
-        </Link>
-
-        <h2 className="text-center text-2xl font-bold text-gray-900">
-          {t('auth.signUp')}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.hasAccount')}{' '}
-          <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-            {t('auth.signIn')}
-          </Link>
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm rounded-xl sm:px-10 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="first_name" className="label">
-                  {t('auth.firstName')}
-                </label>
-                <input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                  className={errors.first_name ? 'input-error' : 'input'}
-                />
-                {errors.first_name && (
-                  <p className="mt-1 text-sm text-danger-600">{errors.first_name}</p>
-                )}
-              </div>
-              <div>
-                <label htmlFor="last_name" className="label">
-                  {t('auth.lastName')}
-                </label>
-                <input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                  className={errors.last_name ? 'input-error' : 'input'}
-                />
-                {errors.last_name && (
-                  <p className="mt-1 text-sm text-danger-600">{errors.last_name}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Email Field */}
+        {/* Form */}
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {/* First Name & Last Name */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="email" className="label">
-                {t('auth.email')}
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                First Name
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={formData.email}
+                id="first_name"
+                name="first_name"
+                type="text"
+                required
+                value={formData.first_name}
                 onChange={handleChange}
-                className={errors.email ? 'input-error' : 'input'}
-                placeholder="you@example.com"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-danger-600">{errors.email}</p>
-              )}
             </div>
 
-            {/* Password Field */}
             <div>
-              <label htmlFor="password" className="label">
-                {t('auth.password')}
+              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                Last Name
               </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={errors.password ? 'input-error pr-10' : 'input pr-10'}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-danger-600">{errors.password}</p>
-              )}
+              <input
+                id="last_name"
+                name="last_name"
+                type="text"
+                required
+                value={formData.last_name}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
+          </div>
 
-            {/* Confirm Password Field */}
-            <div>
-              <label htmlFor="confirmPassword" className="label">
-                {t('auth.confirmPassword')}
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Company Dropdown */}
+          <div>
+            <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+              Select Company
+            </label>
+            {loadingCompanies ? (
+              <div className="mt-1 text-sm text-gray-500">Loading companies...</div>
+            ) : (
+              <select
+                id="company"
+                name="company"
+                required
+                value={formData.company}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">-- Select a company --</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Role Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Role
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="role"
+                  value="EMPLOYEE"
+                  checked={formData.role === 'EMPLOYEE'}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">Employee</span>
               </label>
-              <div className="relative">
+              <label className="flex items-center">
                 <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={formData.confirmPassword}
+                  type="radio"
+                  name="role"
+                  value="COMPANY_ADMIN"
+                  checked={formData.role === 'COMPANY_ADMIN'}
                   onChange={handleChange}
-                  className={errors.confirmPassword ? 'input-error pr-10' : 'input pr-10'}
-                  placeholder="••••••••"
+                  className="mr-2"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-danger-600">{errors.confirmPassword}</p>
-              )}
+                <span className="text-sm text-gray-700">Company Admin</span>
+              </label>
             </div>
+          </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full py-3"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  {t('common.loading')}
-                </>
-              ) : (
-                t('auth.signUp')
-              )}
-            </button>
-          </form>
-        </div>
+          {/* Password */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <div className="mt-1 relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label htmlFor="password_confirm" className="block text-sm font-medium text-gray-700">
+              Confirm Password
+            </label>
+            <div className="mt-1 relative">
+              <input
+                id="password_confirm"
+                name="password_confirm"
+                type={showConfirmPassword ? 'text' : 'password'}
+                required
+                value={formData.password_confirm}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading || loadingCompanies}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Signing up...' : 'Sign Up'}
+          </button>
+        </form>
       </div>
     </div>
   );
-}
+};
 
 export default RegisterPage;
