@@ -1,0 +1,213 @@
+{
+  "common": {
+    "appName": "PhishAware",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تم بنجاح",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "create": "إنشاء",
+    "search": "بحث",
+    "filter": "تصفية",
+    "noData": "لا توجد بيانات",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "submit": "إرسال",
+    "close": "إغلاق",
+    "yes": "نعم",
+    "no": "لا",
+    "all": "الكل",
+    "actions": "الإجراءات",
+    "status": "الحالة",
+    "date": "التاريخ",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "language": "اللغة",
+    "english": "English",
+    "arabic": "العربية"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "register": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "rememberMe": "تذكرني",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "signUp": "إنشاء حساب",
+    "signIn": "تسجيل الدخول",
+    "loginSuccess": "مرحباً بعودتك!",
+    "loginError": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "registerSuccess": "تم إنشاء الحساب بنجاح",
+    "logoutSuccess": "تم تسجيل الخروج"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "campaigns": "الحملات",
+    "simulations": "المحاكاة",
+    "employees": "الموظفين",
+    "training": "التدريب",
+    "quizzes": "الاختبارات",
+    "analytics": "التحليلات",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "community": "المجتمع",
+    "companies": "الشركات",
+    "badges": "الشارات",
+    "leaderboard": "لوحة المتصدرين"
+  },
+  "landing": {
+    "hero": {
+      "title": "احمِ مؤسستك من هجمات التصيد الاحتيالي",
+      "subtitle": "يساعد PhishAware المؤسسات في منطقة الشرق الأوسط وشمال أفريقيا على بناء ثقافة أمنية واعية من خلال التدريب والمحاكاة والتقييم المستمر.",
+      "cta": "ابدأ الآن",
+      "learnMore": "اعرف المزيد"
+    },
+    "features": {
+      "title": "لماذا تختار PhishAware؟",
+      "training": {
+        "title": "تدريب تفاعلي",
+        "description": "وحدات تدريبية جذابة مصممة خصيصاً لمنطقة الشرق الأوسط مع دعم اللغة العربية."
+      },
+      "simulations": {
+        "title": "محاكاة التصيد",
+        "description": "حملات تصيد واقعية لاختبار وتحسين وعي الموظفين."
+      },
+      "analytics": {
+        "title": "تحليلات مفصلة",
+        "description": "تتبع التقدم وتحديد المخاطر وقياس التحسن بمرور الوقت."
+      },
+      "compliance": {
+        "title": "جاهز للامتثال",
+        "description": "تلبية متطلبات التوعية الأمنية الإقليمية وأفضل الممارسات."
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "مرحباً بعودتك",
+    "overview": "نظرة عامة",
+    "riskScore": "مستوى المخاطر",
+    "completedQuizzes": "الاختبارات المكتملة",
+    "completedTraining": "التدريب المكتمل",
+    "assignedTasks": "المهام المعينة",
+    "recentActivity": "النشاط الأخير",
+    "upcomingDeadlines": "المواعيد القادمة",
+    "performance": "الأداء",
+    "totalEmployees": "إجمالي الموظفين",
+    "activeCampaigns": "الحملات النشطة",
+    "averageRiskScore": "متوسط مستوى المخاطر",
+    "completionRate": "معدل الإنجاز"
+  },
+  "employee": {
+    "title": "الموظفين",
+    "addEmployee": "إضافة موظف",
+    "inviteEmployee": "دعوة موظف",
+    "employeeDetails": "تفاصيل الموظف",
+    "riskLevel": "مستوى المخاطر",
+    "department": "القسم",
+    "position": "المنصب",
+    "joinDate": "تاريخ الانضمام",
+    "lastActive": "آخر نشاط",
+    "riskLevels": {
+      "low": "منخفض المخاطر",
+      "medium": "متوسط المخاطر",
+      "high": "عالي المخاطر"
+    }
+  },
+  "campaign": {
+    "title": "الحملات",
+    "createCampaign": "إنشاء حملة",
+    "campaignDetails": "تفاصيل الحملة",
+    "campaignName": "اسم الحملة",
+    "description": "الوصف",
+    "startDate": "تاريخ البداية",
+    "endDate": "تاريخ النهاية",
+    "status": {
+      "draft": "مسودة",
+      "active": "نشط",
+      "completed": "مكتمل",
+      "paused": "متوقف"
+    },
+    "targetEmployees": "الموظفين المستهدفين",
+    "assignedQuizzes": "الاختبارات المعينة",
+    "assignedTraining": "التدريب المعين"
+  },
+  "simulation": {
+    "title": "المحاكاة",
+    "createSimulation": "إنشاء محاكاة",
+    "simulationDetails": "تفاصيل المحاكاة",
+    "template": "القالب",
+    "selectTemplate": "اختر القالب",
+    "generatePackage": "إنشاء الحزمة",
+    "results": "النتائج",
+    "clicked": "نقر",
+    "reported": "أبلغ",
+    "noAction": "لم يتخذ إجراء"
+  },
+  "quiz": {
+    "title": "الاختبارات",
+    "takeQuiz": "خذ الاختبار",
+    "quizDetails": "تفاصيل الاختبار",
+    "questions": "الأسئلة",
+    "timeLimit": "الوقت المحدد",
+    "passingScore": "درجة النجاح",
+    "score": "الدرجة",
+    "passed": "نجح",
+    "failed": "لم ينجح",
+    "startQuiz": "ابدأ الاختبار",
+    "submitQuiz": "إرسال الاختبار",
+    "nextQuestion": "السؤال التالي",
+    "previousQuestion": "السؤال السابق",
+    "questionOf": "السؤال {{current}} من {{total}}"
+  },
+  "training": {
+    "title": "التدريب",
+    "modules": "الوحدات",
+    "startTraining": "ابدأ التدريب",
+    "continueTraining": "أكمل التدريب",
+    "completed": "مكتمل",
+    "inProgress": "قيد التنفيذ",
+    "notStarted": "لم يبدأ",
+    "duration": "المدة",
+    "progress": "التقدم"
+  },
+  "community": {
+    "title": "بوابة المجتمع",
+    "articles": "المقالات",
+    "resources": "الموارد",
+    "tips": "نصائح أمنية",
+    "latestNews": "آخر الأخبار",
+    "readMore": "اقرأ المزيد"
+  },
+  "profile": {
+    "title": "إعدادات الملف الشخصي",
+    "personalInfo": "المعلومات الشخصية",
+    "changePassword": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "notifications": "الإشعارات",
+    "preferences": "التفضيلات"
+  },
+  "errors": {
+    "required": "هذا الحقل مطلوب",
+    "invalidEmail": "الرجاء إدخال بريد إلكتروني صحيح",
+    "passwordMismatch": "كلمات المرور غير متطابقة",
+    "minLength": "الحد الأدنى {{min}} أحرف مطلوبة",
+    "maxLength": "الحد الأقصى {{max}} أحرف مسموح بها",
+    "networkError": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+    "unauthorized": "غير مصرح لك بتنفيذ هذا الإجراء",
+    "notFound": "المورد غير موجود",
+    "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً."
+  }
+}

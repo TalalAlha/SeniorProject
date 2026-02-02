@@ -1,0 +1,141 @@
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { USER_ROLES } from '../contexts';
+import { ProtectedRoute, PublicRoute, GuestRoute } from './ProtectedRoute';
+
+// Layouts
+import PublicLayout from '../layouts/PublicLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
+
+// Public Pages
+import LandingPage from '../pages/public/LandingPage';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+import CommunityPortal from '../pages/public/CommunityPortal';
+import UnauthorizedPage from '../pages/public/UnauthorizedPage';
+import NotFoundPage from '../pages/public/NotFoundPage';
+
+// Employee Pages
+import EmployeeDashboard from '../pages/employee/EmployeeDashboard';
+import EmployeeQuizzes from '../pages/employee/EmployeeQuizzes';
+import TakeQuiz from '../pages/employee/TakeQuiz';
+import EmployeeTraining from '../pages/employee/EmployeeTraining';
+import EmployeeBadges from '../pages/employee/EmployeeBadges';
+import EmployeeProfile from '../pages/employee/EmployeeProfile';
+
+// Company Admin Pages
+import CompanyDashboard from '../pages/company/CompanyDashboard';
+import CampaignList from '../pages/company/CampaignList';
+import CampaignCreate from '../pages/company/CampaignCreate';
+import CampaignDetails from '../pages/company/CampaignDetails';
+import SimulationList from '../pages/company/SimulationList';
+import SimulationCreate from '../pages/company/SimulationCreate';
+import EmployeeList from '../pages/company/EmployeeList';
+import CompanyAnalytics from '../pages/company/CompanyAnalytics';
+import TrainingManagement from '../pages/company/TrainingManagement';
+
+// Super Admin Pages
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import CompanyList from '../pages/admin/CompanyList';
+import CompanyCreate from '../pages/admin/CompanyCreate';
+import PlatformAnalytics from '../pages/admin/PlatformAnalytics';
+
+// Router configuration
+const router = createBrowserRouter([
+  // Public routes
+  {
+    path: '/',
+    element: (
+      <GuestRoute>
+        <PublicLayout />
+      </GuestRoute>
+    ),
+    children: [
+      { index: true, element: <LandingPage /> },
+      { path: 'community', element: <CommunityPortal /> },
+    ],
+  },
+
+  // Auth routes (redirect if already logged in)
+  {
+    path: '/login',
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/register',
+    element: (
+      <PublicRoute>
+        <RegisterPage />
+      </PublicRoute>
+    ),
+  },
+
+  // Employee routes
+  {
+    path: '/employee',
+    element: (
+      <ProtectedRoute allowedRoles={[USER_ROLES.EMPLOYEE]}>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', element: <EmployeeDashboard /> },
+      { path: 'quizzes', element: <EmployeeQuizzes /> },
+      { path: 'quizzes/:id', element: <TakeQuiz /> },
+      { path: 'training', element: <EmployeeTraining /> },
+      { path: 'badges', element: <EmployeeBadges /> },
+      { path: 'profile', element: <EmployeeProfile /> },
+    ],
+  },
+
+  // Company Admin routes
+  {
+    path: '/company',
+    element: (
+      <ProtectedRoute allowedRoles={[USER_ROLES.COMPANY_ADMIN]}>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', element: <CompanyDashboard /> },
+      { path: 'campaigns', element: <CampaignList /> },
+      { path: 'campaigns/create', element: <CampaignCreate /> },
+      { path: 'campaigns/:id', element: <CampaignDetails /> },
+      { path: 'simulations', element: <SimulationList /> },
+      { path: 'simulations/create', element: <SimulationCreate /> },
+      { path: 'employees', element: <EmployeeList /> },
+      { path: 'training', element: <TrainingManagement /> },
+      { path: 'analytics', element: <CompanyAnalytics /> },
+      { path: 'profile', element: <EmployeeProfile /> },
+    ],
+  },
+
+  // Super Admin routes
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute allowedRoles={[USER_ROLES.SUPER_ADMIN]}>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', element: <AdminDashboard /> },
+      { path: 'companies', element: <CompanyList /> },
+      { path: 'companies/create', element: <CompanyCreate /> },
+      { path: 'analytics', element: <PlatformAnalytics /> },
+      { path: 'profile', element: <EmployeeProfile /> },
+    ],
+  },
+
+  // Error pages
+  { path: '/unauthorized', element: <UnauthorizedPage /> },
+  { path: '*', element: <NotFoundPage /> },
+]);
+
+export default router;

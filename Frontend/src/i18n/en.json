@@ -1,0 +1,213 @@
+{
+  "common": {
+    "appName": "PhishAware",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "noData": "No data available",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "language": "Language",
+    "english": "English",
+    "arabic": "Arabic"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Sign Up",
+    "signIn": "Sign In",
+    "loginSuccess": "Welcome back!",
+    "loginError": "Invalid email or password",
+    "registerSuccess": "Account created successfully",
+    "logoutSuccess": "You have been logged out"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "campaigns": "Campaigns",
+    "simulations": "Simulations",
+    "employees": "Employees",
+    "training": "Training",
+    "quizzes": "Quizzes",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "profile": "Profile",
+    "community": "Community",
+    "companies": "Companies",
+    "badges": "Badges",
+    "leaderboard": "Leaderboard"
+  },
+  "landing": {
+    "hero": {
+      "title": "Protect Your Organization from Phishing Attacks",
+      "subtitle": "PhishAware helps organizations in the MENA region build a security-aware culture through training, simulations, and continuous assessment.",
+      "cta": "Get Started",
+      "learnMore": "Learn More"
+    },
+    "features": {
+      "title": "Why Choose PhishAware?",
+      "training": {
+        "title": "Interactive Training",
+        "description": "Engaging training modules tailored for the MENA region with Arabic language support."
+      },
+      "simulations": {
+        "title": "Phishing Simulations",
+        "description": "Realistic phishing campaigns to test and improve employee awareness."
+      },
+      "analytics": {
+        "title": "Detailed Analytics",
+        "description": "Track progress, identify risks, and measure improvement over time."
+      },
+      "compliance": {
+        "title": "Compliance Ready",
+        "description": "Meet regional security awareness requirements and best practices."
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "riskScore": "Risk Score",
+    "completedQuizzes": "Completed Quizzes",
+    "completedTraining": "Completed Training",
+    "assignedTasks": "Assigned Tasks",
+    "recentActivity": "Recent Activity",
+    "upcomingDeadlines": "Upcoming Deadlines",
+    "performance": "Performance",
+    "totalEmployees": "Total Employees",
+    "activeCampaigns": "Active Campaigns",
+    "averageRiskScore": "Average Risk Score",
+    "completionRate": "Completion Rate"
+  },
+  "employee": {
+    "title": "Employees",
+    "addEmployee": "Add Employee",
+    "inviteEmployee": "Invite Employee",
+    "employeeDetails": "Employee Details",
+    "riskLevel": "Risk Level",
+    "department": "Department",
+    "position": "Position",
+    "joinDate": "Join Date",
+    "lastActive": "Last Active",
+    "riskLevels": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    }
+  },
+  "campaign": {
+    "title": "Campaigns",
+    "createCampaign": "Create Campaign",
+    "campaignDetails": "Campaign Details",
+    "campaignName": "Campaign Name",
+    "description": "Description",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "paused": "Paused"
+    },
+    "targetEmployees": "Target Employees",
+    "assignedQuizzes": "Assigned Quizzes",
+    "assignedTraining": "Assigned Training"
+  },
+  "simulation": {
+    "title": "Simulations",
+    "createSimulation": "Create Simulation",
+    "simulationDetails": "Simulation Details",
+    "template": "Template",
+    "selectTemplate": "Select Template",
+    "generatePackage": "Generate Package",
+    "results": "Results",
+    "clicked": "Clicked",
+    "reported": "Reported",
+    "noAction": "No Action"
+  },
+  "quiz": {
+    "title": "Quizzes",
+    "takeQuiz": "Take Quiz",
+    "quizDetails": "Quiz Details",
+    "questions": "Questions",
+    "timeLimit": "Time Limit",
+    "passingScore": "Passing Score",
+    "score": "Score",
+    "passed": "Passed",
+    "failed": "Failed",
+    "startQuiz": "Start Quiz",
+    "submitQuiz": "Submit Quiz",
+    "nextQuestion": "Next Question",
+    "previousQuestion": "Previous Question",
+    "questionOf": "Question {{current}} of {{total}}"
+  },
+  "training": {
+    "title": "Training",
+    "modules": "Modules",
+    "startTraining": "Start Training",
+    "continueTraining": "Continue Training",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started",
+    "duration": "Duration",
+    "progress": "Progress"
+  },
+  "community": {
+    "title": "Community Portal",
+    "articles": "Articles",
+    "resources": "Resources",
+    "tips": "Security Tips",
+    "latestNews": "Latest News",
+    "readMore": "Read More"
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "notifications": "Notifications",
+    "preferences": "Preferences"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordMismatch": "Passwords do not match",
+    "minLength": "Minimum {{min}} characters required",
+    "maxLength": "Maximum {{max}} characters allowed",
+    "networkError": "Network error. Please try again.",
+    "unauthorized": "You are not authorized to perform this action",
+    "notFound": "Resource not found",
+    "serverError": "Server error. Please try again later."
+  }
+}
