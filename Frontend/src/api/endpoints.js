@@ -103,7 +103,7 @@ export const analyticsAPI = {
 // ============== Gamification ==============
 export const gamificationAPI = {
   getLeaderboard: (params) => api.get('/gamification/leaderboard/', { params }),
-  getMyBadges: () => api.get('/gamification/my-badges/'),
+  getMyBadges: () => api.get('/gamification/badges/my_badges/'),
   getAllBadges: () => api.get('/gamification/badges/'),
   getMyPoints: () => api.get('/gamification/my-points/'),
 };
