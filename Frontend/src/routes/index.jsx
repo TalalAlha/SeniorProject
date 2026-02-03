@@ -29,7 +29,7 @@ import CampaignList from '../pages/company/CampaignList';
 import CampaignCreate from '../pages/company/CampaignCreate';
 import CampaignDetails from '../pages/company/CampaignDetails';
 import CompanySimulations from '../pages/company/CompanySimulations';
-import EmployeeList from '../pages/company/EmployeeList';
+import CompanyEmployees from '../pages/company/CompanyEmployees';
 import CompanyAnalytics from '../pages/company/CompanyAnalytics';
 import TrainingManagement from '../pages/company/TrainingManagement';
 
@@ -108,7 +108,7 @@ const router = createBrowserRouter([
       { path: 'campaigns/create', element: <CampaignCreate /> },
       { path: 'campaigns/:id', element: <CampaignDetails /> },
       { path: 'simulations', element: <CompanySimulations /> },
-      { path: 'employees', element: <EmployeeList /> },
+      { path: 'employees', element: <CompanyEmployees /> },
       { path: 'training', element: <TrainingManagement /> },
       { path: 'analytics', element: <CompanyAnalytics /> },
       { path: 'profile', element: <EmployeeProfile /> },

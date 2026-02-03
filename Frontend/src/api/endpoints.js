@@ -19,6 +19,16 @@ export const companiesAPI = {
   update: (id, data) => api.patch(`/companies/${id}/`, data),
   delete: (id) => api.delete(`/companies/${id}/`),
   getStats: (id) => api.get(`/companies/${id}/stats/`),
+  // Employee management within company
+  getUsers: (companyId, params) => api.get(`/companies/${companyId}/users/`, { params }),
+  addUser: (companyId, data) => api.post(`/companies/${companyId}/users/add/`, data),
+  updateUser: (companyId, userId, data) => api.patch(`/companies/${companyId}/users/${userId}/`, data),
+  removeUser: (companyId, userId) => api.delete(`/companies/${companyId}/users/${userId}/remove/`),
+  inviteUsers: (companyId, emails) => api.post(`/companies/${companyId}/invite_users/`, { emails }),
+  importCSV: (companyId, formData) => api.post(`/companies/${companyId}/import_csv/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  exportUsers: (companyId) => api.get(`/companies/${companyId}/export_users/`, { responseType: 'blob' }),
 };
 
 // ============== Employees ==============
