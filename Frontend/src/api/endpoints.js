@@ -86,6 +86,8 @@ export const trainingAPI = {
   startModule: (id, moduleId) => api.post(`/training/${id}/modules/${moduleId}/start/`),
   completeModule: (id, moduleId) => api.post(`/training/${id}/modules/${moduleId}/complete/`),
   getMyProgress: () => api.get('/training/my-progress/'),
+  // Employee-specific endpoints
+  getMyTrainings: (params) => api.get('/training/assignments/my_trainings/', { params }),
 };
 
 // ============== Analytics ==============
