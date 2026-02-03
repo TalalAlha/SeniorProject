@@ -44,6 +44,8 @@ export const campaignsAPI = {
   delete: (id) => api.delete(`/campaigns/${id}/`),
   assignEmployees: (id, employeeIds) => api.post(`/campaigns/${id}/assign-employees/`, { employee_ids: employeeIds }),
   getProgress: (id) => api.get(`/campaigns/${id}/progress/`),
+  // Employee-specific endpoints
+  getMyQuizzes: (params) => api.get('/campaigns/quizzes/', { params }),
 };
 
 // ============== Simulations ==============
