@@ -37,27 +37,40 @@ export const employeesAPI = {
 
 // ============== Campaigns ==============
 export const campaignsAPI = {
-  list: (params) => api.get('/campaigns/', { params }),
-  create: (data) => api.post('/campaigns/', data),
-  get: (id) => api.get(`/campaigns/${id}/`),
-  update: (id, data) => api.patch(`/campaigns/${id}/`, data),
-  delete: (id) => api.delete(`/campaigns/${id}/`),
-  assignEmployees: (id, employeeIds) => api.post(`/campaigns/${id}/assign-employees/`, { employee_ids: employeeIds }),
-  getProgress: (id) => api.get(`/campaigns/${id}/progress/`),
+  // CRUD operations
+  list: (params) => api.get('/campaigns/campaigns/', { params }),
+  create: (data) => api.post('/campaigns/campaigns/', data),
+  get: (id) => api.get(`/campaigns/campaigns/${id}/`),
+  update: (id, data) => api.patch(`/campaigns/campaigns/${id}/`, data),
+  delete: (id) => api.delete(`/campaigns/campaigns/${id}/`),
+  // Campaign actions
+  activate: (id) => api.post(`/campaigns/campaigns/${id}/activate/`),
+  deactivate: (id) => api.post(`/campaigns/campaigns/${id}/deactivate/`),
+  assignEmployees: (id, employeeIds) => api.post(`/campaigns/campaigns/${id}/assign_to_employees/`, { employee_ids: employeeIds }),
+  unassignEmployees: (id, employeeIds) => api.post(`/campaigns/campaigns/${id}/unassign_employees/`, { employee_ids: employeeIds }),
+  getStatistics: (id) => api.get(`/campaigns/campaigns/${id}/statistics/`),
+  getProgress: (id) => api.get(`/campaigns/campaigns/${id}/progress/`),
+  getAssignedEmployees: (id) => api.get(`/campaigns/campaigns/${id}/assigned_employees/`),
   // Employee-specific endpoints
   getMyQuizzes: (params) => api.get('/campaigns/quizzes/', { params }),
 };
 
 // ============== Simulations ==============
 export const simulationsAPI = {
-  list: (params) => api.get('/simulations/', { params }),
-  create: (data) => api.post('/simulations/', data),
-  get: (id) => api.get(`/simulations/${id}/`),
-  update: (id, data) => api.patch(`/simulations/${id}/`, data),
-  delete: (id) => api.delete(`/simulations/${id}/`),
-  getTemplates: () => api.get('/simulations/templates/'),
-  generatePackage: (id) => api.post(`/simulations/${id}/generate-package/`),
-  getResults: (id) => api.get(`/simulations/${id}/results/`),
+  // CRUD for simulation campaigns
+  list: (params) => api.get('/simulations/campaigns/', { params }),
+  create: (data) => api.post('/simulations/campaigns/', data),
+  get: (id) => api.get(`/simulations/campaigns/${id}/`),
+  update: (id, data) => api.patch(`/simulations/campaigns/${id}/`, data),
+  delete: (id) => api.delete(`/simulations/campaigns/${id}/`),
+  // Templates
+  getTemplates: (params) => api.get('/simulations/templates/', { params }),
+  getTemplate: (id) => api.get(`/simulations/templates/${id}/`),
+  // Simulation actions
+  generatePackage: (id) => api.get(`/simulations/campaigns/${id}/generate_package/`, { responseType: 'blob' }),
+  markSent: (id) => api.post(`/simulations/campaigns/${id}/mark_sent/`),
+  getAnalytics: (id) => api.get(`/simulations/campaigns/${id}/analytics/`),
+  // Tracking (for phishing link clicks)
   recordClick: (trackingId) => api.post(`/simulations/track/${trackingId}/click/`),
   recordReport: (trackingId) => api.post(`/simulations/track/${trackingId}/report/`),
 };
@@ -98,6 +111,7 @@ export const analyticsAPI = {
   getEmployeeStats: (employeeId) => api.get(`/analytics/employee/${employeeId}/`),
   getCampaignAnalytics: (campaignId) => api.get(`/analytics/campaign/${campaignId}/`),
   getRiskTrends: (params) => api.get('/analytics/risk-trends/', { params }),
+  getRiskDistribution: () => api.get('/analytics/risk/distribution/'),
   exportReport: (params) => api.get('/analytics/export/', { params, responseType: 'blob' }),
 };
 

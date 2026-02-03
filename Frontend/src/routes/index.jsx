@@ -28,8 +28,7 @@ import CompanyDashboard from '../pages/company/CompanyDashboard';
 import CampaignList from '../pages/company/CampaignList';
 import CampaignCreate from '../pages/company/CampaignCreate';
 import CampaignDetails from '../pages/company/CampaignDetails';
-import SimulationList from '../pages/company/SimulationList';
-import SimulationCreate from '../pages/company/SimulationCreate';
+import CompanySimulations from '../pages/company/CompanySimulations';
 import EmployeeList from '../pages/company/EmployeeList';
 import CompanyAnalytics from '../pages/company/CompanyAnalytics';
 import TrainingManagement from '../pages/company/TrainingManagement';
@@ -108,8 +107,7 @@ const router = createBrowserRouter([
       { path: 'campaigns', element: <CampaignList /> },
       { path: 'campaigns/create', element: <CampaignCreate /> },
       { path: 'campaigns/:id', element: <CampaignDetails /> },
-      { path: 'simulations', element: <SimulationList /> },
-      { path: 'simulations/create', element: <SimulationCreate /> },
+      { path: 'simulations', element: <CompanySimulations /> },
       { path: 'employees', element: <EmployeeList /> },
       { path: 'training', element: <TrainingManagement /> },
       { path: 'analytics', element: <CompanyAnalytics /> },
