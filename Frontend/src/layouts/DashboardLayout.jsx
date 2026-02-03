@@ -11,6 +11,7 @@ import {
   BookOpen,
   BarChart3,
   Award,
+  Trophy,
   Settings,
   LogOut,
   Building2,
@@ -32,6 +33,7 @@ const getNavItems = (role, t) => {
       { name: t('nav.quizzes'), path: '/employee/quizzes', icon: BookOpen },
       { name: t('nav.training'), path: '/employee/training', icon: Target },
       { name: t('nav.badges'), path: '/employee/badges', icon: Award },
+      { name: t('nav.leaderboard'), path: '/employee/leaderboard', icon: Trophy },
       { name: t('nav.profile'), path: '/employee/profile', icon: Settings },
     ],
     [USER_ROLES.COMPANY_ADMIN]: [

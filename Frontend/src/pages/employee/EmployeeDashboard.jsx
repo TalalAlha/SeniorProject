@@ -2,56 +2,131 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
-  TrendingUp,
-  TrendingDown,
   BookOpen,
   Target,
   Award,
-  Clock,
+  Trophy,
   AlertTriangle,
-  CheckCircle,
   ArrowRight,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Clock,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts';
-import { analyticsAPI, quizzesAPI, trainingAPI } from '../../api';
+import { trainingAPI, campaignsAPI, gamificationAPI } from '../../api';
 import clsx from 'clsx';
 
-function StatCard({ title, value, icon: Icon, trend, trendValue, color = 'primary' }) {
+// Risk score configuration
+const RISK_CONFIG = {
+  LOW: { min: 0, max: 30, label: 'Low Risk', color: 'success', bgColor: 'bg-success-500', textColor: 'text-success-600' },
+  MEDIUM: { min: 31, max: 60, label: 'Medium Risk', color: 'warning', bgColor: 'bg-warning-500', textColor: 'text-warning-600' },
+  HIGH: { min: 61, max: 80, label: 'High Risk', color: 'orange', bgColor: 'bg-orange-500', textColor: 'text-orange-600' },
+  CRITICAL: { min: 81, max: 100, label: 'Critical Risk', color: 'danger', bgColor: 'bg-danger-500', textColor: 'text-danger-600' },
+};
+
+// Circular Progress Gauge Component
+function RiskScoreGauge({ score, riskLevel, requiresRemediation }) {
+  const radius = 80;
+  const strokeWidth = 12;
+  const normalizedRadius = radius - strokeWidth / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  const config = RISK_CONFIG[riskLevel] || RISK_CONFIG.LOW;
+
+  const getStrokeColor = () => {
+    switch (riskLevel) {
+      case 'LOW': return '#22c55e';
+      case 'MEDIUM': return '#eab308';
+      case 'HIGH': return '#f97316';
+      case 'CRITICAL': return '#ef4444';
+      default: return '#22c55e';
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+          {/* Background circle */}
+          <circle
+            stroke="#e5e7eb"
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          {/* Progress circle */}
+          <circle
+            stroke={getStrokeColor()}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference + ' ' + circumference}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={clsx('text-4xl font-bold', config.textColor)}>{score}</span>
+          <span className="text-sm text-gray-500">/ 100</span>
+        </div>
+      </div>
+      <div className="mt-4 text-center">
+        <span className={clsx('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
+          riskLevel === 'LOW' && 'bg-success-100 text-success-700',
+          riskLevel === 'MEDIUM' && 'bg-warning-100 text-warning-700',
+          riskLevel === 'HIGH' && 'bg-orange-100 text-orange-700',
+          riskLevel === 'CRITICAL' && 'bg-danger-100 text-danger-700'
+        )}>
+          <AlertTriangle className="h-4 w-4" />
+          {config.label}
+        </span>
+      </div>
+      {requiresRemediation && (
+        <div className="mt-3 p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>Action required: Complete pending training to improve your score</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Quick Stat Card Component
+function QuickStatCard({ title, value, subtitle, icon: Icon, color, linkTo, linkText }) {
   const colorClasses = {
     primary: 'bg-primary-100 text-primary-600',
     success: 'bg-success-50 text-success-600',
     warning: 'bg-warning-50 text-warning-600',
     danger: 'bg-danger-50 text-danger-600',
+    purple: 'bg-purple-100 text-purple-600',
   };
 
   return (
     <div className="card">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {trend && (
-            <div className="flex items-center mt-2">
-              {trend === 'up' ? (
-                <TrendingUp className="h-4 w-4 text-success-500 mr-1" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-danger-500 mr-1" />
-              )}
-              <span
-                className={clsx(
-                  'text-sm',
-                  trend === 'up' ? 'text-success-600' : 'text-danger-600'
-                )}
-              >
-                {trendValue}
-              </span>
-            </div>
-          )}
-        </div>
+      <div className="flex items-start justify-between mb-3">
         <div className={clsx('p-3 rounded-lg', colorClasses[color])}>
           <Icon className="h-6 w-6" />
         </div>
       </div>
+      <p className="text-sm text-gray-500">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+      {linkTo && (
+        <Link
+          to={linkTo}
+          className="mt-3 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+        >
+          {linkText}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
     </div>
   );
 }
@@ -60,195 +135,247 @@ function EmployeeDashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
+  const [dashboardData, setDashboardData] = useState({
+    riskScore: null,
+    pendingQuizzes: 0,
+    inProgressQuizzes: 0,
+    pendingTraining: 0,
+    earnedBadges: [],
+    leaderboardPosition: null,
+  });
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch all data in parallel
+      const [
+        riskScoreRes,
+        pendingQuizzesRes,
+        inProgressQuizzesRes,
+        pendingTrainingRes,
+        badgesRes,
+        positionRes,
+      ] = await Promise.all([
+        trainingAPI.getMyRiskScore().catch(() => ({ data: null })),
+        campaignsAPI.getMyQuizzes({ status: 'NOT_STARTED' }).catch(() => ({ data: { results: [] } })),
+        campaignsAPI.getMyQuizzes({ status: 'IN_PROGRESS' }).catch(() => ({ data: { results: [] } })),
+        trainingAPI.getMyTrainings({ status: 'ASSIGNED' }).catch(() => ({ data: { results: [] } })),
+        gamificationAPI.getMyBadges().catch(() => ({ data: { results: [] } })),
+        gamificationAPI.getMyPosition().catch(() => ({ data: null })),
+      ]);
+
+      // Process data
+      const pendingQuizzes = riskScoreRes.data?.results || pendingQuizzesRes.data || [];
+      const inProgressQuizzes = inProgressQuizzesRes.data?.results || inProgressQuizzesRes.data || [];
+      const pendingTraining = pendingTrainingRes.data?.results || pendingTrainingRes.data || [];
+      const badges = badgesRes.data?.results || badgesRes.data || [];
+
+      setDashboardData({
+        riskScore: riskScoreRes.data,
+        pendingQuizzes: Array.isArray(pendingQuizzes) ? pendingQuizzes.length : 0,
+        inProgressQuizzes: Array.isArray(inProgressQuizzes) ? inProgressQuizzes.length : 0,
+        pendingTraining: Array.isArray(pendingTraining) ? pendingTraining.length : 0,
+        earnedBadges: Array.isArray(badges) ? badges.slice(0, 3) : [],
+        leaderboardPosition: positionRes.data,
+      });
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Failed to load dashboard data';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Fetch dashboard data
-    const fetchData = async () => {
-      try {
-        // In a real app, you'd fetch this from the API
-        // const response = await analyticsAPI.getDashboardStats();
-        // setStats(response.data);
-
-        // Placeholder data for now
-        setStats({
-          riskScore: 35,
-          completedQuizzes: 8,
-          totalQuizzes: 12,
-          completedTraining: 5,
-          totalTraining: 8,
-          badges: 3,
-          points: 1250,
-        });
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchDashboardData();
   }, []);
 
-  const getRiskLevel = (score) => {
-    if (score <= 30) return { label: t('employee.riskLevels.low'), color: 'success' };
-    if (score <= 60) return { label: t('employee.riskLevels.medium'), color: 'warning' };
-    return { label: t('employee.riskLevels.high'), color: 'danger' };
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  const riskLevel = getRiskLevel(stats?.riskScore || 0);
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  const { riskScore, pendingQuizzes, inProgressQuizzes, pendingTraining, earnedBadges, leaderboardPosition } = dashboardData;
+  const weeklyRank = leaderboardPosition?.weekly?.rank;
+  const weeklyPoints = leaderboardPosition?.weekly?.points || 0;
 
   return (
     <div className="fade-in space-y-6">
-      {/* Welcome Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {t('dashboard.welcome')}, {user?.first_name}!
-        </h1>
-        <p className="text-gray-600 mt-1">
-          Here's an overview of your security awareness progress.
-        </p>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('dashboard.welcome')}, {user?.first_name || 'there'}!
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Here's an overview of your security awareness progress.
+          </p>
+        </div>
+        <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title={t('dashboard.riskScore')}
-          value={`${stats?.riskScore}%`}
-          icon={AlertTriangle}
-          color={riskLevel.color}
-        />
-        <StatCard
-          title={t('dashboard.completedQuizzes')}
-          value={`${stats?.completedQuizzes}/${stats?.totalQuizzes}`}
-          icon={BookOpen}
-          color="primary"
-          trend="up"
-          trendValue="+2 this week"
-        />
-        <StatCard
-          title={t('dashboard.completedTraining')}
-          value={`${stats?.completedTraining}/${stats?.totalTraining}`}
-          icon={Target}
-          color="success"
-        />
-        <StatCard
-          title={t('nav.badges')}
-          value={stats?.badges}
-          icon={Award}
-          color="warning"
-        />
-      </div>
-
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Assigned Tasks */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('dashboard.assignedTasks')}
-            </h2>
-            <Link
-              to="/employee/quizzes"
-              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-            >
-              {t('common.view')} {t('common.all')}
-            </Link>
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Risk Score Card - Large */}
+        <div className="card lg:row-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.riskScore')}</h2>
+            <AlertTriangle className={clsx('h-5 w-5',
+              riskScore?.risk_level === 'LOW' && 'text-success-500',
+              riskScore?.risk_level === 'MEDIUM' && 'text-warning-500',
+              riskScore?.risk_level === 'HIGH' && 'text-orange-500',
+              riskScore?.risk_level === 'CRITICAL' && 'text-danger-500',
+              !riskScore?.risk_level && 'text-gray-400'
+            )} />
           </div>
-          <div className="space-y-4">
-            {[
-              { name: 'Phishing Awareness Quiz', type: 'Quiz', due: '2 days', status: 'pending' },
-              { name: 'Email Security Training', type: 'Training', due: '5 days', status: 'in_progress' },
-              { name: 'Social Engineering Test', type: 'Quiz', due: '1 week', status: 'pending' },
-            ].map((task, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={clsx(
-                      'p-2 rounded-lg',
-                      task.type === 'Quiz' ? 'bg-primary-100' : 'bg-success-50'
-                    )}
-                  >
-                    {task.type === 'Quiz' ? (
-                      <BookOpen className="h-5 w-5 text-primary-600" />
-                    ) : (
-                      <Target className="h-5 w-5 text-success-600" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{task.name}</p>
-                    <p className="text-sm text-gray-500">
-                      <Clock className="h-3 w-3 inline mr-1" />
-                      Due in {task.due}
-                    </p>
-                  </div>
+
+          {riskScore ? (
+            <>
+              <RiskScoreGauge
+                score={riskScore.score || 0}
+                riskLevel={riskScore.risk_level || 'LOW'}
+                requiresRemediation={riskScore.requires_remediation}
+              />
+
+              {/* Score Breakdown */}
+              <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Quiz Accuracy</span>
+                  <span className="font-medium text-gray-900">
+                    {Math.round((riskScore.quiz_accuracy || 0) * 100)}%
+                  </span>
                 </div>
-                <span
-                  className={clsx(
-                    'text-xs font-medium px-2 py-1 rounded-full',
-                    task.status === 'pending'
-                      ? 'bg-warning-50 text-warning-700'
-                      : 'bg-primary-50 text-primary-700'
-                  )}
-                >
-                  {task.status === 'pending' ? 'Pending' : 'In Progress'}
-                </span>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Simulation Click Rate</span>
+                  <span className="font-medium text-gray-900">
+                    {Math.round((riskScore.simulation_click_rate || 0) * 100)}%
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p>No risk score available yet</p>
+              <p className="text-sm">Complete quizzes and training to get your score</p>
+            </div>
+          )}
         </div>
 
-        {/* Recent Activity */}
-        <div className="card">
+        {/* Quick Stats - 2x2 Grid */}
+        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+          <QuickStatCard
+            title="Pending Quizzes"
+            value={pendingQuizzes + inProgressQuizzes}
+            subtitle={inProgressQuizzes > 0 ? `${inProgressQuizzes} in progress` : null}
+            icon={BookOpen}
+            color="primary"
+            linkTo="/employee/quizzes"
+            linkText="Take Quiz"
+          />
+          <QuickStatCard
+            title="Pending Training"
+            value={pendingTraining}
+            subtitle="Modules assigned"
+            icon={Target}
+            color="success"
+            linkTo="/employee/training"
+            linkText="Start Training"
+          />
+          <QuickStatCard
+            title="Badges Earned"
+            value={earnedBadges.length}
+            subtitle="achievements unlocked"
+            icon={Award}
+            color="warning"
+            linkTo="/employee/badges"
+            linkText="View All"
+          />
+          <QuickStatCard
+            title="Leaderboard Rank"
+            value={weeklyRank ? `#${weeklyRank}` : '-'}
+            subtitle={`${weeklyPoints} points this week`}
+            icon={Trophy}
+            color="purple"
+            linkTo="/employee/leaderboard"
+            linkText="View Leaderboard"
+          />
+        </div>
+
+        {/* Recent Badges */}
+        <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('dashboard.recentActivity')}
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">Recent Badges</h2>
+            <Link
+              to="/employee/badges"
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
+            >
+              View All
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <div className="space-y-4">
-            {[
-              { action: 'Completed Quiz', item: 'Password Security', time: '2 hours ago', icon: CheckCircle, color: 'success' },
-              { action: 'Started Training', item: 'Phishing Detection', time: '1 day ago', icon: Target, color: 'primary' },
-              { action: 'Earned Badge', item: 'Quick Learner', time: '2 days ago', icon: Award, color: 'warning' },
-              { action: 'Completed Quiz', item: 'Basic Security', time: '3 days ago', icon: CheckCircle, color: 'success' },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div
-                  className={clsx(
-                    'p-2 rounded-lg',
-                    activity.color === 'success' && 'bg-success-50',
-                    activity.color === 'primary' && 'bg-primary-100',
-                    activity.color === 'warning' && 'bg-warning-50'
-                  )}
-                >
-                  <activity.icon
-                    className={clsx(
-                      'h-5 w-5',
-                      activity.color === 'success' && 'text-success-600',
-                      activity.color === 'primary' && 'text-primary-600',
-                      activity.color === 'warning' && 'text-warning-600'
-                    )}
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500">{activity.item}</p>
-                </div>
-                <span className="text-xs text-gray-400">{activity.time}</span>
-              </div>
-            ))}
-          </div>
+
+          {earnedBadges.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {earnedBadges.map((item, index) => {
+                const badge = item.badge || item;
+                return (
+                  <div
+                    key={badge.id || index}
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-warning-50 to-warning-100 rounded-lg"
+                  >
+                    <div className="text-3xl">{badge.icon || '🏅'}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{badge.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {item.awarded_at ? `Earned ${formatDate(item.awarded_at)}` : 'Recently earned'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Award className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+              <p>No badges earned yet</p>
+              <p className="text-sm">Complete quizzes and training to earn badges!</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -264,7 +391,11 @@ function EmployeeDashboard() {
             </div>
             <div>
               <p className="font-medium text-gray-900">{t('quiz.takeQuiz')}</p>
-              <p className="text-sm text-gray-500">4 quizzes available</p>
+              <p className="text-sm text-gray-500">
+                {pendingQuizzes + inProgressQuizzes > 0
+                  ? `${pendingQuizzes + inProgressQuizzes} quizzes available`
+                  : 'No quizzes pending'}
+              </p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -280,23 +411,29 @@ function EmployeeDashboard() {
             </div>
             <div>
               <p className="font-medium text-gray-900">{t('training.continueTraining')}</p>
-              <p className="text-sm text-gray-500">3 modules in progress</p>
+              <p className="text-sm text-gray-500">
+                {pendingTraining > 0
+                  ? `${pendingTraining} modules pending`
+                  : 'All training complete'}
+              </p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
         </Link>
 
         <Link
-          to="/employee/badges"
+          to="/employee/leaderboard"
           className="card-hover flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-warning-50">
-              <Award className="h-6 w-6 text-warning-600" />
+            <div className="p-3 rounded-lg bg-purple-100">
+              <Trophy className="h-6 w-6 text-purple-600" />
             </div>
             <div>
               <p className="font-medium text-gray-900">{t('nav.leaderboard')}</p>
-              <p className="text-sm text-gray-500">Rank #12 in company</p>
+              <p className="text-sm text-gray-500">
+                {weeklyRank ? `Rank #${weeklyRank} this week` : 'View rankings'}
+              </p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />

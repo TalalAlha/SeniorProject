@@ -88,6 +88,7 @@ export const trainingAPI = {
   getMyProgress: () => api.get('/training/my-progress/'),
   // Employee-specific endpoints
   getMyTrainings: (params) => api.get('/training/assignments/my_trainings/', { params }),
+  getMyRiskScore: () => api.get('/training/risk-scores/my_score/'),
 };
 
 // ============== Analytics ==============
@@ -103,6 +104,7 @@ export const analyticsAPI = {
 // ============== Gamification ==============
 export const gamificationAPI = {
   getLeaderboard: (params) => api.get('/gamification/leaderboard/', { params }),
+  getMyPosition: () => api.get('/gamification/leaderboard/my_position/'),
   getMyBadges: () => api.get('/gamification/badges/my_badges/'),
   getAllBadges: () => api.get('/gamification/badges/'),
   getMyPoints: () => api.get('/gamification/my-points/'),
