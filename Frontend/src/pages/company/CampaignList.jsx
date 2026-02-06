@@ -315,16 +315,9 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const [employeesRes, assignedRes] = await Promise.all([
-        companiesAPI.getUsers(companyId, { limit: 100 }),
-        campaignsAPI.getAssignedEmployees(campaign.id).catch(() => ({ data: [] })),
-      ]);
-
+      const employeesRes = await companiesAPI.getUsers(companyId, { limit: 100 });
       const employeeList = employeesRes.data?.results || employeesRes.data || [];
-      const assignedList = assignedRes.data?.results || assignedRes.data || [];
-
       setEmployees(employeeList);
-      setAssignedIds(new Set(assignedList.map(e => e.id || e.employee_id)));
     } catch (err) {
       toast.error('Failed to load employees');
     } finally {

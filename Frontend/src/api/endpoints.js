@@ -60,7 +60,6 @@ export const campaignsAPI = {
   unassignEmployees: (id, employeeIds) => api.post(`/campaigns/campaigns/${id}/unassign_employees/`, { employee_ids: employeeIds }),
   getStatistics: (id) => api.get(`/campaigns/campaigns/${id}/statistics/`),
   getProgress: (id) => api.get(`/campaigns/campaigns/${id}/progress/`),
-  getAssignedEmployees: (id) => api.get(`/campaigns/campaigns/${id}/assigned_employees/`),
   // Employee-specific endpoints
   getMyQuizzes: (params) => api.get('/campaigns/quizzes/', { params }),
 };
@@ -77,7 +76,7 @@ export const simulationsAPI = {
   getTemplates: (params) => api.get('/simulations/templates/', { params }),
   getTemplate: (id) => api.get(`/simulations/templates/${id}/`),
   // Simulation actions
-  generatePackage: (id) => api.get(`/simulations/campaigns/${id}/generate_package/`, { responseType: 'blob' }),
+  generatePackage: (id) => api.post(`/simulations/campaigns/${id}/generate_package/`, {}, { responseType: 'blob' }),
   markSent: (id) => api.post(`/simulations/campaigns/${id}/mark_sent/`),
   getAnalytics: (id) => api.get(`/simulations/campaigns/${id}/analytics/`),
   // Tracking (for phishing link clicks)

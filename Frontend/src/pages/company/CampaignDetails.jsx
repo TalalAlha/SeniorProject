@@ -152,16 +152,9 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const [employeesRes, assignedRes] = await Promise.all([
-        companiesAPI.getUsers(companyId, { limit: 100 }),
-        campaignsAPI.getAssignedEmployees(campaign.id).catch(() => ({ data: [] })),
-      ]);
-
+      const employeesRes = await companiesAPI.getUsers(companyId, { limit: 100 });
       const employeeList = employeesRes.data?.results || employeesRes.data || [];
-      const assignedList = assignedRes.data?.results || assignedRes.data || [];
-
       setEmployees(employeeList);
-      setAssignedIds(new Set(assignedList.map(e => e.id || e.employee_id)));
     } catch (err) {
       toast.error('Failed to load employees');
     } finally {
@@ -380,15 +373,39 @@ function CampaignDetails() {
     setLoading(true);
     setError(null);
     try {
-      const [campaignRes, statsRes, employeesRes] = await Promise.all([
+      const [campaignRes, statsRes] = await Promise.all([
         campaignsAPI.get(id),
         campaignsAPI.getStatistics(id).catch(() => ({ data: null })),
-        campaignsAPI.getAssignedEmployees(id).catch(() => ({ data: [] })),
       ]);
 
       setCampaign(campaignRes.data);
       setStatistics(statsRes.data);
-      setAssignedEmployees(employeesRes.data?.results || employeesRes.data || []);
+
+      // Derive assigned employees from statistics data (top_performers + needs_training)
+      if (statsRes.data) {
+        const topPerformers = statsRes.data.top_performers || [];
+        const needsTraining = statsRes.data.needs_training || [];
+        const employeeMap = new Map();
+        [...topPerformers, ...needsTraining].forEach(result => {
+          const empId = result.employee;
+          if (empId && !employeeMap.has(empId)) {
+            employeeMap.set(empId, {
+              id: empId,
+              employee_id: empId,
+              first_name: result.employee_name?.split(' ')[0] || '',
+              last_name: result.employee_name?.split(' ').slice(1).join(' ') || '',
+              email: result.email || '',
+              quiz_status: result.score !== undefined ? 'COMPLETED' : 'NOT_STARTED',
+              score: result.score,
+              progress: result.score !== undefined ? 100 : 0,
+              risk_level: result.risk_level,
+            });
+          }
+        });
+        setAssignedEmployees(Array.from(employeeMap.values()));
+      } else {
+        setAssignedEmployees([]);
+      }
     } catch (err) {
       const message = err.response?.data?.detail || 'Failed to load campaign';
       setError(message);

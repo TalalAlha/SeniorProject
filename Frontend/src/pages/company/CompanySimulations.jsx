@@ -179,6 +179,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
   const [employees, setEmployees] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
     template: null,
     target_all_employees: false,
     target_employee_ids: [],
@@ -191,6 +192,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
       setStep(1);
       setFormData({
         name: '',
+        description: '',
         template: null,
         target_all_employees: false,
         target_employee_ids: [],
@@ -263,6 +265,8 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
     try {
       const payload = {
         name: formData.name,
+        description: formData.description,
+        company: companyId,
         template: formData.template,
         target_all_employees: formData.target_all_employees,
         target_employee_ids: formData.target_all_employees ? [] : formData.target_employee_ids,
@@ -348,6 +352,17 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="input"
               placeholder="e.g., Q1 Phishing Test"
+            />
+          </div>
+
+          <div>
+            <label className="label">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="input min-h-[80px] resize-y"
+              placeholder="Brief description of this simulation"
+              rows={3}
             />
           </div>
 
@@ -517,6 +532,12 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                 <p className="text-sm text-gray-500">Template</p>
                 <p className="font-medium">{selectedTemplate?.name || 'N/A'}</p>
               </div>
+              {formData.description && (
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-500">Description</p>
+                  <p className="font-medium">{formData.description}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-500">Target Employees</p>
                 <p className="font-medium">

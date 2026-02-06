@@ -214,12 +214,13 @@ class SimulationCampaignCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SimulationCampaign
         fields = [
-            'name', 'name_ar', 'description', 'description_ar', 'company',
+            'id', 'name', 'name_ar', 'description', 'description_ar', 'company',
             'template', 'status', 'send_date', 'end_date',
             'target_all_employees', 'target_employee_ids',
             'track_email_opens', 'track_link_clicks', 'track_credentials',
             'notify_on_click', 'notify_on_credential_entry'
         ]
+        read_only_fields = ['id']
 
     def validate_template(self, value):
         """Validate template belongs to the user's company or is public."""
