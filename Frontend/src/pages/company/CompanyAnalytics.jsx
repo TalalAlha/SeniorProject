@@ -427,7 +427,7 @@ function CompanyAnalytics() {
   async function handleExport(type) {
     setExporting(type);
     try {
-      const res = await analyticsAPI.exportCSV({ type, period });
+      const res = await analyticsAPI.exportCSV({ export_type: type, period });
       const blob = res.data instanceof Blob ? res.data : new Blob([res.data], { type: 'text/csv' });
       downloadBlob(blob, `phishaware-${type}-${period}.csv`);
       toast.success('Report exported successfully');
@@ -924,10 +924,10 @@ function CompanyAnalytics() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
         <div className="flex flex-wrap gap-3">
           {[
-            { key: 'full', label: 'Export Full Report' },
-            { key: 'risk', label: 'Export Risk Data' },
-            { key: 'campaigns', label: 'Export Campaign Data' },
-            { key: 'simulations', label: 'Export Simulation Data' },
+            { key: 'campaigns', label: 'Export Campaigns' },
+            { key: 'simulations', label: 'Export Simulations' },
+            { key: 'risk_scores', label: 'Export Risk Scores' },
+            { key: 'training', label: 'Export Training' },
           ].map((btn) => (
             <button
               key={btn.key}
