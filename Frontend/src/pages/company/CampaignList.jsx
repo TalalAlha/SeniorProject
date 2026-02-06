@@ -26,7 +26,7 @@ import {
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
-import { campaignsAPI, employeesAPI } from '../../api';
+import { campaignsAPI, companiesAPI } from '../../api';
 import { useAuth } from '../../contexts';
 
 // Status configuration
@@ -297,23 +297,26 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
 
 // Assign Employees Modal
 function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [assignedIds, setAssignedIds] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
 
+  const companyId = user?.company_id || user?.company;
+
   useEffect(() => {
-    if (isOpen && campaign) {
+    if (isOpen && campaign && companyId) {
       fetchEmployees();
     }
-  }, [isOpen, campaign]);
+  }, [isOpen, campaign, companyId]);
 
   const fetchEmployees = async () => {
     setLoading(true);
     try {
       const [employeesRes, assignedRes] = await Promise.all([
-        employeesAPI.list({ limit: 100 }),
+        companiesAPI.getUsers(companyId, { limit: 100 }),
         campaignsAPI.getAssignedEmployees(campaign.id).catch(() => ({ data: [] })),
       ]);
 

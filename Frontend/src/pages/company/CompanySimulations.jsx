@@ -30,7 +30,8 @@ import {
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
-import { simulationsAPI, employeesAPI } from '../../api';
+import { simulationsAPI, companiesAPI } from '../../api';
+import { useAuth } from '../../contexts';
 
 // Status configuration
 const STATUS_CONFIG = {
@@ -168,6 +169,8 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
 
 // Create Simulation Modal - Multi-step
 function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
+  const { user } = useAuth();
+  const companyId = user?.company_id || user?.company;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -213,7 +216,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
   const fetchEmployees = async () => {
     setLoadingEmployees(true);
     try {
-      const response = await employeesAPI.list({ limit: 200 });
+      const response = await companiesAPI.getUsers(companyId, { limit: 200 });
       setEmployees(response.data?.results || response.data || []);
     } catch (err) {
       toast.error('Failed to load employees');
