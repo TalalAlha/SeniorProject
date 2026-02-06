@@ -173,6 +173,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
   const companyId = user?.company_id || user?.company;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [templates, setTemplates] = useState([]);
@@ -285,7 +286,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
 
   const handleDownloadPackage = async () => {
     if (!createdSimulation) return;
-    setLoading(true);
+    setDownloading(true);
     try {
       const response = await simulationsAPI.generatePackage(createdSimulation.id);
       // Create blob and download
@@ -302,7 +303,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
     } catch (err) {
       toast.error('Failed to download package');
     } finally {
-      setLoading(false);
+      setDownloading(false);
     }
   };
 
@@ -606,11 +607,11 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
 
           <button
             onClick={handleDownloadPackage}
-            disabled={loading}
+            disabled={downloading}
             className="btn-primary w-full flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Download Email Package (CSV)
+            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {downloading ? 'Downloading...' : 'Download Email Package (CSV)'}
           </button>
 
           <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg text-left">
@@ -635,6 +636,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
 // Simulation Details Modal
 function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [markingAsSent, setMarkingAsSent] = useState(false);
 
@@ -658,7 +660,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
   };
 
   const handleDownloadPackage = async () => {
-    setLoading(true);
+    setDownloading(true);
     try {
       const response = await simulationsAPI.generatePackage(simulation.id);
       const blob = new Blob([response.data], { type: 'text/csv' });
@@ -674,7 +676,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
     } catch (err) {
       toast.error('Failed to download package');
     } finally {
-      setLoading(false);
+      setDownloading(false);
     }
   };
 
@@ -726,11 +728,11 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                 <>
                   <button
                     onClick={handleDownloadPackage}
-                    disabled={loading}
+                    disabled={downloading}
                     className="btn-secondary flex items-center gap-2"
                   >
-                    <Download className="h-4 w-4" />
-                    Download Package
+                    {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    {downloading ? 'Downloading...' : 'Download Package'}
                   </button>
                   <button
                     onClick={handleMarkAsSent}
