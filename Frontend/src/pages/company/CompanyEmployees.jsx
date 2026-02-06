@@ -968,22 +968,36 @@ function CompanyEmployees() {
     }
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await companiesAPI.exportUsers(companyId);
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `employees-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success('Employees exported successfully');
-    } catch (err) {
-      toast.error('Failed to export employees');
+  const handleExport = () => {
+    if (employees.length === 0) {
+      toast.error('No employees to export');
+      return;
     }
+
+    const headers = ['First Name', 'Last Name', 'Email', 'Role', 'Status', 'Risk Score'];
+    const rows = employees.map(emp => [
+      emp.first_name || '',
+      emp.last_name || '',
+      emp.email || '',
+      ROLE_CONFIG[emp.role]?.label || emp.role || '',
+      emp.is_active ? 'Active' : 'Inactive',
+      emp.risk_score?.score ?? 'N/A',
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `employees-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    toast.success(`Exported ${employees.length} employees`);
   };
 
   // Sort indicator
