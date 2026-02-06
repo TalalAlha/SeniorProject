@@ -27,6 +27,7 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 import { campaignsAPI, employeesAPI } from '../../api';
+import { useAuth } from '../../contexts';
 
 // Status configuration
 const STATUS_CONFIG = {
@@ -139,10 +140,11 @@ function DropdownMenu({ trigger, items }) {
 
 // Create/Edit Campaign Modal
 function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
-  const { t } = useTranslation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
     num_emails: 10,
     phishing_ratio: 0.5,
   });
@@ -151,11 +153,12 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
     if (campaign) {
       setFormData({
         name: campaign.name || '',
+        description: campaign.description || '',
         num_emails: campaign.num_emails || 10,
         phishing_ratio: campaign.phishing_ratio || 0.5,
       });
     } else {
-      setFormData({ name: '', num_emails: 10, phishing_ratio: 0.5 });
+      setFormData({ name: '', description: '', num_emails: 10, phishing_ratio: 0.5 });
     }
   }, [campaign, isOpen]);
 
@@ -164,11 +167,16 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
     setLoading(true);
 
     try {
+      const payload = {
+        ...formData,
+        ...(!campaign && user?.company ? { company: user.company } : {}),
+      };
+
       if (campaign) {
-        await campaignsAPI.update(campaign.id, formData);
+        await campaignsAPI.update(campaign.id, payload);
         toast.success('Campaign updated successfully');
       } else {
-        await campaignsAPI.create(formData);
+        await campaignsAPI.create(payload);
         toast.success('Campaign created successfully');
       }
       onSuccess();
@@ -197,6 +205,18 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
             className="input"
             placeholder="e.g., Q1 Security Awareness"
             required
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="label">Description</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="input min-h-[80px] resize-y"
+            placeholder="Brief description of this campaign's purpose"
+            rows={3}
           />
         </div>
 

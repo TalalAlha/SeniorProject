@@ -1,153 +1,957 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { BarChart3, TrendingDown, TrendingUp, Users, Target, Calendar, Download } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  TrendingDown,
+  TrendingUp,
+  Target,
+  Download,
+  RefreshCw,
+  AlertCircle,
+  AlertTriangle,
+  MousePointerClick,
+  BookOpen,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  X,
+  Loader2,
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 import clsx from 'clsx';
+import { format } from 'date-fns';
+import { analyticsAPI, campaignsAPI, simulationsAPI } from '../../api';
+import {
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
+
+// ── Constants ──────────────────────────────────────────────
+
+const PERIODS = [
+  { key: '7d', label: '7 Days' },
+  { key: '30d', label: '30 Days' },
+  { key: '90d', label: '90 Days' },
+];
+
+const RISK_COLORS = {
+  LOW: '#22c55e',
+  MEDIUM: '#eab308',
+  HIGH: '#f97316',
+  CRITICAL: '#ef4444',
+};
+
+const RISK_LABELS = {
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+  CRITICAL: 'Critical',
+};
+
+const ROWS_PER_PAGE = 10;
+
+// ── Helpers ────────────────────────────────────────────────
+
+function getRiskColor(score) {
+  if (score < 30) return 'text-success-600';
+  if (score < 60) return 'text-warning-600';
+  if (score < 80) return 'text-orange-600';
+  return 'text-danger-600';
+}
+
+function getRiskBg(score) {
+  if (score < 30) return 'bg-success-50 text-success-700';
+  if (score < 60) return 'bg-warning-50 text-warning-700';
+  if (score < 80) return 'bg-orange-100 text-orange-700';
+  return 'bg-danger-50 text-danger-700';
+}
+
+function formatPct(value) {
+  if (value == null) return '0%';
+  const n = typeof value === 'number' && value <= 1 ? value * 100 : value;
+  return `${Math.round(n)}%`;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    return format(new Date(d), 'MMM d, yyyy');
+  } catch {
+    return d;
+  }
+}
+
+function formatShortDate(d) {
+  if (!d) return '';
+  try {
+    return format(new Date(d), 'MMM d');
+  } catch {
+    return d;
+  }
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ── Sub-components ─────────────────────────────────────────
+
+function MetricCard({ label, value, icon: Icon, color = 'primary', trend, trendValue }) {
+  const iconBg = {
+    primary: 'bg-primary-100 text-primary-600',
+    success: 'bg-success-50 text-success-600',
+    warning: 'bg-warning-50 text-warning-600',
+    danger: 'bg-danger-50 text-danger-600',
+    orange: 'bg-orange-100 text-orange-600',
+  };
+
+  return (
+    <div className="card">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm text-gray-500">{label}</p>
+          <p className={clsx('text-3xl font-bold mt-1', color === 'danger' ? 'text-danger-600' : 'text-gray-900')}>
+            {value}
+          </p>
+          {trend && (
+            <div className="flex items-center mt-2">
+              {trend === 'up' ? (
+                <TrendingUp className="h-4 w-4 text-success-500 mr-1" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-danger-500 mr-1" />
+              )}
+              <span className={clsx('text-sm', trend === 'up' ? 'text-success-600' : 'text-danger-600')}>
+                {trendValue}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className={clsx('p-3 rounded-lg', iconBg[color])}>
+          <Icon className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
+  const active = currentSort === sortKey;
+  return (
+    <th
+      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+      onClick={() => onSort(sortKey)}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        <span className="inline-flex flex-col">
+          <ChevronUp className={clsx('h-3 w-3 -mb-1', active && currentDir === 'asc' ? 'text-primary-600' : 'text-gray-300')} />
+          <ChevronDown className={clsx('h-3 w-3', active && currentDir === 'desc' ? 'text-primary-600' : 'text-gray-300')} />
+        </span>
+      </div>
+    </th>
+  );
+}
+
+function Pagination({ page, totalPages, onPageChange }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between px-4 py-3 border-t">
+      <p className="text-sm text-gray-500">
+        Page {page} of {totalPages}
+      </p>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 1}
+          className="p-1 rounded hover:bg-gray-100 disabled:opacity-40"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages}
+          className="p-1 rounded hover:bg-gray-100 disabled:opacity-40"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Modal for assigning training
+function AssignTrainingModal({ isOpen, onClose, employee }) {
+  if (!isOpen || !employee) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="flex items-center justify-between p-6 border-b">
+            <h2 className="text-xl font-semibold text-gray-900">Assign Training</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+          <div className="p-6">
+            <p className="text-gray-600 mb-4">
+              Assign remediation training to <span className="font-medium text-gray-900">{employee.first_name} {employee.last_name}</span> (Risk Score: <span className="font-semibold text-danger-600">{employee.risk_score}</span>)
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              This feature will assign all pending remediation training modules to the employee and notify them via email.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={onClose} className="btn-secondary">Cancel</button>
+              <button
+                onClick={() => {
+                  toast.success(`Training assigned to ${employee.first_name} ${employee.last_name}`);
+                  onClose();
+                }}
+                className="btn-primary"
+              >
+                Assign Training
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Custom Recharts tooltip
+function ChartTooltip({ active, payload, label, formatter }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
+      <p className="font-medium text-gray-900 mb-1">{label}</p>
+      {payload.map((entry, i) => (
+        <p key={i} style={{ color: entry.color || entry.stroke }}>
+          {entry.name}: {formatter ? formatter(entry.value) : entry.value}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ── Main Component ─────────────────────────────────────────
 
 function CompanyAnalytics() {
-  const { t } = useTranslation();
+  // State
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState('30d');
+  const [error, setError] = useState(null);
+  const [period, setPeriod] = useState('30d');
+  const [activeTab, setActiveTab] = useState('campaigns');
+  const [exporting, setExporting] = useState(null);
+
+  const [overview, setOverview] = useState(null);
+  const [trends, setTrends] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [simulations, setSimulations] = useState([]);
+  const [highRiskEmployees, setHighRiskEmployees] = useState([]);
+  const [trainingEffectiveness, setTrainingEffectiveness] = useState([]);
+
+  // Table state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+
+  // Modal state
+  const [assignModal, setAssignModal] = useState({ open: false, employee: null });
+
+  // ── Data fetching ──
+
+  const fetchAnalytics = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [overviewRes, trendsRes, campaignsRes, simulationsRes, highRiskRes, trainingRes] =
+        await Promise.all([
+          analyticsAPI.getOverview({ period }).catch(() => ({ data: null })),
+          analyticsAPI.getTrends({ period }).catch(() => ({ data: null })),
+          campaignsAPI.list({ limit: 20, ordering: '-created_at' }).catch(() => ({ data: { results: [] } })),
+          simulationsAPI.list({ limit: 20, ordering: '-created_at' }).catch(() => ({ data: { results: [] } })),
+          analyticsAPI.getHighRiskEmployees().catch(() => ({ data: { results: [] } })),
+          analyticsAPI.getTrainingEffectiveness().catch(() => ({ data: [] })),
+        ]);
+
+      setOverview(overviewRes.data);
+      setTrends(trendsRes.data);
+      setCampaigns(campaignsRes.data?.results || campaignsRes.data || []);
+      setSimulations(simulationsRes.data?.results || simulationsRes.data || []);
+      setHighRiskEmployees(highRiskRes.data?.results || highRiskRes.data || []);
+      setTrainingEffectiveness(
+        Array.isArray(trainingRes.data) ? trainingRes.data : trainingRes.data?.results || []
+      );
+    } catch (err) {
+      const message = err.response?.data?.detail || 'Failed to load analytics data';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [period]);
 
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  // Reset table state when tab changes
+  useEffect(() => {
+    setSearchQuery('');
+    setSortKey(null);
+    setSortDir('asc');
+    setPage(1);
+  }, [activeTab]);
+
+  // ── Derived chart data ──
+
+  const trendLineData = useMemo(() => {
+    if (!trends?.dates) return [];
+    return trends.dates.map((date, i) => ({
+      date: formatShortDate(date),
+      score: trends.avg_risk_scores?.[i] ?? 0,
+    }));
+  }, [trends]);
+
+  const riskDistData = useMemo(() => {
+    if (!overview?.risk_distribution) return [];
+    return Object.entries(overview.risk_distribution).map(([level, count]) => ({
+      name: RISK_LABELS[level] || level,
+      value: count,
+      level,
+    }));
+  }, [overview]);
+
+  const riskDistTotal = useMemo(
+    () => riskDistData.reduce((sum, d) => sum + d.value, 0),
+    [riskDistData]
+  );
+
+  const activityBarData = useMemo(() => {
+    if (!trends?.dates) return [];
+    return trends.dates.map((date, i) => ({
+      date: formatShortDate(date),
+      completions: trends.campaign_completions?.[i] ?? 0,
+      clicks: trends.simulation_clicks?.[i] ?? 0,
+    }));
+  }, [trends]);
+
+  const trainingBarData = useMemo(() => {
+    if (!trainingEffectiveness?.length) return [];
+    return trainingEffectiveness.map((t) => ({
+      name: t.name || t.title || `Module ${t.id}`,
+      rate: typeof t.completion_rate === 'number'
+        ? (t.completion_rate <= 1 ? t.completion_rate * 100 : t.completion_rate)
+        : 0,
+    }));
+  }, [trainingEffectiveness]);
+
+  // ── Table helpers ──
+
+  const handleSort = useCallback(
+    (key) => {
+      if (sortKey === key) {
+        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortKey(key);
+        setSortDir('asc');
+      }
+      setPage(1);
+    },
+    [sortKey]
+  );
+
+  function getTableData() {
+    let data = [];
+    if (activeTab === 'campaigns') data = [...campaigns];
+    else if (activeTab === 'simulations') data = [...simulations];
+    else data = [...highRiskEmployees];
+
+    // Filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter((item) => {
+        const name =
+          item.name || `${item.first_name || ''} ${item.last_name || ''}`;
+        return (
+          name.toLowerCase().includes(q) ||
+          (item.email && item.email.toLowerCase().includes(q))
+        );
+      });
+    }
+
+    // Sort
+    if (sortKey) {
+      data.sort((a, b) => {
+        let aVal = a[sortKey];
+        let bVal = b[sortKey];
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return data;
+  }
+
+  const tableData = getTableData();
+  const totalPages = Math.ceil(tableData.length / ROWS_PER_PAGE) || 1;
+  const pagedData = tableData.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+
+  // ── Export handlers ──
+
+  async function handleExport(type) {
+    setExporting(type);
+    try {
+      const res = await analyticsAPI.exportCSV({ type, period });
+      const blob = res.data instanceof Blob ? res.data : new Blob([res.data], { type: 'text/csv' });
+      downloadBlob(blob, `phishaware-${type}-${period}.csv`);
+      toast.success('Report exported successfully');
+    } catch {
+      toast.error('Failed to export report');
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  // ── Loading state ──
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
+          <p className="mt-4 text-gray-600">Loading analytics...</p>
+        </div>
       </div>
     );
   }
 
+  // ── Error state ──
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button onClick={fetchAnalytics} className="btn-primary flex items-center gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // ── Metric values ──
+
+  const avgRisk = overview?.avg_risk_score ?? 0;
+  const completionRate = overview?.campaign_completion_rate ?? 0;
+  const clickRate = overview?.simulation_click_rate ?? 0;
+  const trainingRate = overview?.training_completion_rate ?? 0;
+
+  const riskColor = avgRisk >= 80 ? 'danger' : avgRisk >= 60 ? 'orange' : avgRisk >= 30 ? 'warning' : 'success';
+  const clickColor = (clickRate > 0.3 || clickRate > 30) ? 'danger' : 'success';
+  const trainingColor = (trainingRate > 0.7 || trainingRate > 70) ? 'success' : 'warning';
+
+  // Period label for display
+  const periodLabel = PERIODS.find((p) => p.key === period)?.label || period;
+
+  // ── Render ──
+
   return (
     <div className="fade-in space-y-6">
+      {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('nav.analytics')}</h1>
-          <p className="text-gray-600 mt-1">Track your organization's security awareness progress</p>
+          <h1 className="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
+          <p className="text-gray-600 mt-1">Last {periodLabel}</p>
         </div>
-        <div className="flex gap-2">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="input w-auto"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
-          </select>
-          <button className="btn-secondary">
-            <Download className="h-5 w-5 mr-2" />
-            Export
-          </button>
-        </div>
+        <button
+          onClick={fetchAnalytics}
+          className="btn-secondary flex items-center gap-2 self-start"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </button>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Average Risk Score', value: '42%', change: '-8%', trend: 'down', color: 'success' },
-          { label: 'Quiz Completion', value: '78%', change: '+12%', trend: 'up', color: 'success' },
-          { label: 'Training Completion', value: '65%', change: '+5%', trend: 'up', color: 'success' },
-          { label: 'Phishing Click Rate', value: '15%', change: '-10%', trend: 'down', color: 'success' },
-        ].map((stat, index) => (
-          <div key={index} className="card">
-            <p className="text-sm text-gray-500">{stat.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-            <div className={clsx('flex items-center mt-2 text-sm', stat.color === 'success' ? 'text-success-600' : 'text-danger-600')}>
-              {stat.trend === 'up' ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-              {stat.change} from last period
-            </div>
-          </div>
+      {/* ── Period Selector ── */}
+      <div className="flex flex-wrap gap-2">
+        {PERIODS.map((p) => (
+          <button
+            key={p.key}
+            onClick={() => setPeriod(p.key)}
+            className={clsx(
+              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              period === p.key
+                ? 'bg-primary-600 text-white'
+                : 'bg-white text-gray-700 border hover:bg-gray-50'
+            )}
+          >
+            {p.label}
+          </button>
         ))}
       </div>
 
+      {/* ── Metric Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard
+          label="Avg Risk Score"
+          value={avgRisk?.toFixed?.(1) ?? '0'}
+          icon={AlertTriangle}
+          color={riskColor}
+        />
+        <MetricCard
+          label="Campaign Completion"
+          value={formatPct(completionRate)}
+          icon={Target}
+          color="primary"
+        />
+        <MetricCard
+          label="Simulation Click Rate"
+          value={formatPct(clickRate)}
+          icon={MousePointerClick}
+          color={clickColor}
+        />
+        <MetricCard
+          label="Training Completion"
+          value={formatPct(trainingRate)}
+          icon={BookOpen}
+          color={trainingColor}
+        />
+      </div>
+
+      {/* ── Charts Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Risk Score Distribution */}
+        {/* Chart 1: Risk Score Trend */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Risk Score Distribution</h2>
-          <div className="space-y-4">
-            {[
-              { label: 'Low Risk (0-30%)', count: 89, percentage: 57, color: 'bg-success-500' },
-              { label: 'Medium Risk (31-60%)', count: 45, percentage: 29, color: 'bg-warning-500' },
-              { label: 'High Risk (61-100%)', count: 22, percentage: 14, color: 'bg-danger-500' },
-            ].map((item, index) => (
-              <div key={index}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">{item.label}</span>
-                  <span className="font-medium">{item.count} employees ({item.percentage}%)</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={clsx('h-2 rounded-full', item.color)} style={{ width: `${item.percentage}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Average Risk Score Over Time</h3>
+          {trendLineData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendLineData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  name="Risk Score"
+                  stroke="#3B82F6"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              No trend data available
+            </div>
+          )}
         </div>
 
-        {/* Department Performance */}
+        {/* Chart 2: Risk Distribution Donut */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Department Performance</h2>
-          <div className="space-y-3">
-            {[
-              { name: 'IT', score: 28, completion: 92 },
-              { name: 'HR', score: 35, completion: 85 },
-              { name: 'Marketing', score: 45, completion: 78 },
-              { name: 'Sales', score: 52, completion: 70 },
-              { name: 'Finance', score: 48, completion: 75 },
-            ].map((dept, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-900">{dept.name}</span>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className={clsx(
-                    'px-2 py-1 rounded-full',
-                    dept.score <= 30 ? 'bg-success-50 text-success-700' :
-                    dept.score <= 60 ? 'bg-warning-50 text-warning-700' : 'bg-danger-50 text-danger-700'
-                  )}>
-                    Risk: {dept.score}%
-                  </span>
-                  <span className="text-gray-500">Completion: {dept.completion}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Level Distribution</h3>
+          {riskDistData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={riskDistData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={3}
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {riskDistData.map((entry) => (
+                    <Cell key={entry.level} fill={RISK_COLORS[entry.level] || '#94a3b8'} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0].payload;
+                    const pct = riskDistTotal > 0 ? ((d.value / riskDistTotal) * 100).toFixed(1) : 0;
+                    return (
+                      <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
+                        <p className="font-medium">{d.name}</p>
+                        <p>{d.value} employees ({pct}%)</p>
+                      </div>
+                    );
+                  }}
+                />
+                <Legend />
+                {/* Center text */}
+                <text x="50%" y="47%" textAnchor="middle" className="fill-gray-900 text-2xl font-bold">
+                  {riskDistTotal}
+                </text>
+                <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 text-xs">
+                  employees
+                </text>
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              No distribution data available
+            </div>
+          )}
+        </div>
+
+        {/* Chart 3: Campaign vs Simulation Activity */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Training Activity</h3>
+          {activityBarData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={activityBarData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip content={<ChartTooltip />} />
+                <Legend />
+                <Bar dataKey="completions" name="Campaign Completions" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="clicks" name="Simulation Clicks" fill="#EF4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              No activity data available
+            </div>
+          )}
+        </div>
+
+        {/* Chart 4: Training Effectiveness */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Training Completion Rates</h3>
+          {trainingBarData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={trainingBarData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} unit="%" />
+                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  content={<ChartTooltip formatter={(v) => `${Math.round(v)}%`} />}
+                />
+                <Bar dataKey="rate" name="Completion Rate" radius={[0, 4, 4, 0]}>
+                  {trainingBarData.map((entry, i) => (
+                    <Cell
+                      key={i}
+                      fill={entry.rate >= 70 ? '#22c55e' : entry.rate >= 40 ? '#eab308' : '#ef4444'}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              No training data available
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Simulation Results */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Simulation Results</h2>
+      {/* ── Data Tables ── */}
+      <div className="card p-0">
+        {/* Tab Navigation */}
+        <div className="flex border-b">
+          {[
+            { key: 'campaigns', label: 'Recent Campaigns' },
+            { key: 'simulations', label: 'Recent Simulations' },
+            { key: 'highrisk', label: 'High Risk Employees' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={clsx(
+                'px-6 py-3 text-sm font-medium transition-colors border-b-2 -mb-px',
+                activeTab === tab.key
+                  ? 'text-primary-600 border-primary-600'
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search & Export Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="input pl-9 py-2 text-sm"
+            />
+          </div>
+          <button
+            onClick={() => handleExport(activeTab)}
+            disabled={!!exporting}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            {exporting === activeTab ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Export CSV
+          </button>
+        </div>
+
+        {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Simulation</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Sent</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Clicked</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Reported</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {[
-                { name: 'Bank Alert Test', date: '2024-02-01', sent: 156, clicked: 23, reported: 89 },
-                { name: 'CEO Fraud Test', date: '2024-01-15', sent: 156, clicked: 18, reported: 95 },
-                { name: 'Package Delivery', date: '2024-01-01', sent: 156, clicked: 35, reported: 72 },
-              ].map((sim, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-3 font-medium text-gray-900">{sim.name}</td>
-                  <td className="px-4 py-3 text-gray-600">{sim.date}</td>
-                  <td className="px-4 py-3 text-gray-600">{sim.sent}</td>
-                  <td className="px-4 py-3 text-danger-600">{sim.clicked} ({Math.round(sim.clicked/sim.sent*100)}%)</td>
-                  <td className="px-4 py-3 text-success-600">{sim.reported} ({Math.round(sim.reported/sim.sent*100)}%)</td>
+          {activeTab === 'campaigns' && (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <SortHeader label="Campaign Name" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Completion</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Score</th>
+                  <SortHeader label="Created" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y">
+                {pagedData.length > 0 ? (
+                  pagedData.map((c) => {
+                    const progress = c.progress ?? c.completion_rate ?? 0;
+                    const progressPct = progress <= 1 ? progress * 100 : progress;
+                    const avgScore = c.avg_score ?? c.average_score ?? null;
+                    return (
+                      <tr key={c.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
+                        <td className="px-4 py-3 text-gray-600">{c.assigned_count ?? c.total_employees ?? '—'}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-primary-600 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(progressPct, 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-sm text-gray-600">{Math.round(progressPct)}%</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {avgScore != null ? (
+                            <span className={clsx('font-medium', getRiskColor(avgScore))}>
+                              {Math.round(avgScore)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(c.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => window.location.href = `/company/campaigns/${c.id}`}
+                            className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      {searchQuery ? 'No campaigns match your search' : 'No campaigns found'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+
+          {activeTab === 'simulations' && (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <SortHeader label="Simulation Name" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Targets</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Open Rate</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Click Rate</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Report Rate</th>
+                  <SortHeader label="Date" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {pagedData.length > 0 ? (
+                  pagedData.map((s) => {
+                    const cr = s.click_rate ?? 0;
+                    const crPct = cr <= 1 ? cr * 100 : cr;
+                    const rr = s.report_rate ?? 0;
+                    const rrPct = rr <= 1 ? rr * 100 : rr;
+                    const openR = s.open_rate ?? 0;
+                    const openPct = openR <= 1 ? openR * 100 : openR;
+                    return (
+                      <tr key={s.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
+                        <td className="px-4 py-3 text-gray-600">{s.target_count ?? s.total_targets ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{Math.round(openPct)}%</td>
+                        <td className="px-4 py-3">
+                          <span className={clsx('font-medium', crPct > 30 ? 'text-danger-600' : 'text-gray-900')}>
+                            {Math.round(crPct)}%
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={clsx('font-medium', rrPct > 50 ? 'text-success-600' : 'text-gray-600')}>
+                            {Math.round(rrPct)}%
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(s.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => window.location.href = `/company/simulations/${s.id}`}
+                            className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                      {searchQuery ? 'No simulations match your search' : 'No simulations found'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+
+          {activeTab === 'highrisk' && (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <SortHeader label="Employee Name" sortKey="last_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <SortHeader label="Risk Score" sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Quiz</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Needs Training</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {pagedData.length > 0 ? (
+                  pagedData.map((emp) => (
+                    <tr key={emp.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {emp.first_name} {emp.last_name}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{emp.email}</td>
+                      <td className="px-4 py-3">
+                        <span className={clsx('inline-flex px-2 py-0.5 rounded-full text-xs font-medium', getRiskBg(emp.risk_score))}>
+                          {emp.risk_score} - {emp.risk_level || (emp.risk_score >= 80 ? 'CRITICAL' : 'HIGH')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(emp.last_quiz_date)}</td>
+                      <td className="px-4 py-3">
+                        {emp.requires_remediation ? (
+                          <span className="text-danger-600 text-sm font-medium">Yes</span>
+                        ) : (
+                          <span className="text-success-600 text-sm">No</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setAssignModal({ open: true, employee: emp })}
+                          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                        >
+                          Assign Training
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      {searchQuery ? 'No employees match your search' : 'No high-risk employees found'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Pagination */}
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </div>
+
+      {/* ── Export Actions ── */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { key: 'full', label: 'Export Full Report' },
+            { key: 'risk', label: 'Export Risk Data' },
+            { key: 'campaigns', label: 'Export Campaign Data' },
+            { key: 'simulations', label: 'Export Simulation Data' },
+          ].map((btn) => (
+            <button
+              key={btn.key}
+              onClick={() => handleExport(btn.key)}
+              disabled={!!exporting}
+              className="btn-secondary flex items-center gap-2"
+            >
+              {exporting === btn.key ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              {btn.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* ── Assign Training Modal ── */}
+      <AssignTrainingModal
+        isOpen={assignModal.open}
+        onClose={() => setAssignModal({ open: false, employee: null })}
+        employee={assignModal.employee}
+      />
     </div>
   );
 }

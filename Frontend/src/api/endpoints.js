@@ -123,6 +123,13 @@ export const analyticsAPI = {
   getRiskTrends: (params) => api.get('/analytics/risk-trends/', { params }),
   getRiskDistribution: () => api.get('/analytics/risk/distribution/'),
   exportReport: (params) => api.get('/analytics/export/', { params, responseType: 'blob' }),
+  // Analytics dashboard endpoints
+  getOverview: (params) => api.get('/analytics/dashboard/overview/', { params }),
+  getTrends: (params) => api.get('/analytics/dashboard/trends/', { params }),
+  getSimulationAnalytics: (id) => api.get(`/analytics/simulations/${id}/`),
+  getHighRiskEmployees: () => api.get('/analytics/risk/high_risk_employees/'),
+  getTrainingEffectiveness: () => api.get('/analytics/training/effectiveness/'),
+  exportCSV: (data) => api.post('/analytics/export/csv/', data, { responseType: 'blob' }),
 };
 
 // ============== Gamification ==============

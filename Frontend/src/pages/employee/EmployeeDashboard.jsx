@@ -27,7 +27,7 @@ const RISK_CONFIG = {
 };
 
 // Circular Progress Gauge Component
-function RiskScoreGauge({ score, riskLevel, requiresRemediation }) {
+function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
   const radius = 80;
   const strokeWidth = 12;
   const normalizedRadius = radius - strokeWidth / 2;
@@ -37,6 +37,7 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation }) {
   const config = RISK_CONFIG[riskLevel] || RISK_CONFIG.LOW;
 
   const getStrokeColor = () => {
+    if (isNewUser) return '#9ca3af'; // gray for new users
     switch (riskLevel) {
       case 'LOW': return '#22c55e';
       case 'MEDIUM': return '#eab308';
@@ -73,22 +74,33 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={clsx('text-4xl font-bold', config.textColor)}>{score}</span>
+          <span className={clsx('text-4xl font-bold', isNewUser ? 'text-gray-400' : config.textColor)}>{score}</span>
           <span className="text-sm text-gray-500">/ 100</span>
         </div>
       </div>
       <div className="mt-4 text-center">
-        <span className={clsx('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
-          riskLevel === 'LOW' && 'bg-success-100 text-success-700',
-          riskLevel === 'MEDIUM' && 'bg-warning-100 text-warning-700',
-          riskLevel === 'HIGH' && 'bg-orange-100 text-orange-700',
-          riskLevel === 'CRITICAL' && 'bg-danger-100 text-danger-700'
-        )}>
-          <AlertTriangle className="h-4 w-4" />
-          {config.label}
-        </span>
+        {isNewUser ? (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+            Not yet established
+          </span>
+        ) : (
+          <span className={clsx('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
+            riskLevel === 'LOW' && 'bg-success-100 text-success-700',
+            riskLevel === 'MEDIUM' && 'bg-warning-100 text-warning-700',
+            riskLevel === 'HIGH' && 'bg-orange-100 text-orange-700',
+            riskLevel === 'CRITICAL' && 'bg-danger-100 text-danger-700'
+          )}>
+            <AlertTriangle className="h-4 w-4" />
+            {config.label}
+          </span>
+        )}
       </div>
-      {requiresRemediation && (
+      {isNewUser && (
+        <p className="mt-3 text-sm text-gray-500 text-center">
+          Complete your first quiz to establish your risk score
+        </p>
+      )}
+      {requiresRemediation && !isNewUser && (
         <div className="mt-3 p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700 flex items-start gap-2">
           <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <span>Action required: Complete pending training to improve your score</span>
@@ -150,7 +162,16 @@ function EmployeeDashboard() {
     setError(null);
 
     try {
-      // Fetch all data in parallel
+      // Fetch all data in parallel - handle risk score 404 gracefully
+      const DEFAULT_RISK_SCORE = {
+        score: 50,
+        risk_level: 'MEDIUM',
+        quiz_accuracy: 0,
+        simulation_click_rate: 0,
+        requires_remediation: false,
+        is_new_user: true,
+      };
+
       const [
         riskScoreRes,
         pendingQuizzesRes,
@@ -159,7 +180,14 @@ function EmployeeDashboard() {
         badgesRes,
         positionRes,
       ] = await Promise.all([
-        trainingAPI.getMyRiskScore().catch(() => ({ data: null })),
+        trainingAPI.getMyRiskScore().catch((err) => {
+          // 404 means new user with no risk score yet - use defaults
+          if (err.response?.status === 404) {
+            return { data: DEFAULT_RISK_SCORE };
+          }
+          // Other errors - still don't block the dashboard
+          return { data: DEFAULT_RISK_SCORE };
+        }),
         campaignsAPI.getMyQuizzes({ status: 'NOT_STARTED' }).catch(() => ({ data: { results: [] } })),
         campaignsAPI.getMyQuizzes({ status: 'IN_PROGRESS' }).catch(() => ({ data: { results: [] } })),
         trainingAPI.getMyTrainings({ status: 'ASSIGNED' }).catch(() => ({ data: { results: [] } })),
@@ -168,7 +196,7 @@ function EmployeeDashboard() {
       ]);
 
       // Process data
-      const pendingQuizzes = riskScoreRes.data?.results || pendingQuizzesRes.data || [];
+      const pendingQuizzes = pendingQuizzesRes.data?.results || pendingQuizzesRes.data || [];
       const inProgressQuizzes = inProgressQuizzesRes.data?.results || inProgressQuizzesRes.data || [];
       const pendingTraining = pendingTrainingRes.data?.results || pendingTrainingRes.data || [];
       const badges = badgesRes.data?.results || badgesRes.data || [];
@@ -263,35 +291,28 @@ function EmployeeDashboard() {
             )} />
           </div>
 
-          {riskScore ? (
-            <>
-              <RiskScoreGauge
-                score={riskScore.score || 0}
-                riskLevel={riskScore.risk_level || 'LOW'}
-                requiresRemediation={riskScore.requires_remediation}
-              />
+          <RiskScoreGauge
+            score={riskScore?.score || 50}
+            riskLevel={riskScore?.risk_level || 'MEDIUM'}
+            requiresRemediation={riskScore?.requires_remediation}
+            isNewUser={riskScore?.is_new_user}
+          />
 
-              {/* Score Breakdown */}
-              <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Quiz Accuracy</span>
-                  <span className="font-medium text-gray-900">
-                    {Math.round((riskScore.quiz_accuracy || 0) * 100)}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Simulation Click Rate</span>
-                  <span className="font-medium text-gray-900">
-                    {Math.round((riskScore.simulation_click_rate || 0) * 100)}%
-                  </span>
-                </div>
+          {/* Score Breakdown */}
+          {!riskScore?.is_new_user && (
+            <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Quiz Accuracy</span>
+                <span className="font-medium text-gray-900">
+                  {Math.round((riskScore?.quiz_accuracy || 0) * 100)}%
+                </span>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p>No risk score available yet</p>
-              <p className="text-sm">Complete quizzes and training to get your score</p>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Simulation Click Rate</span>
+                <span className="font-medium text-gray-900">
+                  {Math.round((riskScore?.simulation_click_rate || 0) * 100)}%
+                </span>
+              </div>
             </div>
           )}
         </div>

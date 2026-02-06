@@ -136,9 +136,20 @@ const handleApiError = (error) => {
       case 403:
         toast.error('You do not have permission to perform this action');
         break;
-      case 404:
-        toast.error('Resource not found');
+      case 404: {
+        // Don't show toast for resources that may not exist yet (new users)
+        const url = error.config?.url || '';
+        const silentPaths = [
+          '/risk-scores/my_score/',
+          '/leaderboard/my_position/',
+          '/badges/my_badges/',
+          '/my-points/',
+        ];
+        if (!silentPaths.some((path) => url.includes(path))) {
+          toast.error('Resource not found');
+        }
         break;
+      }
       case 500:
         toast.error('Server error. Please try again later.');
         break;

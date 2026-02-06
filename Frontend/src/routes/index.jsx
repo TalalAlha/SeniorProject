@@ -31,6 +31,7 @@ import CampaignDetails from '../pages/company/CampaignDetails';
 import CompanySimulations from '../pages/company/CompanySimulations';
 import CompanyEmployees from '../pages/company/CompanyEmployees';
 import CompanyAnalytics from '../pages/company/CompanyAnalytics';
+import CompanyProfile from '../pages/company/CompanyProfile';
 import TrainingManagement from '../pages/company/TrainingManagement';
 
 // Super Admin Pages
@@ -111,7 +112,7 @@ const router = createBrowserRouter([
       { path: 'employees', element: <CompanyEmployees /> },
       { path: 'training', element: <TrainingManagement /> },
       { path: 'analytics', element: <CompanyAnalytics /> },
-      { path: 'profile', element: <EmployeeProfile /> },
+      { path: 'profile', element: <CompanyProfile /> },
     ],
   },
 
