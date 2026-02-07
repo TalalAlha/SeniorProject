@@ -68,6 +68,7 @@ def generate_email_package(campaign: SimulationCampaign) -> str:
     writer.writerow([
         'employee_email',
         'employee_name',
+        'tracking_url',
         'subject',
         'body_html',
         'body_plain',
@@ -102,7 +103,7 @@ def generate_email_package(campaign: SimulationCampaign) -> str:
         employee_name = employee.get_full_name() or employee.email.split('@')[0]
         employee_first_name = employee.first_name or employee_name.split()[0] if employee_name else ''
 
-        # Replace placeholders in HTML body
+        # Replace placeholders in HTML body — {UPPERCASE} format
         body_html = template.body_html
         body_html = body_html.replace('{TRACKING_PIXEL}', tracking_pixel_html)
         body_html = body_html.replace('{LURE_LINK}', phishing_link_url)
@@ -110,25 +111,43 @@ def generate_email_package(campaign: SimulationCampaign) -> str:
         body_html = body_html.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
         body_html = body_html.replace('{EMPLOYEE_EMAIL}', employee.email)
         body_html = body_html.replace('{COMPANY_NAME}', campaign.company.name)
+        # Also handle {{lowercase}} variant placeholders
+        body_html = body_html.replace('{{tracking_pixel}}', tracking_pixel_html)
+        body_html = body_html.replace('{{phishing_link}}', phishing_link_url)
+        body_html = body_html.replace('{{employee_name}}', employee_name)
+        body_html = body_html.replace('{{employee_first_name}}', employee_first_name)
+        body_html = body_html.replace('{{employee_email}}', employee.email)
+        body_html = body_html.replace('{{company_name}}', campaign.company.name)
 
-        # Replace placeholders in plain text body
+        # Replace placeholders in plain text body — {UPPERCASE} format
         body_plain = template.body_plain or ''
         body_plain = body_plain.replace('{LURE_LINK}', phishing_link_url)
         body_plain = body_plain.replace('{EMPLOYEE_NAME}', employee_name)
         body_plain = body_plain.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
         body_plain = body_plain.replace('{EMPLOYEE_EMAIL}', employee.email)
         body_plain = body_plain.replace('{COMPANY_NAME}', campaign.company.name)
+        # Also handle {{lowercase}} variant placeholders
+        body_plain = body_plain.replace('{{phishing_link}}', phishing_link_url)
+        body_plain = body_plain.replace('{{employee_name}}', employee_name)
+        body_plain = body_plain.replace('{{employee_first_name}}', employee_first_name)
+        body_plain = body_plain.replace('{{employee_email}}', employee.email)
+        body_plain = body_plain.replace('{{company_name}}', campaign.company.name)
 
-        # Replace placeholders in subject
+        # Replace placeholders in subject — {UPPERCASE} format
         subject = template.subject
         subject = subject.replace('{EMPLOYEE_NAME}', employee_name)
         subject = subject.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
         subject = subject.replace('{COMPANY_NAME}', campaign.company.name)
+        # Also handle {{lowercase}} variant placeholders
+        subject = subject.replace('{{employee_name}}', employee_name)
+        subject = subject.replace('{{employee_first_name}}', employee_first_name)
+        subject = subject.replace('{{company_name}}', campaign.company.name)
 
         # Write row to CSV
         writer.writerow([
             employee.email,
             employee_name,
+            phishing_link_url,
             subject,
             body_html,
             body_plain,
@@ -207,7 +226,7 @@ def generate_email_package_json(campaign: SimulationCampaign) -> list:
         employee_name = employee.get_full_name() or employee.email.split('@')[0]
         employee_first_name = employee.first_name or employee_name.split()[0] if employee_name else ''
 
-        # Replace placeholders in HTML body
+        # Replace placeholders in HTML body — {UPPERCASE} format
         body_html = template.body_html
         body_html = body_html.replace('{TRACKING_PIXEL}', tracking_pixel_html)
         body_html = body_html.replace('{LURE_LINK}', phishing_link_url)
@@ -215,20 +234,37 @@ def generate_email_package_json(campaign: SimulationCampaign) -> list:
         body_html = body_html.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
         body_html = body_html.replace('{EMPLOYEE_EMAIL}', employee.email)
         body_html = body_html.replace('{COMPANY_NAME}', campaign.company.name)
+        # Also handle {{lowercase}} variant placeholders
+        body_html = body_html.replace('{{tracking_pixel}}', tracking_pixel_html)
+        body_html = body_html.replace('{{phishing_link}}', phishing_link_url)
+        body_html = body_html.replace('{{employee_name}}', employee_name)
+        body_html = body_html.replace('{{employee_first_name}}', employee_first_name)
+        body_html = body_html.replace('{{employee_email}}', employee.email)
+        body_html = body_html.replace('{{company_name}}', campaign.company.name)
 
-        # Replace placeholders in plain text
+        # Replace placeholders in plain text — {UPPERCASE} format
         body_plain = template.body_plain or ''
         body_plain = body_plain.replace('{LURE_LINK}', phishing_link_url)
         body_plain = body_plain.replace('{EMPLOYEE_NAME}', employee_name)
         body_plain = body_plain.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
         body_plain = body_plain.replace('{EMPLOYEE_EMAIL}', employee.email)
         body_plain = body_plain.replace('{COMPANY_NAME}', campaign.company.name)
+        # Also handle {{lowercase}} variant placeholders
+        body_plain = body_plain.replace('{{phishing_link}}', phishing_link_url)
+        body_plain = body_plain.replace('{{employee_name}}', employee_name)
+        body_plain = body_plain.replace('{{employee_first_name}}', employee_first_name)
+        body_plain = body_plain.replace('{{employee_email}}', employee.email)
+        body_plain = body_plain.replace('{{company_name}}', campaign.company.name)
 
-        # Replace placeholders in subject
+        # Replace placeholders in subject — {UPPERCASE} format
         subject = template.subject
         subject = subject.replace('{EMPLOYEE_NAME}', employee_name)
         subject = subject.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
         subject = subject.replace('{COMPANY_NAME}', campaign.company.name)
+        # Also handle {{lowercase}} variant placeholders
+        subject = subject.replace('{{employee_name}}', employee_name)
+        subject = subject.replace('{{employee_first_name}}', employee_first_name)
+        subject = subject.replace('{{company_name}}', campaign.company.name)
 
         emails.append({
             'employee_email': employee.email,
