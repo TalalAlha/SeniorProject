@@ -281,33 +281,49 @@ class SimulationCampaign(models.Model):
         return f"{self.name} - {self.company.name}"
 
     @property
+    def _effective_sent_count(self):
+        """Get effective sent count, falling back to email simulation count."""
+        if self.total_sent > 0:
+            return self.total_sent
+        # Fallback: count email simulations that aren't pending/failed
+        count = self.email_simulations.exclude(status__in=['PENDING', 'FAILED']).count()
+        if count > 0:
+            return count
+        # Last resort: count all email simulations (package was generated)
+        return self.email_simulations.count()
+
+    @property
     def open_rate(self):
         """Calculate email open rate percentage."""
-        if self.total_sent == 0:
+        sent = self._effective_sent_count
+        if sent == 0:
             return 0
-        return (self.total_opened / self.total_sent) * 100
+        return (self.total_opened / sent) * 100
 
     @property
     def click_rate(self):
         """Calculate link click rate percentage."""
-        if self.total_sent == 0:
+        sent = self._effective_sent_count
+        if sent == 0:
             return 0
-        return (self.total_clicked / self.total_sent) * 100
+        return (self.total_clicked / sent) * 100
 
     @property
     def report_rate(self):
         """Calculate report rate percentage (employees who reported it)."""
-        if self.total_sent == 0:
+        sent = self._effective_sent_count
+        if sent == 0:
             return 0
-        return (self.total_reported / self.total_sent) * 100
+        return (self.total_reported / sent) * 100
 
     @property
     def compromise_rate(self):
         """Calculate compromise rate (clicked or entered credentials)."""
-        if self.total_sent == 0:
+        sent = self._effective_sent_count
+        if sent == 0:
             return 0
         compromised = max(self.total_clicked, self.total_credentials_entered)
-        return (compromised / self.total_sent) * 100
+        return (compromised / sent) * 100
 
     @property
     def is_active(self):
@@ -552,45 +568,68 @@ class TrackingEvent(models.Model):
     def _update_simulation_stats(self):
         """Update EmailSimulation tracking flags based on event type."""
         sim = self.email_simulation
+        updated = False
+
+        # If we're receiving tracking events, the email must have been sent.
+        # Mark it as SENT if still PENDING (handles manual sending workflow).
+        if sim.status == 'PENDING' and self.event_type in (
+            'EMAIL_OPENED', 'LINK_CLICKED', 'CREDENTIALS_ENTERED', 'EMAIL_REPORTED'
+        ):
+            sim.status = 'SENT'
+            if not sim.sent_at:
+                sim.sent_at = self.created_at
+            updated = True
 
         if self.event_type == 'EMAIL_OPENED' and not sim.was_opened:
             sim.was_opened = True
             sim.first_opened_at = self.created_at
-            sim.save()
+            updated = True
 
         elif self.event_type == 'LINK_CLICKED' and not sim.was_clicked:
             sim.was_clicked = True
             sim.clicked_at = self.created_at
             sim.ip_address = self.ip_address
             sim.user_agent = self.user_agent
-            sim.save()
+            updated = True
 
         elif self.event_type == 'CREDENTIALS_ENTERED' and not sim.credentials_entered:
             sim.credentials_entered = True
             sim.credentials_entered_at = self.created_at
-            sim.save()
+            updated = True
 
         elif self.event_type == 'EMAIL_REPORTED' and not sim.was_reported:
             sim.was_reported = True
             sim.reported_at = self.created_at
+            updated = True
+
+        if updated:
             sim.save()
 
     def _update_campaign_stats(self):
         """Update SimulationCampaign aggregate statistics."""
         campaign = self.campaign
 
+        # Always recount total_sent from actual EmailSimulation statuses
+        campaign.total_sent = campaign.email_simulations.exclude(
+            status__in=['PENDING', 'FAILED']
+        ).count()
+
         if self.event_type == 'EMAIL_OPENED':
             campaign.total_opened = campaign.email_simulations.filter(was_opened=True).count()
-            campaign.save()
 
         elif self.event_type == 'LINK_CLICKED':
             campaign.total_clicked = campaign.email_simulations.filter(was_clicked=True).count()
-            campaign.save()
 
         elif self.event_type == 'CREDENTIALS_ENTERED':
             campaign.total_credentials_entered = campaign.email_simulations.filter(credentials_entered=True).count()
-            campaign.save()
 
         elif self.event_type == 'EMAIL_REPORTED':
             campaign.total_reported = campaign.email_simulations.filter(was_reported=True).count()
-            campaign.save()
+
+        # Update campaign status to IN_PROGRESS if still in DRAFT/SCHEDULED
+        if campaign.status in ('DRAFT', 'SCHEDULED') and campaign.total_sent > 0:
+            campaign.status = 'IN_PROGRESS'
+            if not campaign.sent_at:
+                campaign.sent_at = self.created_at
+
+        campaign.save()

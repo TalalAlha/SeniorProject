@@ -839,7 +839,7 @@ function CompanyAnalytics() {
                         <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(s.created_at)}</td>
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => window.location.href = `/company/simulations/${s.id}`}
+                            onClick={() => window.location.href = `/company/simulations`}
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
                           >
                             <Eye className="h-4 w-4" />
