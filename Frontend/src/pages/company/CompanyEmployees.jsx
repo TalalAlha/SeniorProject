@@ -769,21 +769,39 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <BookOpen className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{employee.quizzes_completed || 0}</p>
-            <p className="text-sm text-gray-500">Quizzes Completed</p>
+            <p className="text-2xl font-bold text-gray-900">{employee.risk_score?.total_quizzes_taken || 0}</p>
+            <p className="text-sm text-gray-500">Quizzes Taken</p>
+            {employee.risk_score?.quiz_accuracy != null && (
+              <p className="text-xs text-gray-400 mt-1">{Math.round(employee.risk_score.quiz_accuracy)}% accuracy</p>
+            )}
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <Award className="h-6 w-6 text-warning-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{employee.trainings_completed || 0}</p>
-            <p className="text-sm text-gray-500">Trainings Completed</p>
+            <Mail className="h-6 w-6 text-warning-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gray-900">{employee.risk_score?.total_simulations_received || 0}</p>
+            <p className="text-sm text-gray-500">Simulations Received</p>
+            {employee.risk_score?.simulations_clicked > 0 && (
+              <p className="text-xs text-danger-500 mt-1">{employee.risk_score.simulations_clicked} clicked</p>
+            )}
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <Shield className="h-6 w-6 text-success-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{employee.badges_earned || 0}</p>
-            <p className="text-sm text-gray-500">Badges Earned</p>
+            <Award className="h-6 w-6 text-success-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gray-900">
+              {employee.risk_score?.trainings_completed || 0}/{employee.risk_score?.trainings_assigned || 0}
+            </p>
+            <p className="text-sm text-gray-500">Training Completed</p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <AlertTriangle className={clsx(
+              'h-6 w-6 mx-auto mb-2',
+              employee.risk_score?.requires_remediation ? 'text-danger-600' : 'text-success-600'
+            )} />
+            <p className="text-2xl font-bold text-gray-900">
+              {employee.risk_score?.requires_remediation ? 'Yes' : 'No'}
+            </p>
+            <p className="text-sm text-gray-500">Needs Remediation</p>
           </div>
         </div>
 

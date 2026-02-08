@@ -171,11 +171,24 @@ class CompanyUserSerializer(serializers.ModelSerializer):
         read_only_fields = ['date_joined', 'last_login']
 
     def get_risk_score(self, obj):
-        """Get user's current risk score if available."""
+        """Get user's current risk score and stats if available."""
         try:
-            from apps.assessments.models import RiskScore
+            from apps.training.models import RiskScore
             risk = RiskScore.objects.filter(employee=obj).first()
-            return risk.score if risk else None
+            if risk:
+                return {
+                    'score': risk.score,
+                    'risk_level': risk.risk_level,
+                    'total_quizzes_taken': risk.total_quizzes_taken,
+                    'quiz_accuracy': risk.quiz_accuracy,
+                    'total_simulations_received': risk.total_simulations_received,
+                    'simulations_clicked': risk.simulations_clicked,
+                    'simulation_click_rate': risk.simulation_click_rate,
+                    'trainings_assigned': risk.trainings_assigned,
+                    'trainings_completed': risk.trainings_completed,
+                    'requires_remediation': risk.requires_remediation,
+                }
+            return None
         except Exception:
             return None
 

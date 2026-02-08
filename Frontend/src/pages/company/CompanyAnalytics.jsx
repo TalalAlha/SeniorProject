@@ -328,16 +328,27 @@ function CompanyAnalytics() {
   // ── Derived chart data ──
 
   const trendLineData = useMemo(() => {
-    if (!trends?.dates) return [];
-    return trends.dates.map((date, i) => ({
-      date: formatShortDate(date),
-      score: trends.avg_risk_scores?.[i] ?? 0,
+    // Backend returns average_risk_scores as [{date, value}, ...]
+    const scores = trends?.average_risk_scores;
+    if (!scores?.length) return [];
+    return scores.map((point) => ({
+      date: formatShortDate(point.date),
+      score: point.value ?? 0,
     }));
   }, [trends]);
 
   const riskDistData = useMemo(() => {
-    if (!overview?.risk_distribution) return [];
-    return Object.entries(overview.risk_distribution).map(([level, count]) => ({
+    if (!overview) return [];
+    // Backend returns flat fields: low_risk_count, medium_risk_count, etc.
+    const dist = {
+      LOW: overview.low_risk_count ?? 0,
+      MEDIUM: overview.medium_risk_count ?? 0,
+      HIGH: overview.high_risk_count ?? 0,
+      CRITICAL: overview.critical_risk_count ?? 0,
+    };
+    const entries = Object.entries(dist).filter(([, count]) => count > 0);
+    if (entries.length === 0) return [];
+    return entries.map(([level, count]) => ({
       name: RISK_LABELS[level] || level,
       value: count,
       level,
@@ -350,12 +361,20 @@ function CompanyAnalytics() {
   );
 
   const activityBarData = useMemo(() => {
-    if (!trends?.dates) return [];
-    return trends.dates.map((date, i) => ({
-      date: formatShortDate(date),
-      completions: trends.campaign_completions?.[i] ?? 0,
-      clicks: trends.simulation_clicks?.[i] ?? 0,
-    }));
+    // Backend returns quiz_completions and simulation_click_rates as [{date, value, count?}, ...]
+    // Merge both datasets by date
+    const dateMap = {};
+    (trends?.quiz_completions || []).forEach((point) => {
+      const key = String(point.date);
+      if (!dateMap[key]) dateMap[key] = { date: formatShortDate(point.date), completions: 0, clicks: 0 };
+      dateMap[key].completions = point.count ?? point.value ?? 0;
+    });
+    (trends?.simulation_click_rates || []).forEach((point) => {
+      const key = String(point.date);
+      if (!dateMap[key]) dateMap[key] = { date: formatShortDate(point.date), completions: 0, clicks: 0 };
+      dateMap[key].clicks = point.count ?? point.value ?? 0;
+    });
+    return Object.values(dateMap).sort((a, b) => a.date.localeCompare(b.date));
   }, [trends]);
 
   const trainingBarData = useMemo(() => {
@@ -394,10 +413,11 @@ function CompanyAnalytics() {
       const q = searchQuery.toLowerCase();
       data = data.filter((item) => {
         const name =
-          item.name || `${item.first_name || ''} ${item.last_name || ''}`;
+          item.name || item.employee_name || `${item.first_name || ''} ${item.last_name || ''}`;
+        const email = item.email || item.employee_email || '';
         return (
           name.toLowerCase().includes(q) ||
-          (item.email && item.email.toLowerCase().includes(q))
+          email.toLowerCase().includes(q)
         );
       });
     }
@@ -468,9 +488,9 @@ function CompanyAnalytics() {
 
   // ── Metric values ──
 
-  const avgRisk = overview?.avg_risk_score ?? 0;
+  const avgRisk = overview?.average_risk_score ?? 0;
   const completionRate = overview?.campaign_completion_rate ?? 0;
-  const clickRate = overview?.simulation_click_rate ?? 0;
+  const clickRate = overview?.overall_click_rate ?? 0;
   const trainingRate = overview?.training_completion_rate ?? 0;
 
   const riskColor = avgRisk >= 80 ? 'danger' : avgRisk >= 60 ? 'orange' : avgRisk >= 30 ? 'warning' : 'success';
@@ -807,7 +827,6 @@ function CompanyAnalytics() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Targets</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Open Rate</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Click Rate</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Report Rate</th>
                   <SortHeader label="Date" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
@@ -817,8 +836,6 @@ function CompanyAnalytics() {
                   pagedData.map((s) => {
                     const cr = s.click_rate ?? 0;
                     const crPct = cr <= 1 ? cr * 100 : cr;
-                    const rr = s.report_rate ?? 0;
-                    const rrPct = rr <= 1 ? rr * 100 : rr;
                     const openR = s.open_rate ?? 0;
                     const openPct = openR <= 1 ? openR * 100 : openR;
                     return (
@@ -829,11 +846,6 @@ function CompanyAnalytics() {
                         <td className="px-4 py-3">
                           <span className={clsx('font-medium', crPct > 30 ? 'text-danger-600' : 'text-gray-900')}>
                             {Math.round(crPct)}%
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={clsx('font-medium', rrPct > 50 ? 'text-success-600' : 'text-gray-600')}>
-                            {Math.round(rrPct)}%
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(s.created_at)}</td>
@@ -851,7 +863,7 @@ function CompanyAnalytics() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                       {searchQuery ? 'No simulations match your search' : 'No simulations found'}
                     </td>
                   </tr>
@@ -877,9 +889,9 @@ function CompanyAnalytics() {
                   pagedData.map((emp) => (
                     <tr key={emp.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">
-                        {emp.first_name} {emp.last_name}
+                        {emp.employee_name || `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{emp.email}</td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">{emp.employee_email || emp.email}</td>
                       <td className="px-4 py-3">
                         <span className={clsx('inline-flex px-2 py-0.5 rounded-full text-xs font-medium', getRiskBg(emp.risk_score))}>
                           {emp.risk_score} - {emp.risk_level || (emp.risk_score >= 80 ? 'CRITICAL' : 'HIGH')}

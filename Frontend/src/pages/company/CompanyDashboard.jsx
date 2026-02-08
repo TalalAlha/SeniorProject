@@ -277,9 +277,18 @@ function CompanyDashboard() {
         simulationsAPI.list({ limit: 5, ordering: '-created_at' }).catch(() => ({ data: { results: [] } })),
       ]);
 
+      // Transform risk distribution from API format to chart format
+      const rawDist = riskDistRes.data;
+      const riskDist = rawDist ? {
+        LOW: rawDist.low_risk ?? rawDist.LOW ?? 0,
+        MEDIUM: rawDist.medium_risk ?? rawDist.MEDIUM ?? 0,
+        HIGH: rawDist.high_risk ?? rawDist.HIGH ?? 0,
+        CRITICAL: rawDist.critical_risk ?? rawDist.CRITICAL ?? 0,
+      } : { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 };
+
       setDashboardData({
         stats: statsRes.data,
-        riskDistribution: riskDistRes.data || { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 },
+        riskDistribution: riskDist,
         recentCampaigns: campaignsRes.data?.results || campaignsRes.data || [],
         recentSimulations: simulationsRes.data?.results || simulationsRes.data || [],
       });
@@ -325,11 +334,11 @@ function CompanyDashboard() {
   // Calculate summary values
   const totalEmployees = stats?.total_employees || 0;
   const activeCampaigns = stats?.active_campaigns || 0;
-  const avgRiskScore = stats?.avg_risk_score || 0;
+  const avgRiskScore = stats?.average_risk_score || 0;
   const trainingCompletion = stats?.training_completion_rate
-    ? Math.round(stats.training_completion_rate * 100)
+    ? Math.round(stats.training_completion_rate)
     : 0;
-  const highRiskCount = stats?.high_risk_employees || 0;
+  const highRiskCount = stats?.employees_at_high_risk || 0;
   const activeSimulations = stats?.active_simulations || 0;
 
   return (

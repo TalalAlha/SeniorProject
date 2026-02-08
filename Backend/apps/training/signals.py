@@ -212,28 +212,40 @@ def update_risk_score_from_simulation(sender, instance, created, **kwargs):
             event_type__in=['EMAIL_OPENED', 'LINK_CLICKED', 'CREDENTIALS_ENTERED', 'EMAIL_REPORTED']
         ).exclude(id=instance.id).exists()
 
+        # Check if this specific event type was already recorded for this simulation
+        def already_has_event(event_type):
+            """Check if this email simulation already has this event type."""
+            if not instance.email_simulation:
+                return False
+            return SimTrackingEvent.objects.filter(
+                email_simulation=instance.email_simulation,
+                event_type=event_type
+            ).exclude(id=instance.id).exists()
+
         # Update based on event type
         if instance.event_type == 'EMAIL_OPENED':
             if not sim_already_counted:
                 risk_score.total_simulations_received = F('total_simulations_received') + 1
+            if not already_has_event('EMAIL_OPENED'):
                 risk_score.simulations_opened = F('simulations_opened') + 1
 
         elif instance.event_type == 'LINK_CLICKED':
-            # Ensure total_simulations_received is incremented if EMAIL_OPENED
-            # was never tracked (e.g. images blocked by email client)
             if not sim_already_counted:
                 risk_score.total_simulations_received = F('total_simulations_received') + 1
-            risk_score.simulations_clicked = F('simulations_clicked') + 1
+            if not already_has_event('LINK_CLICKED'):
+                risk_score.simulations_clicked = F('simulations_clicked') + 1
 
         elif instance.event_type == 'CREDENTIALS_ENTERED':
             if not sim_already_counted:
                 risk_score.total_simulations_received = F('total_simulations_received') + 1
-            risk_score.credentials_entered = F('credentials_entered') + 1
+            if not already_has_event('CREDENTIALS_ENTERED'):
+                risk_score.credentials_entered = F('credentials_entered') + 1
 
         elif instance.event_type == 'EMAIL_REPORTED':
             if not sim_already_counted:
                 risk_score.total_simulations_received = F('total_simulations_received') + 1
-            risk_score.simulations_reported = F('simulations_reported') + 1
+            if not already_has_event('EMAIL_REPORTED'):
+                risk_score.simulations_reported = F('simulations_reported') + 1
 
         risk_score.last_simulation_date = timezone.now()
         risk_score.save()

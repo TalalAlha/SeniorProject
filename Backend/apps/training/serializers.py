@@ -82,16 +82,20 @@ class RiskScoreEmployeeSerializer(serializers.ModelSerializer):
     """Serializer for employee's own risk score view (limited data)."""
 
     quiz_accuracy = serializers.DecimalField(max_digits=5, decimal_places=1, read_only=True)
+    simulation_click_rate = serializers.DecimalField(max_digits=5, decimal_places=1, read_only=True)
     training_completion_rate = serializers.DecimalField(max_digits=5, decimal_places=1, read_only=True)
     pending_trainings = serializers.SerializerMethodField()
+    is_new_user = serializers.SerializerMethodField()
 
     class Meta:
         model = RiskScore
         fields = [
             'id', 'score', 'risk_level', 'total_quizzes_taken',
-            'quiz_accuracy', 'trainings_assigned', 'trainings_completed',
+            'quiz_accuracy', 'simulation_click_rate',
+            'total_simulations_received', 'simulations_clicked',
+            'trainings_assigned', 'trainings_completed',
             'training_completion_rate', 'requires_remediation',
-            'pending_trainings', 'updated_at'
+            'pending_trainings', 'is_new_user', 'updated_at'
         ]
         read_only_fields = ['id', 'updated_at']
 
@@ -100,6 +104,14 @@ class RiskScoreEmployeeSerializer(serializers.ModelSerializer):
         return obj.employee.remediation_trainings.filter(
             status__in=['ASSIGNED', 'IN_PROGRESS']
         ).count()
+
+    def get_is_new_user(self, obj):
+        """Check if user has no activity data yet."""
+        return (
+            obj.total_quizzes_taken == 0
+            and obj.total_simulations_received == 0
+            and obj.trainings_assigned == 0
+        )
 
 
 class RiskScoreUpdateSerializer(serializers.ModelSerializer):

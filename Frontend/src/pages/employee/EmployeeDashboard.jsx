@@ -304,13 +304,13 @@ function EmployeeDashboard() {
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">Quiz Accuracy</span>
                 <span className="font-medium text-gray-900">
-                  {Math.round((riskScore?.quiz_accuracy || 0) * 100)}%
+                  {Math.round(riskScore?.quiz_accuracy || 0)}%
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">Simulation Click Rate</span>
                 <span className="font-medium text-gray-900">
-                  {Math.round((riskScore?.simulation_click_rate || 0) * 100)}%
+                  {Math.round(riskScore?.simulation_click_rate || 0)}%
                 </span>
               </div>
             </div>

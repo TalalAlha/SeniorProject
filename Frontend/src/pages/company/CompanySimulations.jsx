@@ -698,9 +698,8 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
   const status = STATUS_CONFIG[simulation.status] || STATUS_CONFIG.DRAFT;
   const StatusIcon = status.icon;
 
-  const clickRate = simulation.click_rate ?? (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
-  const reportRate = simulation.report_rate ?? (simulation.total_sent > 0 ? simulation.total_reported / simulation.total_sent : 0);
-  const openRate = simulation.open_rate ?? (simulation.total_sent > 0 ? simulation.total_opened / simulation.total_sent : 0);
+  const clickRate = simulation.click_rate != null ? simulation.click_rate / 100 : (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
+  const openRate = simulation.open_rate != null ? simulation.open_rate / 100 : (simulation.total_sent > 0 ? simulation.total_opened / simulation.total_sent : 0);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={simulation.name} size="xl">
@@ -748,7 +747,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <StatCard
               icon={Send}
               label="Total Sent"
@@ -768,13 +767,6 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
               value={simulation.total_clicked || 0}
               color={clickRate > 0.3 ? 'danger' : clickRate > 0.1 ? 'warning' : 'success'}
               subtext={`${(clickRate * 100).toFixed(1)}% rate`}
-            />
-            <StatCard
-              icon={Flag}
-              label="Reported"
-              value={simulation.total_reported || 0}
-              color={reportRate > 0.5 ? 'success' : reportRate > 0.2 ? 'warning' : 'danger'}
-              subtext={`${(reportRate * 100).toFixed(1)}% rate`}
             />
           </div>
 
@@ -800,28 +792,6 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                       clickRate > 0.3 ? 'bg-danger-500' : clickRate > 0.1 ? 'bg-warning-500' : 'bg-success-500'
                     )}
                     style={{ width: `${Math.min(clickRate * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Report Rate Bar */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Report Rate (Higher is better)</span>
-                  <span className={clsx(
-                    'font-medium',
-                    reportRate > 0.5 ? 'text-success-600' : reportRate > 0.2 ? 'text-warning-600' : 'text-danger-600'
-                  )}>
-                    {(reportRate * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={clsx(
-                      'h-2 rounded-full transition-all duration-300',
-                      reportRate > 0.5 ? 'bg-success-500' : reportRate > 0.2 ? 'bg-warning-500' : 'bg-danger-500'
-                    )}
-                    style={{ width: `${Math.min(reportRate * 100, 100)}%` }}
                   />
                 </div>
               </div>
@@ -913,8 +883,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
   const status = STATUS_CONFIG[simulation.status] || STATUS_CONFIG.DRAFT;
   const StatusIcon = status.icon;
 
-  const clickRate = simulation.click_rate ?? (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
-  const reportRate = simulation.report_rate ?? (simulation.total_sent > 0 ? simulation.total_reported / simulation.total_sent : 0);
+  const clickRate = simulation.click_rate != null ? simulation.click_rate / 100 : (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
 
   const menuItems = [
     { icon: Eye, label: 'View Details', onClick: () => onView(simulation) },
@@ -959,7 +928,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="flex items-center gap-2 text-sm">
           <Send className="h-4 w-4 text-gray-400" />
           <span className="text-gray-600">{simulation.total_sent || 0} sent</span>
@@ -979,17 +948,6 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
             {simulation.total_clicked || 0} clicked
           </span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Flag className={clsx(
-            'h-4 w-4',
-            reportRate > 0.5 ? 'text-success-500' : reportRate > 0.2 ? 'text-warning-500' : 'text-gray-400'
-          )} />
-          <span className={clsx(
-            reportRate > 0.5 ? 'text-success-600' : reportRate > 0.2 ? 'text-warning-600' : 'text-gray-600'
-          )}>
-            {simulation.total_reported || 0} reported
-          </span>
-        </div>
       </div>
 
       {/* Rates */}
@@ -1002,15 +960,6 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
               clickRate > 0.3 ? 'text-danger-600' : clickRate > 0.1 ? 'text-warning-600' : 'text-success-600'
             )}>
               {(clickRate * 100).toFixed(1)}%
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-400">Report Rate: </span>
-            <span className={clsx(
-              'font-medium',
-              reportRate > 0.5 ? 'text-success-600' : reportRate > 0.2 ? 'text-warning-600' : 'text-danger-600'
-            )}>
-              {(reportRate * 100).toFixed(1)}%
             </span>
           </div>
         </div>

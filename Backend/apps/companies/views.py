@@ -219,7 +219,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
         # Risk score stats
         try:
-            from apps.assessments.models import RiskScore
+            from apps.training.models import RiskScore
             risk_scores = RiskScore.objects.filter(employee__company=company)
             avg_risk = risk_scores.aggregate(avg=Avg('score'))['avg']
             high_risk_count = risk_scores.filter(score__gte=70).count()
