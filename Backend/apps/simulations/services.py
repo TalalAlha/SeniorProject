@@ -287,6 +287,7 @@ def mark_campaign_emails_sent(campaign: SimulationCampaign) -> int:
     Mark all pending EmailSimulation records for a campaign as sent.
 
     Used after admin confirms they've manually sent the emails.
+    Also updates each targeted employee's RiskScore.total_simulations_received.
 
     Args:
         campaign: The SimulationCampaign to update.
@@ -295,6 +296,15 @@ def mark_campaign_emails_sent(campaign: SimulationCampaign) -> int:
         int: Number of records updated.
     """
     from django.utils import timezone
+    from django.db.models import F
+
+    # Get the pending simulations before bulk update so we can update RiskScores
+    pending_employee_ids = list(
+        EmailSimulation.objects.filter(
+            campaign=campaign,
+            status='PENDING'
+        ).values_list('employee_id', flat=True)
+    )
 
     updated = EmailSimulation.objects.filter(
         campaign=campaign,
@@ -309,6 +319,35 @@ def mark_campaign_emails_sent(campaign: SimulationCampaign) -> int:
     campaign.status = 'IN_PROGRESS'
     campaign.sent_at = timezone.now()
     campaign.save()
+
+    # Update each employee's RiskScore.total_simulations_received
+    if pending_employee_ids:
+        try:
+            from apps.training.models import RiskScore
+
+            for emp_id in pending_employee_ids:
+                try:
+                    employee = User.objects.get(id=emp_id)
+                    if employee.role != 'EMPLOYEE':
+                        continue
+
+                    risk_score, created = RiskScore.objects.get_or_create(
+                        employee=employee,
+                        defaults={
+                            'company': employee.company,
+                            'score': 50,
+                            'risk_level': 'MEDIUM'
+                        }
+                    )
+                    risk_score.total_simulations_received = F('total_simulations_received') + 1
+                    risk_score.last_simulation_date = timezone.now()
+                    risk_score.save(update_fields=['total_simulations_received', 'last_simulation_date'])
+                except User.DoesNotExist:
+                    continue
+        except Exception:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error('Error updating risk scores on mark_sent')
 
     return updated
 

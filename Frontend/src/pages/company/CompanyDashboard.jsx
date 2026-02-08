@@ -218,7 +218,7 @@ function SimulationCard({ simulation }) {
 
   return (
     <Link
-      to={`/company/simulations/${simulation.id}`}
+      to="/company/simulations"
       className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
     >
       <div className="flex items-center justify-between mb-2">
@@ -227,6 +227,11 @@ function SimulationCard({ simulation }) {
           {simulation.status}
         </span>
       </div>
+      {simulation.template_name && (
+        <p className="text-sm text-gray-500 mb-2 truncate">
+          Template: {simulation.template_name}
+        </p>
+      )}
       <div className="flex items-center justify-between text-sm text-gray-500">
         <span>{simulation.target_count || 0} targets</span>
         {simulation.click_rate !== undefined && (
@@ -265,7 +270,7 @@ function CompanyDashboard() {
     setError(null);
 
     try {
-      const companyId = user?.company_id || user?.company?.id;
+      const companyId = user?.company_id || user?.company?.id || user?.company;
 
       // Fetch all data in parallel
       const [statsRes, riskDistRes, campaignsRes, simulationsRes] = await Promise.all([

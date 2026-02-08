@@ -204,13 +204,27 @@ def update_risk_score_from_simulation(sender, instance, created, **kwargs):
         old_level = risk_score.risk_level
 
         # Check if total_simulations_received has already been counted
-        # for this email simulation by checking if any prior tracking event
-        # exists for the same email simulation (excluding this one).
+        # for this email simulation. It could have been counted by:
+        # 1. A prior relevant tracking event for the same email simulation
+        # 2. mark_campaign_emails_sent() which bulk-marks emails as SENT
+        #    (detected by: status=SENT + sent_at set + no EMAIL_SENT tracking event)
         from apps.simulations.models import TrackingEvent as SimTrackingEvent
-        sim_already_counted = instance.email_simulation and SimTrackingEvent.objects.filter(
+        has_prior_relevant_events = instance.email_simulation and SimTrackingEvent.objects.filter(
             email_simulation=instance.email_simulation,
             event_type__in=['EMAIL_OPENED', 'LINK_CLICKED', 'CREDENTIALS_ENTERED', 'EMAIL_REPORTED']
         ).exclude(id=instance.id).exists()
+
+        was_bulk_marked_sent = (
+            instance.email_simulation and
+            instance.email_simulation.status == 'SENT' and
+            instance.email_simulation.sent_at and
+            not SimTrackingEvent.objects.filter(
+                email_simulation=instance.email_simulation,
+                event_type='EMAIL_SENT'
+            ).exists()
+        )
+
+        sim_already_counted = has_prior_relevant_events or was_bulk_marked_sent
 
         # Check if this specific event type was already recorded for this simulation
         def already_has_event(event_type):
