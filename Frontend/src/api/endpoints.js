@@ -79,6 +79,7 @@ export const simulationsAPI = {
   generatePackage: (id) => api.post(`/simulations/campaigns/${id}/generate_package/`, {}, { responseType: 'blob' }),
   markSent: (id) => api.post(`/simulations/campaigns/${id}/mark_sent/`),
   getAnalytics: (id) => api.get(`/simulations/campaigns/${id}/analytics/`),
+  getResults: (id) => api.get(`/simulations/campaigns/${id}/results/`),
   // Tracking (for phishing link clicks)
   recordClick: (trackingId) => api.post(`/simulations/track/${trackingId}/click/`),
   recordReport: (trackingId) => api.post(`/simulations/track/${trackingId}/report/`),

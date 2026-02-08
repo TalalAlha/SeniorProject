@@ -37,7 +37,9 @@ import { useAuth } from '../../contexts';
 const STATUS_CONFIG = {
   DRAFT: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: FileText },
   READY: { label: 'Ready', color: 'bg-primary-50 text-primary-700', icon: Check },
+  SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 text-blue-700', icon: Clock },
   SENT: { label: 'Sent', color: 'bg-warning-50 text-warning-700', icon: Send },
+  IN_PROGRESS: { label: 'In Progress', color: 'bg-warning-50 text-warning-700', icon: Play },
   ACTIVE: { label: 'Active', color: 'bg-success-50 text-success-700', icon: Play },
   COMPLETED: { label: 'Completed', color: 'bg-primary-100 text-primary-800', icon: CheckCircle },
 };
@@ -638,22 +640,27 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
+  const [employeeResults, setEmployeeResults] = useState([]);
   const [markingAsSent, setMarkingAsSent] = useState(false);
 
   useEffect(() => {
     if (isOpen && simulation) {
-      fetchAnalytics();
+      fetchData();
     }
   }, [isOpen, simulation]);
 
-  const fetchAnalytics = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await simulationsAPI.getAnalytics(simulation.id);
-      setAnalytics(response.data);
+      const [analyticsRes, resultsRes] = await Promise.all([
+        simulationsAPI.getAnalytics(simulation.id).catch(() => ({ data: null })),
+        simulationsAPI.getResults(simulation.id).catch(() => ({ data: null })),
+      ]);
+      setAnalytics(analyticsRes.data);
+      setEmployeeResults(resultsRes.data?.results || []);
     } catch (err) {
-      // Analytics might not be available yet
       setAnalytics(null);
+      setEmployeeResults([]);
     } finally {
       setLoading(false);
     }
@@ -685,6 +692,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
     try {
       await simulationsAPI.markSent(simulation.id);
       toast.success('Simulation marked as sent');
+      fetchData();
       onRefresh();
     } catch (err) {
       toast.error('Failed to update simulation');
@@ -701,8 +709,11 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
   const clickRate = simulation.click_rate != null ? simulation.click_rate / 100 : (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
   const openRate = simulation.open_rate != null ? simulation.open_rate / 100 : (simulation.total_sent > 0 ? simulation.total_opened / simulation.total_sent : 0);
 
+  const canMarkSent = ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status);
+  const canDownload = ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={simulation.name} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={simulation.name} size="full">
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
@@ -710,39 +721,39 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
       ) : (
         <div className="space-y-6">
           {/* Header Info */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <span className={clsx('inline-flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full', status.color)}>
                 <StatusIcon className="h-4 w-4" />
                 {status.label}
               </span>
-              {simulation.template && (
+              {(simulation.template_name || simulation.template?.name) && (
                 <span className="text-sm text-gray-500">
-                  Template: <strong>{simulation.template.name}</strong>
+                  Template: <strong>{simulation.template_name || simulation.template?.name}</strong>
                 </span>
               )}
             </div>
             <div className="flex gap-2">
-              {simulation.status === 'DRAFT' || simulation.status === 'READY' ? (
-                <>
-                  <button
-                    onClick={handleDownloadPackage}
-                    disabled={downloading}
-                    className="btn-secondary flex items-center gap-2"
-                  >
-                    {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    {downloading ? 'Downloading...' : 'Download Package'}
-                  </button>
-                  <button
-                    onClick={handleMarkAsSent}
-                    disabled={markingAsSent}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    {markingAsSent ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    Mark as Sent
-                  </button>
-                </>
-              ) : null}
+              {canDownload && (
+                <button
+                  onClick={handleDownloadPackage}
+                  disabled={downloading}
+                  className="btn-secondary flex items-center gap-2"
+                >
+                  {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {downloading ? 'Downloading...' : 'Download Package'}
+                </button>
+              )}
+              {canMarkSent && (
+                <button
+                  onClick={handleMarkAsSent}
+                  disabled={markingAsSent}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {markingAsSent ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Mark as Sent
+                </button>
+              )}
             </div>
           </div>
 
@@ -799,71 +810,102 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
           </div>
 
           {/* Employee Results Table */}
-          {analytics?.employee_results && analytics.employee_results.length > 0 && (
+          {employeeResults.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Employee Results</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                Employee Results ({employeeResults.length})
+              </h4>
               <div className="border rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Employee
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Opened
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Clicked
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Reported
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Last Activity
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {analytics.employee_results.map((result, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {result.employee_name || result.email}
-                            </p>
-                            <p className="text-xs text-gray-500">{result.email}</p>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {result.opened ? (
-                            <CheckCircle className="h-5 w-5 text-success-600 mx-auto" />
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {result.clicked ? (
-                            <AlertTriangle className="h-5 w-5 text-danger-600 mx-auto" />
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {result.reported ? (
-                            <Flag className="h-5 w-5 text-success-600 mx-auto" />
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
-                          {result.last_activity
-                            ? formatDistanceToNow(new Date(result.last_activity), { addSuffix: true })
-                            : '-'}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Employee
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Opened
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Clicked
+                        </th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Risk
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Last Activity
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {employeeResults.map((result) => {
+                        const lastActivity = result.clicked_at || result.first_opened_at || result.sent_at;
+                        const riskColors = {
+                          LOW: 'bg-success-50 text-success-700',
+                          MEDIUM: 'bg-warning-50 text-warning-700',
+                          HIGH: 'bg-orange-50 text-orange-700',
+                          CRITICAL: 'bg-danger-50 text-danger-700',
+                        };
+                        const statusColors = {
+                          SENT: 'bg-success-50 text-success-700',
+                          PENDING: 'bg-gray-100 text-gray-600',
+                          DELIVERED: 'bg-primary-50 text-primary-700',
+                          FAILED: 'bg-danger-50 text-danger-700',
+                        };
+                        return (
+                          <tr key={result.employee_id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {result.employee_name || 'Unknown'}
+                                </p>
+                                <p className="text-xs text-gray-500">{result.employee_email}</p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={clsx(
+                                'text-xs font-medium px-2 py-0.5 rounded-full',
+                                statusColors[result.email_status] || 'bg-gray-100 text-gray-600'
+                              )}>
+                                {result.email_status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {result.was_opened ? (
+                                <CheckCircle className="h-5 w-5 text-success-600 mx-auto" />
+                              ) : (
+                                <span className="text-gray-300">-</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              {result.was_clicked ? (
+                                <AlertTriangle className="h-5 w-5 text-danger-600 mx-auto" />
+                              ) : (
+                                <span className="text-gray-300">-</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={clsx(
+                                'text-xs font-medium px-2 py-0.5 rounded-full',
+                                riskColors[result.risk_level] || 'bg-gray-100 text-gray-600'
+                              )}>
+                                {result.risk_level}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500">
+                              {lastActivity
+                                ? formatDistanceToNow(new Date(lastActivity), { addSuffix: true })
+                                : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -887,14 +929,14 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
 
   const menuItems = [
     { icon: Eye, label: 'View Details', onClick: () => onView(simulation) },
-    { icon: Download, label: 'Download Package', onClick: () => onDownload(simulation) },
-    (simulation.status === 'DRAFT' || simulation.status === 'READY') && {
+    { icon: Download, label: 'Download Package', onClick: () => onDownload(simulation.id) },
+    ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status) && {
       icon: Send,
       label: 'Mark as Sent',
-      onClick: () => onMarkSent(simulation),
+      onClick: () => onMarkSent(simulation.id),
     },
-    { divider: true },
-    { icon: Trash2, label: 'Delete', onClick: () => onDelete(simulation), danger: true },
+    simulation.status === 'DRAFT' && { divider: true },
+    simulation.status === 'DRAFT' && { icon: Trash2, label: 'Delete', onClick: () => onDelete(simulation.id), danger: true },
   ].filter(Boolean);
 
   return (
@@ -921,9 +963,9 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
         </h3>
       </button>
 
-      {simulation.template && (
+      {(simulation.template_name || simulation.template?.name) && (
         <p className="text-sm text-gray-500 mb-4">
-          Template: {simulation.template.name}
+          Template: {simulation.template_name || simulation.template?.name}
         </p>
       )}
 
@@ -1032,14 +1074,14 @@ function CompanySimulations() {
     }
   };
 
-  const handleDownload = async (simulation) => {
+  const handleDownload = async (simulationId) => {
     try {
-      const response = await simulationsAPI.generatePackage(simulation.id);
+      const response = await simulationsAPI.generatePackage(simulationId);
       const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `simulation-${simulation.id}-package.csv`;
+      a.download = `simulation-${simulationId}-package.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -1050,9 +1092,9 @@ function CompanySimulations() {
     }
   };
 
-  const handleMarkSent = async (simulation) => {
+  const handleMarkSent = async (simulationId) => {
     try {
-      await simulationsAPI.markSent(simulation.id);
+      await simulationsAPI.markSent(simulationId);
       toast.success('Simulation marked as sent');
       fetchSimulations();
     } catch (err) {
@@ -1173,7 +1215,7 @@ function CompanySimulations() {
               key={simulation.id}
               simulation={simulation}
               onView={(s) => setViewingSimulation(s)}
-              onDelete={(s) => setDeletingSimulation(s)}
+              onDelete={(id) => setDeletingSimulation(simulations.find(s => s.id === id))}
               onDownload={handleDownload}
               onMarkSent={handleMarkSent}
             />

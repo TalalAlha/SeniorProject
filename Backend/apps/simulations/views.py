@@ -668,9 +668,9 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         campaign = self.get_object()
 
         # Validate campaign status
-        if campaign.status not in ['DRAFT', 'SCHEDULED']:
+        if campaign.status not in ['DRAFT', 'SCHEDULED', 'IN_PROGRESS']:
             return Response(
-                {'error': 'Can only generate package for DRAFT or SCHEDULED campaigns.'},
+                {'error': 'Can only generate package for active campaigns.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
