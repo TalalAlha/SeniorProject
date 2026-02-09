@@ -39,6 +39,7 @@ import AdminDashboard from '../pages/admin/AdminDashboard';
 import CompanyList from '../pages/admin/CompanyList';
 import CompanyCreate from '../pages/admin/CompanyCreate';
 import PlatformAnalytics from '../pages/admin/PlatformAnalytics';
+import UserManagement from '../pages/admin/UserManagement';
 
 // Router configuration
 const router = createBrowserRouter([
@@ -130,6 +131,7 @@ const router = createBrowserRouter([
       { path: 'companies', element: <CompanyList /> },
       { path: 'companies/create', element: <CompanyCreate /> },
       { path: 'analytics', element: <PlatformAnalytics /> },
+      { path: 'users', element: <UserManagement /> },
       { path: 'profile', element: <EmployeeProfile /> },
     ],
   },

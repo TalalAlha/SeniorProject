@@ -49,6 +49,7 @@ const getNavItems = (role, t) => {
       { name: t('nav.dashboard'), path: '/admin/dashboard', icon: Home },
       { name: t('nav.companies'), path: '/admin/companies', icon: Building2 },
       { name: t('nav.analytics'), path: '/admin/analytics', icon: BarChart3 },
+      { name: t('nav.users'), path: '/admin/users', icon: Users },
       { name: t('nav.profile'), path: '/admin/profile', icon: Settings },
     ],
   };
