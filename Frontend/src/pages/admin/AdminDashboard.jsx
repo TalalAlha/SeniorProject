@@ -347,7 +347,7 @@ function AdminDashboard() {
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
         </Link>
 
-        <Link to="/admin/companies" className="card-hover flex items-center justify-between group">
+        <Link to="/admin/users" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-purple-100">
               <Users className="h-6 w-6 text-purple-600" />

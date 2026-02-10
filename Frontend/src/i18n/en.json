@@ -95,6 +95,80 @@
       }
     }
   },
+  "public": {
+    "hero": {
+      "badge": "Free Cybersecurity Awareness",
+      "title": "Protect Yourself from Cyber Threats",
+      "subtitle": "Free cybersecurity awareness for everyone in Saudi Arabia. Learn to recognize phishing, SMS scams, and voice call fraud.",
+      "startLearning": "Start Learning",
+      "takeQuiz": "Take Free Quiz"
+    },
+    "stats": {
+      "title": "The Threat is Real",
+      "subtitle": "Cybercrime is on the rise in Saudi Arabia. Know the numbers to stay protected.",
+      "phishingAttempts": "of Saudis have received phishing attempts",
+      "smsIncrease": "increase in SMS scams in 2024",
+      "voiceScams": "of people fall for voice call scams",
+      "source": "Source: Saudi National Cybersecurity Authority & SAMA Reports"
+    },
+    "topics": {
+      "title": "Learn About Cyber Threats",
+      "subtitle": "Choose a topic to learn how scammers target people in Saudi Arabia and how to protect yourself.",
+      "examplesLabel": "Common Examples:",
+      "learnMore": "Learn More",
+      "phishing": {
+        "title": "Email Phishing",
+        "description": "Learn to identify fake emails from Absher, SAMA, banks, and government services. Scammers impersonate trusted organizations to steal your credentials.",
+        "examples": "Fake Absher verification emails, fraudulent bank alerts, SAMA impersonation"
+      },
+      "smishing": {
+        "title": "SMS Scams (Smishing)",
+        "description": "Recognize fake Nafath OTP messages, delivery scams from Saudi Post, and fraudulent payment alerts from SADAD.",
+        "examples": "Fake Nafath codes, Saudi Post delivery scams, STC/Mobily prize messages"
+      },
+      "vishing": {
+        "title": "Voice Call Scams (Vishing)",
+        "description": "Protect yourself from callers impersonating Ministry of Interior, banks, or telecom companies demanding personal information.",
+        "examples": "Fake Ministry of Interior calls, bank verification scams, prize claim calls"
+      }
+    },
+    "quiz": {
+      "title": "Test Your Knowledge",
+      "subtitle": "Take a free quiz to see how well you can spot scams. No registration required.",
+      "phishingQuiz": "Email Phishing Quiz",
+      "smishingQuiz": "SMS Scams Quiz",
+      "vishingQuiz": "Voice Scams Quiz",
+      "startQuiz": "Start Quiz",
+      "questions": "questions",
+      "minutes": "min",
+      "beginner": "Beginner"
+    },
+    "tips": {
+      "title": "Quick Safety Tips",
+      "tip1": "Never share your Nafath or Absher OTP codes with anyone, even if they claim to be from a government agency.",
+      "tip2": "Check the sender's email address carefully. Official emails from Saudi banks never ask for your password.",
+      "tip3": "If you receive a call claiming to be from a ministry, hang up and call the official number directly.",
+      "tip4": "Legitimate organizations like SAMA and banks will never ask for your full card number via SMS.",
+      "tip5": "Be cautious of messages claiming you won a prize from STC, Mobily, or Zain. Verify through official apps.",
+      "tip6": "Enable two-factor authentication on all your accounts, especially Absher and banking apps."
+    },
+    "cta": {
+      "title": "Stay Safe Online",
+      "subtitle": "Cybersecurity awareness is your first line of defense. Explore our free training and quizzes today.",
+      "explore": "Explore Training",
+      "register": "Create Free Account"
+    },
+    "footer": {
+      "about": "PhishAware is a free cybersecurity awareness platform dedicated to protecting individuals and organizations in Saudi Arabia from phishing and social engineering attacks.",
+      "quickLinks": "Quick Links",
+      "resources": "Saudi Resources",
+      "contact": "Contact",
+      "nca": "National Cybersecurity Authority",
+      "sama": "Saudi Central Bank (SAMA)",
+      "cert": "Saudi CERT",
+      "rights": "All rights reserved."
+    }
+  },
   "dashboard": {
     "welcome": "Welcome back",
     "overview": "Overview",

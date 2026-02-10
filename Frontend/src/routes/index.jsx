@@ -7,7 +7,10 @@ import PublicLayout from '../layouts/PublicLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 
 // Public Pages
-import LandingPage from '../pages/public/LandingPage';
+import PublicHome from '../pages/public/PublicHome';
+import TrainingTopics from '../pages/public/TrainingTopics';
+import TopicTraining from '../pages/public/TopicTraining';
+import PublicQuiz from '../pages/public/PublicQuiz';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import CommunityPortal from '../pages/public/CommunityPortal';
@@ -52,7 +55,10 @@ const router = createBrowserRouter([
       </GuestRoute>
     ),
     children: [
-      { index: true, element: <LandingPage /> },
+      { index: true, element: <PublicHome /> },
+      { path: 'training', element: <TrainingTopics /> },
+      { path: 'training/:topic', element: <TopicTraining /> },
+      { path: 'quiz', element: <PublicQuiz /> },
       { path: 'community', element: <CommunityPortal /> },
     ],
   },

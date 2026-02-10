@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -750,6 +750,7 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
 // ============================================================================
 
 function CompanyList() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [companies, setCompanies] = useState([]);
@@ -1312,9 +1313,7 @@ function CompanyList() {
         company={viewingCompany}
         onEdit={(c) => setEditingCompany(c)}
         onManageUsers={(c) => {
-          // In a full implementation this would navigate to a users page
-          // For now, the details modal shows user stats
-          toast.success(`Navigate to user management for ${c.name}`);
+          navigate(`/admin/users?company=${c.id}`);
         }}
       />
 
