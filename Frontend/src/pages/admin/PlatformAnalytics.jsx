@@ -175,7 +175,7 @@ function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
   const active = currentSort === sortKey;
   return (
     <th
-      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+      className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
       onClick={() => onSort(sortKey)}
     >
       <div className="flex items-center gap-1">
@@ -816,7 +816,7 @@ function PlatformAnalytics() {
         {/* Search & Export Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search..."
@@ -825,7 +825,7 @@ function PlatformAnalytics() {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="input pl-9 py-2 text-sm"
+              className="input ps-9 py-2 text-sm"
             />
           </div>
           <button
@@ -851,11 +851,11 @@ function PlatformAnalytics() {
                 <tr>
                   <SortHeader label="Company" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Users" sortKey="total_users" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Risk Score</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Industry</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Status</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Avg Risk Score</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Industry</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Status</th>
                   <SortHeader label="Created" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -970,11 +970,11 @@ function PlatformAnalytics() {
                 <thead className="bg-gray-50">
                   <tr>
                     <SortHeader label="Employee" sortKey="employee_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Email</th>
                     <SortHeader label="Risk Score" sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Phishing Clicks</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Credentials Entered</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Needs Training</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Phishing Clicks</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Credentials Entered</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Needs Training</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">

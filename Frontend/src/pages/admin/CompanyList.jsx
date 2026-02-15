@@ -180,7 +180,7 @@ function DropdownMenu({ trigger, items }) {
                   }}
                   disabled={item.disabled}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors',
+                    'w-full px-4 py-2 text-start text-sm flex items-center gap-2 transition-colors',
                     item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
@@ -1057,13 +1057,13 @@ function CompanyList() {
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search by company name or email..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="input pl-10"
+            className="input ps-10"
           />
         </div>
 
@@ -1082,7 +1082,7 @@ function CompanyList() {
           {showStatusMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowStatusMenu(false)} />
-              <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute end-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                 {['ALL', 'ACTIVE', 'INACTIVE'].map((status) => (
                   <button
                     key={status}
@@ -1117,7 +1117,7 @@ function CompanyList() {
           {showIndustryMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowIndustryMenu(false)} />
-              <div className="absolute right-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 max-h-60 overflow-y-auto">
+              <div className="absolute end-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 max-h-60 overflow-y-auto">
                 <button
                   onClick={() => { setIndustryFilter('ALL'); setShowIndustryMenu(false); setCurrentPage(1); }}
                   className={clsx(
@@ -1157,7 +1157,7 @@ function CompanyList() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
@@ -1165,11 +1165,11 @@ function CompanyList() {
                     <SortIndicator column="name" />
                   </div>
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
                   Industry
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('total_users')}
                 >
                   <div className="flex items-center gap-1">
@@ -1177,10 +1177,10 @@ function CompanyList() {
                     <SortIndicator column="total_users" />
                   </div>
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                   Location
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
                 <th
@@ -1192,7 +1192,7 @@ function CompanyList() {
                     <SortIndicator column="created_at" />
                   </div>
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -1283,7 +1283,7 @@ function CompanyList() {
                     </p>
                     {!searchQuery && statusFilter === 'ALL' && industryFilter === 'ALL' && (
                       <button onClick={() => setShowCreateModal(true)} className="btn-primary">
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="h-4 w-4 me-2" />
                         Create Company
                       </button>
                     )}

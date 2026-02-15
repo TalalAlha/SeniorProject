@@ -190,7 +190,7 @@ function DropdownMenu({ trigger, items }) {
                   }}
                   disabled={item.disabled}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors',
+                    'w-full px-4 py-2 text-start text-sm flex items-center gap-2 transition-colors',
                     item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
@@ -939,13 +939,13 @@ function UserManagement() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="input pl-10"
+            className="input ps-10"
           />
         </div>
 
@@ -968,11 +968,11 @@ function UserManagement() {
           {showCompanyMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeMenus} />
-              <div className="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 max-h-60 overflow-y-auto">
+              <div className="absolute end-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 max-h-60 overflow-y-auto">
                 <button
                   onClick={() => { setCompanyFilter('ALL'); setShowCompanyMenu(false); setCurrentPage(1); }}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
+                    'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
                     companyFilter === 'ALL' && 'bg-primary-50 text-primary-700'
                   )}
                 >
@@ -983,7 +983,7 @@ function UserManagement() {
                     key={c.id}
                     onClick={() => { setCompanyFilter(String(c.id)); setShowCompanyMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 truncate',
+                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 truncate',
                       String(companyFilter) === String(c.id) && 'bg-primary-50 text-primary-700'
                     )}
                   >
@@ -1010,13 +1010,13 @@ function UserManagement() {
           {showRoleMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeMenus} />
-              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute end-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                 {['ALL', 'SUPER_ADMIN', 'COMPANY_ADMIN', 'EMPLOYEE'].map((role) => (
                   <button
                     key={role}
                     onClick={() => { setRoleFilter(role); setShowRoleMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
+                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
                       roleFilter === role && 'bg-primary-50 text-primary-700'
                     )}
                   >
@@ -1043,13 +1043,13 @@ function UserManagement() {
           {showStatusMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeMenus} />
-              <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute end-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                 {['ALL', 'ACTIVE', 'INACTIVE'].map((status) => (
                   <button
                     key={status}
                     onClick={() => { setStatusFilter(status); setShowStatusMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
+                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
                       statusFilter === status && 'bg-primary-50 text-primary-700'
                     )}
                   >
@@ -1082,7 +1082,7 @@ function UserManagement() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
@@ -1091,7 +1091,7 @@ function UserManagement() {
                   </div>
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden lg:table-cell"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden lg:table-cell"
                   onClick={() => handleSort('company')}
                 >
                   <div className="flex items-center gap-1">
@@ -1100,7 +1100,7 @@ function UserManagement() {
                   </div>
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('role')}
                 >
                   <div className="flex items-center gap-1">
@@ -1108,14 +1108,14 @@ function UserManagement() {
                     <SortIndicator column="role" />
                   </div>
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                   Risk Score
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden sm:table-cell"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden sm:table-cell"
                   onClick={() => handleSort('last_login')}
                 >
                   <div className="flex items-center gap-1">
@@ -1123,7 +1123,7 @@ function UserManagement() {
                     <SortIndicator column="last_login" />
                   </div>
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>

@@ -84,7 +84,7 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:start-0 bg-white border-e border-gray-200">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
           <Link to="/" className="flex items-center gap-2">
@@ -145,9 +145,9 @@ function DashboardLayout() {
 
           {/* Sidebar */}
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-            <div className="absolute top-0 right-0 -mr-12 pt-2">
+            <div className="absolute top-0 end-0 -me-12 pt-2">
               <button
-                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                className="ms-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                 onClick={() => setSidebarOpen(false)}
               >
                 <X className="h-6 w-6 text-white" />
@@ -207,7 +207,7 @@ function DashboardLayout() {
       )}
 
       {/* Main Content */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+      <div className="lg:ps-64 flex flex-col flex-1">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
           {/* Mobile menu button */}
@@ -239,7 +239,7 @@ function DashboardLayout() {
             {/* Notifications */}
             <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-danger-500 rounded-full"></span>
+              <span className="absolute top-1 end-1 h-2 w-2 bg-danger-500 rounded-full"></span>
             </button>
 
             {/* User Menu */}
@@ -260,7 +260,7 @@ function DashboardLayout() {
                     className="fixed inset-0 z-10"
                     onClick={() => setUserMenuOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                  <div className="absolute end-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
                         {user?.first_name} {user?.last_name}

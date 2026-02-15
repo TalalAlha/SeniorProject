@@ -55,9 +55,9 @@ function StatCard({ title, value, icon: Icon, color = 'primary', subtitle, trend
           {trend && (
             <div className="flex items-center mt-2">
               {trend === 'up' ? (
-                <TrendingUp className="h-4 w-4 text-success-500 mr-1" />
+                <TrendingUp className="h-4 w-4 text-success-500 me-1" />
               ) : (
-                <TrendingDown className="h-4 w-4 text-danger-500 mr-1" />
+                <TrendingDown className="h-4 w-4 text-danger-500 me-1" />
               )}
               <span className={clsx('text-sm', trend === 'up' ? 'text-success-600' : 'text-danger-600')}>
                 {trendValue}
@@ -318,7 +318,7 @@ function AdminDashboard() {
               <p className="text-sm text-gray-500">Onboard new organization</p>
             </div>
           </div>
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
         </Link>
 
         <Link to="/admin/companies" className="card-hover flex items-center justify-between group">
@@ -331,7 +331,7 @@ function AdminDashboard() {
               <p className="text-sm text-gray-500">Manage all organizations</p>
             </div>
           </div>
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
         </Link>
 
         <Link to="/admin/analytics" className="card-hover flex items-center justify-between group">
@@ -344,7 +344,7 @@ function AdminDashboard() {
               <p className="text-sm text-gray-500">View detailed reports</p>
             </div>
           </div>
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
         </Link>
 
         <Link to="/admin/users" className="card-hover flex items-center justify-between group">
@@ -357,7 +357,7 @@ function AdminDashboard() {
               <p className="text-sm text-gray-500">Manage users per company</p>
             </div>
           </div>
-          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
         </Link>
       </div>
 
@@ -372,7 +372,7 @@ function AdminDashboard() {
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
             >
               View All
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             </Link>
           </div>
 
@@ -381,12 +381,12 @@ function AdminDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium">Company</th>
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium">Users</th>
+                    <th className="text-start py-3 px-2 text-gray-500 font-medium">Company</th>
+                    <th className="text-start py-3 px-2 text-gray-500 font-medium">Users</th>
                     <th className="text-left py-3 px-2 text-gray-500 font-medium hidden md:table-cell">Industry</th>
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium">Status</th>
+                    <th className="text-start py-3 px-2 text-gray-500 font-medium">Status</th>
                     <th className="text-left py-3 px-2 text-gray-500 font-medium hidden sm:table-cell">Created</th>
-                    <th className="text-right py-3 px-2 text-gray-500 font-medium">Action</th>
+                    <th className="text-end py-3 px-2 text-gray-500 font-medium">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -420,7 +420,7 @@ function AdminDashboard() {
                           {company.created_at ? format(new Date(company.created_at), 'MMM d, yyyy') : '-'}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-right">
+                      <td className="py-3 px-2 text-end">
                         <Link
                           to={`/admin/companies`}
                           className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -443,7 +443,7 @@ function AdminDashboard() {
                 className="mt-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
               >
                 Create your first company
-                <ArrowRight className="h-4 w-4 ml-1" />
+                <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
               </Link>
             </div>
           )}
