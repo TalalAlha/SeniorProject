@@ -703,7 +703,7 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
                 Are you sure you want to delete "{company.name}"?
               </p>
               <p className="text-sm text-danger-700">
-                This will deactivate the company and all associated data including:
+                This will permanently delete the company and all associated data including:
               </p>
               <ul className="text-sm text-danger-700 mt-2 space-y-1 list-disc list-inside">
                 <li>{company.total_users || 0} users</li>

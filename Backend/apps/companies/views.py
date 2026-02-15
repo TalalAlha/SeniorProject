@@ -147,13 +147,12 @@ class CompanyViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Delete a company (Super Admin only). Soft delete by deactivating."""
+        """Delete a company (Super Admin only). Hard delete with cascade."""
         instance = self.get_object()
-        # Instead of hard delete, deactivate the company
-        instance.is_active = False
-        instance.save(update_fields=['is_active', 'updated_at'])
+        name = instance.name
+        instance.delete()
         return Response(
-            {'message': f'Company "{instance.name}" has been deactivated.'},
+            {'message': f'Company "{name}" has been permanently deleted.'},
             status=status.HTTP_200_OK
         )
 
@@ -406,7 +405,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['delete'], url_path=r'users/(?P<user_id>\d+)/remove')
     @transaction.atomic
     def remove_user(self, request, pk=None, user_id=None):
-        """Remove (deactivate) a user from the company."""
+        """Remove a user from the company. Hard delete."""
         company = self.get_object()
 
         # Check access
@@ -437,11 +436,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Soft delete: deactivate the user
-        user.is_active = False
-        user.save(update_fields=['is_active', 'updated_at'])
+        email = user.email
+        user.delete()
 
-        return Response({'message': f'User "{user.email}" has been deactivated.'})
+        return Response({'message': f'User "{email}" has been permanently removed.'})
 
     @action(detail=True, methods=['post'])
     @transaction.atomic
