@@ -755,7 +755,9 @@ function CompanyList() {
   const [error, setError] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [overviewStats, setOverviewStats] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [industryFilter, setIndustryFilter] = useState('ALL');
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -772,12 +774,24 @@ function CompanyList() {
   const [togglingCompany, setTogglingCompany] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Debounce search input to avoid race conditions from rapid keystrokes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const fetchCompanies = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = { ordering: '-created_at' };
-      if (searchQuery) params.search = searchQuery;
+      const params = {
+        ordering: '-created_at',
+        page: currentPage,
+        page_size: itemsPerPage,
+      };
+      if (debouncedSearch) params.search = debouncedSearch;
       if (statusFilter === 'ACTIVE') params.is_active = true;
       if (statusFilter === 'INACTIVE') params.is_active = false;
       if (industryFilter !== 'ALL') params.industry = industryFilter;
@@ -787,7 +801,11 @@ function CompanyList() {
         analyticsAPI.getOverview().catch(() => ({ data: null })),
       ]);
 
-      setCompanies(companiesRes.data?.results || companiesRes.data || []);
+      const data = companiesRes.data;
+      const extractedCompanies = data?.results || data || [];
+
+      setCompanies(extractedCompanies);
+      setTotalCount(data?.count ?? extractedCompanies.length);
       setOverviewStats(overviewRes.data);
     } catch (err) {
       const message = err.response?.data?.detail || 'Failed to load companies';
@@ -796,7 +814,7 @@ function CompanyList() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, statusFilter, industryFilter]);
+  }, [debouncedSearch, statusFilter, industryFilter, currentPage]);
 
   useEffect(() => {
     fetchCompanies();
@@ -804,14 +822,14 @@ function CompanyList() {
 
   // Stats calculations
   const stats = useMemo(() => {
-    const total = companies.length;
+    const total = totalCount;
     const active = companies.filter(c => c.is_active).length;
     const totalUsers = companies.reduce((sum, c) => sum + (c.total_users || 0), 0);
     const avgRisk = overviewStats?.average_risk_score
       ? Math.round(overviewStats.average_risk_score)
       : 0;
     return { total, active, totalUsers, avgRisk };
-  }, [companies, overviewStats]);
+  }, [companies, overviewStats, totalCount]);
 
   // Sorting
   const handleSort = (key) => {
@@ -863,13 +881,8 @@ function CompanyList() {
     return result;
   }, [companies, sortConfig]);
 
-  // Pagination
-  const paginatedCompanies = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return sortedCompanies.slice(start, start + itemsPerPage);
-  }, [sortedCompanies, currentPage]);
-
-  const totalPages = Math.ceil(sortedCompanies.length / itemsPerPage);
+  // Pagination (server-side — API returns the correct page)
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   // Action handlers
   const handleDelete = async () => {
@@ -1163,8 +1176,8 @@ function CompanyList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {paginatedCompanies.length > 0 ? (
-                paginatedCompanies.map((company) => (
+              {sortedCompanies.length > 0 ? (
+                sortedCompanies.map((company) => (
                   <tr key={company.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -1216,7 +1229,7 @@ function CompanyList() {
                           items={[
                             { icon: Eye, label: 'View Details', onClick: () => setViewingCompany(company) },
                             { icon: Edit2, label: 'Edit Company', onClick: () => setEditingCompany(company) },
-                            { icon: Users, label: 'Manage Users', onClick: () => setViewingCompany(company) },
+                            { icon: Users, label: 'Manage Users', onClick: () => navigate(`/admin/users?company=${company.id}`) },
                             { divider: true },
                             {
                               icon: company.is_active ? XCircle : CheckCircle,
@@ -1263,7 +1276,7 @@ function CompanyList() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
             <div className="text-sm text-gray-500">
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedCompanies.length)} of {sortedCompanies.length} companies
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} companies
             </div>
             <div className="flex items-center gap-2">
               <button

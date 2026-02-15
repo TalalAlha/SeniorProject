@@ -11,6 +11,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter, OrderingFilter
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg, Count, Q, F
 from django.db import transaction
@@ -40,6 +42,12 @@ from apps.core.permissions import (
 User = get_user_model()
 
 
+class CompanyPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class CompanyViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Company management.
@@ -52,6 +60,11 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
     queryset = Company.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = CompanyPagination
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['name', 'name_ar', 'email']
+    ordering_fields = ['name', 'created_at', 'total_users', 'is_active']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -62,6 +75,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        # Public users (registration page) only see active companies
+        if self.action == 'list' and not user.is_authenticated:
+            return Company.objects.filter(is_active=True)
 
         if user.is_super_admin:
             queryset = Company.objects.all()
@@ -74,23 +91,19 @@ class CompanyViewSet(viewsets.ModelViewSet):
         # Apply filters from query params
         is_active = self.request.query_params.get('is_active')
         if is_active is not None:
-            queryset = queryset.filter(is_active=is_active.lower() == 'true')
+            is_active_bool = is_active.lower() == 'true'
+            queryset = queryset.filter(is_active=is_active_bool)
 
         industry = self.request.query_params.get('industry')
         if industry:
             queryset = queryset.filter(industry=industry)
 
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) |
-                Q(name_ar__icontains=search) |
-                Q(email__icontains=search)
-            )
-
-        return queryset.order_by('-created_at')
+        return queryset
 
     def get_permissions(self):
+        """Allow public access to list companies (for registration page)."""
+        if self.action == 'list':
+            return [AllowAny()]
         if self.action == 'create':
             return [IsAuthenticated(), IsSuperAdmin()]
         elif self.action in ['update', 'partial_update']:
@@ -744,16 +757,3 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
         serializer = CompanyDetailSerializer(user.company)
         return Response(serializer.data)
-    
-    def get_permissions(self):
-        """Allow public access to list companies (for registration page)"""
-        if self.action == 'list':
-            return [AllowAny()]
-        return super().get_permissions()
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        # Public users only see active companies
-        if self.action == 'list' and not self.request.user.is_authenticated:
-            queryset = queryset.filter(is_active=True)
-        return queryset
