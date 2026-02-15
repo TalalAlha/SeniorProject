@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -137,16 +138,36 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
 
 function DropdownMenu({ trigger, items }) {
   const [isOpen, setIsOpen] = useState(false);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isOpen && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menuHeight = (menuRef.current?.offsetHeight) || 220;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // Flip upward if not enough room below
+      const top = spaceBelow < menuHeight + 8
+        ? rect.top - menuHeight - 4
+        : rect.bottom + 4;
+      setPos({ top, left: rect.right - 192 });
+    }
+  }, [isOpen]);
 
   return (
     <div className="relative">
-      <button onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         {trigger}
       </button>
-      {isOpen && (
+      {isOpen && createPortal(
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div
+            ref={menuRef}
+            className="fixed w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            style={{ top: pos.top, left: pos.left }}
+          >
             {items.map((item, index) =>
               item.divider ? (
                 <hr key={index} className="my-1" />
@@ -170,7 +191,8 @@ function DropdownMenu({ trigger, items }) {
               )
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
@@ -1129,7 +1151,7 @@ function CompanyList() {
       </div>
 
       {/* Companies Table */}
-      <div className="card overflow-hidden">
+      <div className="card">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">

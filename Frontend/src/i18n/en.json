@@ -152,6 +152,10 @@
       "tip5": "Be cautious of messages claiming you won a prize from STC, Mobily, or Zain. Verify through official apps.",
       "tip6": "Enable two-factor authentication on all your accounts, especially Absher and banking apps."
     },
+    "training": {
+      "videoTitle": "Training Video",
+      "videoDescription": "Watch this video to learn more about identifying and preventing cyber threats."
+    },
     "cta": {
       "title": "Stay Safe Online",
       "subtitle": "Cybersecurity awareness is your first line of defense. Explore our free training and quizzes today.",

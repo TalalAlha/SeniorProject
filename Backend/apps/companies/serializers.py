@@ -25,6 +25,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
     total_employees = serializers.IntegerField(read_only=True)
     total_admins = serializers.IntegerField(read_only=True)
     is_subscription_active = serializers.BooleanField(read_only=True)
+    average_risk_score = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -32,9 +33,21 @@ class CompanyListSerializer(serializers.ModelSerializer):
             'id', 'name', 'name_ar', 'email', 'industry', 'company_size',
             'country', 'city', 'is_active', 'is_subscription_active',
             'total_users', 'total_employees', 'total_admins',
+            'average_risk_score',
             'subscription_start_date', 'subscription_end_date',
             'created_at'
         ]
+
+    def get_average_risk_score(self, obj):
+        """Get average risk score for the company's employees."""
+        try:
+            from apps.training.models import RiskScore
+            avg = RiskScore.objects.filter(
+                employee__company=obj
+            ).aggregate(avg=Avg('score'))['avg']
+            return round(avg, 2) if avg is not None else None
+        except Exception:
+            return None
 
 
 class CompanyDetailSerializer(serializers.ModelSerializer):

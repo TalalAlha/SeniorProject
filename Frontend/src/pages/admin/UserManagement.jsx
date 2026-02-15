@@ -36,6 +36,7 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 import { companiesAPI } from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ── Constants ──────────────────────────────────────────────
 
@@ -608,6 +609,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
 // ── Main UserManagement Component ──────────────────────────
 
 function UserManagement() {
+  const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
@@ -658,6 +660,20 @@ function UserManagement() {
 
       const allCompanyUsers = await Promise.all(userPromises);
       const flatUsers = allCompanyUsers.flat();
+
+      // Super Admins don't belong to any company, so include the current user if they're a Super Admin
+      if (currentUser && currentUser.role === 'SUPER_ADMIN') {
+        const alreadyIncluded = flatUsers.some((u) => u.id === currentUser.id);
+        if (!alreadyIncluded) {
+          flatUsers.push({
+            ...currentUser,
+            _companyId: null,
+            _companyName: 'Platform',
+            _companyActive: true,
+          });
+        }
+      }
+
       setAllUsers(flatUsers);
     } catch (err) {
       const message = err.response?.data?.detail || 'Failed to load users';
@@ -666,7 +682,7 @@ function UserManagement() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     fetchData();

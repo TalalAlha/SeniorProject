@@ -135,8 +135,32 @@ function TopicTraining() {
         </div>
       </section>
 
-      {/* Red Flags */}
+      {/* Training Video */}
       <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            {t('public.training.videoTitle')}
+          </h2>
+
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
+              src="https://www.youtube.com/embed/XBkzBrXlle0"
+              title={`${topic.charAt(0).toUpperCase() + topic.slice(1)} Training Video`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+
+          <p className="text-gray-600 mt-4 text-sm">
+            {t('public.training.videoDescription')}
+          </p>
+        </div>
+      </section>
+
+      {/* Red Flags */}
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-full bg-danger-50 flex items-center justify-center">
@@ -159,7 +183,7 @@ function TopicTraining() {
       </section>
 
       {/* Protection Tips */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-full bg-success-50 flex items-center justify-center">
@@ -182,7 +206,7 @@ function TopicTraining() {
       </section>
 
       {/* Quiz CTA */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
             {t('public.quiz.title')}
