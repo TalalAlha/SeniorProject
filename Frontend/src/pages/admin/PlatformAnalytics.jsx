@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   TrendingDown,
   TrendingUp,
@@ -233,6 +234,7 @@ function ChartTooltip({ active, payload, label, formatter }) {
 // ── Main Component ─────────────────────────────────────────
 
 function PlatformAnalytics() {
+  const { t } = useTranslation();
   // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -544,7 +546,7 @@ function PlatformAnalytics() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Loading analytics...</p>
+          <p className="mt-4 text-gray-600">{t('admin.analytics.loadingAnalytics')}</p>
         </div>
       </div>
     );
@@ -559,7 +561,7 @@ function PlatformAnalytics() {
         <p className="text-gray-600 mb-4">{error}</p>
         <button onClick={fetchAnalytics} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -585,15 +587,15 @@ function PlatformAnalytics() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Platform Analytics</h1>
-          <p className="text-gray-600 mt-1">Platform-wide security awareness metrics{period !== 'all' ? ` - Last ${periodLabel}` : ''}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin.analytics.title')}</h1>
+          <p className="text-gray-600 mt-1">{period !== 'all' ? t('admin.analytics.subtitlePeriod', { period: periodLabel }) : t('admin.analytics.subtitle')}</p>
         </div>
         <button
           onClick={fetchAnalytics}
           className="btn-secondary flex items-center gap-2 self-start"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -618,32 +620,32 @@ function PlatformAnalytics() {
       {/* ── Metric Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          label="Platform Avg Risk Score"
+          label={t('admin.analytics.platformAvgRisk')}
           value={avgRisk?.toFixed?.(1) ?? '0'}
           icon={AlertTriangle}
           color={riskColor}
-          subtitle={`${overview?.total_employees || 0} employees assessed`}
+          subtitle={t('admin.analytics.employeesAssessed', { count: overview?.total_employees || 0 })}
         />
         <MetricCard
-          label="Campaign Completion"
+          label={t('admin.analytics.campaignCompletion')}
           value={formatPct(completionRate)}
           icon={Target}
           color="primary"
-          subtitle={`${overview?.completed_campaigns || 0} of ${overview?.total_campaigns || 0} campaigns`}
+          subtitle={t('admin.analytics.campaignsCompleted', { completed: overview?.completed_campaigns || 0, total: overview?.total_campaigns || 0 })}
         />
         <MetricCard
-          label="Simulation Click Rate"
+          label={t('admin.analytics.simulationClickRate')}
           value={formatPct(clickRate)}
           icon={MousePointerClick}
           color={clickColor}
-          subtitle="Lower is better"
+          subtitle={t('admin.analytics.lowerIsBetter')}
         />
         <MetricCard
-          label="Training Completion"
+          label={t('admin.analytics.trainingCompletion')}
           value={formatPct(trainingRate)}
           icon={BookOpen}
           color={trainingColor}
-          subtitle={`${overview?.trainings_completed || 0} of ${overview?.total_trainings_assigned || 0} trainings`}
+          subtitle={t('admin.analytics.trainingsCompleted', { completed: overview?.trainings_completed || 0, total: overview?.total_trainings_assigned || 0 })}
         />
       </div>
 
@@ -651,7 +653,7 @@ function PlatformAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Risk Score Trend */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Score Trends</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.riskScoreTrends')}</h3>
           {trendLineData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendLineData}>
@@ -662,7 +664,7 @@ function PlatformAnalytics() {
                 <Line
                   type="monotone"
                   dataKey="score"
-                  name="Avg Risk Score"
+                  name={t('admin.analytics.avgRiskScore')}
                   stroke="#3B82F6"
                   strokeWidth={2}
                   dot={{ r: 3 }}
@@ -672,14 +674,14 @@ function PlatformAnalytics() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400">
-              No trend data available
+              {t('admin.analytics.noTrendData')}
             </div>
           )}
         </div>
 
         {/* Chart 2: Risk Distribution Donut */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Level Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.riskLevelDistribution')}</h3>
           {riskDistData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -706,7 +708,7 @@ function PlatformAnalytics() {
                     return (
                       <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
                         <p className="font-medium">{d.name}</p>
-                        <p>{d.value} employees ({pct}%)</p>
+                        <p>{d.value} {t('admin.analytics.employees')} ({pct}%)</p>
                       </div>
                     );
                   }}
@@ -716,20 +718,20 @@ function PlatformAnalytics() {
                   {riskDistTotal}
                 </text>
                 <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 text-xs">
-                  employees
+                  {t('admin.analytics.employees')}
                 </text>
               </PieChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400">
-              No distribution data available
+              {t('admin.analytics.noDistributionData')}
             </div>
           )}
         </div>
 
         {/* Chart 3: Campaign vs Simulation Activity */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Campaign vs Simulation Activity</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.campaignVsSimulation')}</h3>
           {activityBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={activityBarData}>
@@ -738,20 +740,20 @@ function PlatformAnalytics() {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend />
-                <Bar dataKey="completions" name="Campaign Completions" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="clicks" name="Simulation Clicks" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completions" name={t('admin.analytics.campaignCompletions')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="clicks" name={t('admin.analytics.simulationClicks')} fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400">
-              No activity data available
+              {t('admin.analytics.noActivityData')}
             </div>
           )}
         </div>
 
         {/* Chart 4: Top Performing Companies (Horizontal Bar) */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Companies</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.topPerformingCompanies')}</h3>
           {topCompaniesData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topCompaniesData} layout="vertical">
@@ -783,7 +785,7 @@ function PlatformAnalytics() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400">
-              No company data available
+              {t('admin.analytics.noCompanyData')}
             </div>
           )}
         </div>
@@ -794,9 +796,9 @@ function PlatformAnalytics() {
         {/* Tab Navigation */}
         <div className="flex border-b">
           {[
-            { key: 'companies', label: 'Companies Overview' },
-            { key: 'risk', label: 'Risk Insights' },
-            { key: 'activity', label: 'Platform Activity' },
+            { key: 'companies', label: t('admin.analytics.companiesOverview') },
+            { key: 'risk', label: t('admin.analytics.riskInsights') },
+            { key: 'activity', label: t('admin.analytics.platformActivity') },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -819,7 +821,7 @@ function PlatformAnalytics() {
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('admin.analytics.search')}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -838,7 +840,7 @@ function PlatformAnalytics() {
             ) : (
               <Download className="h-4 w-4" />
             )}
-            Export CSV
+            {t('admin.common.exportCsv')}
           </button>
         </div>
 
@@ -851,11 +853,11 @@ function PlatformAnalytics() {
                 <tr>
                   <SortHeader label="Company" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Users" sortKey="total_users" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Avg Risk Score</th>
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Industry</th>
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Status</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.analytics.avgRiskScore')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">{t('admin.common.industry')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">{t('admin.common.status')}</th>
                   <SortHeader label="Created" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Details</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.common.details')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -903,7 +905,7 @@ function PlatformAnalytics() {
                             'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
                             c.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
                           )}>
-                            {c.is_active ? 'Active' : 'Inactive'}
+                            {c.is_active ? t('admin.common.active') : t('admin.common.inactive')}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(c.created_at)}</td>
@@ -913,7 +915,7 @@ function PlatformAnalytics() {
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
                           >
                             <Eye className="h-4 w-4" />
-                            View
+                            {t('admin.common.view')}
                           </a>
                         </td>
                       </tr>
@@ -922,7 +924,7 @@ function PlatformAnalytics() {
                 ) : (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                      {searchQuery ? 'No companies match your search' : 'No companies found'}
+                      {searchQuery ? t('admin.analytics.noMatchSearch') : t('admin.analytics.noCompaniesFound')}
                     </td>
                   </tr>
                 )}
@@ -936,32 +938,32 @@ function PlatformAnalytics() {
               {/* Risk summary cards */}
               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 border-b">
                 <div className="p-3 bg-danger-50 rounded-lg">
-                  <p className="text-xs text-danger-600 font-medium">High Risk Companies</p>
+                  <p className="text-xs text-danger-600 font-medium">{t('admin.analytics.highRiskCompanies')}</p>
                   <p className="text-xl font-bold text-danger-700 mt-1">
                     {companies.filter((c) => (c.average_risk_score ?? 0) > 60).length}
                   </p>
-                  <p className="text-xs text-danger-500 mt-0.5">Avg risk score &gt; 60</p>
+                  <p className="text-xs text-danger-500 mt-0.5">{t('admin.analytics.avgRiskAbove60')}</p>
                 </div>
                 <div className="p-3 bg-orange-50 rounded-lg">
-                  <p className="text-xs text-orange-600 font-medium">Critical Risk Employees</p>
+                  <p className="text-xs text-orange-600 font-medium">{t('admin.analytics.criticalRiskEmployees')}</p>
                   <p className="text-xl font-bold text-orange-700 mt-1">
                     {overview?.critical_risk_count || 0}
                   </p>
-                  <p className="text-xs text-orange-500 mt-0.5">Risk score &gt; 80</p>
+                  <p className="text-xs text-orange-500 mt-0.5">{t('admin.analytics.riskAbove80')}</p>
                 </div>
                 <div className="p-3 bg-warning-50 rounded-lg">
-                  <p className="text-xs text-warning-600 font-medium">High Risk Employees</p>
+                  <p className="text-xs text-warning-600 font-medium">{t('admin.analytics.highRiskEmployees')}</p>
                   <p className="text-xl font-bold text-warning-700 mt-1">
                     {overview?.high_risk_count || 0}
                   </p>
-                  <p className="text-xs text-warning-500 mt-0.5">Risk score 60-80</p>
+                  <p className="text-xs text-warning-500 mt-0.5">{t('admin.analytics.riskRange6080')}</p>
                 </div>
                 <div className="p-3 bg-success-50 rounded-lg">
-                  <p className="text-xs text-success-600 font-medium">Low Risk Employees</p>
+                  <p className="text-xs text-success-600 font-medium">{t('admin.analytics.lowRiskEmployees')}</p>
                   <p className="text-xl font-bold text-success-700 mt-1">
                     {overview?.low_risk_count || 0}
                   </p>
-                  <p className="text-xs text-success-500 mt-0.5">Risk score &lt; 30</p>
+                  <p className="text-xs text-success-500 mt-0.5">{t('admin.analytics.riskBelow30')}</p>
                 </div>
               </div>
 
@@ -970,11 +972,11 @@ function PlatformAnalytics() {
                 <thead className="bg-gray-50">
                   <tr>
                     <SortHeader label="Employee" sortKey="employee_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <SortHeader label="Risk Score" sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Phishing Clicks</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Credentials Entered</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">Needs Training</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.common.email')}</th>
+                    <SortHeader label={t('admin.common.riskScore')} sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">{t('admin.analytics.phishingClicks')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">{t('admin.analytics.credentialsEntered')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.analytics.needsTraining')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -1015,7 +1017,7 @@ function PlatformAnalytics() {
                   ) : (
                     <tr>
                       <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                        {searchQuery ? 'No employees match your search' : 'No high-risk employees found'}
+                        {searchQuery ? t('admin.analytics.noEmployeesMatch') : t('admin.analytics.noHighRiskFound')}
                       </td>
                     </tr>
                   )}
@@ -1057,7 +1059,7 @@ function PlatformAnalytics() {
                 })
               ) : (
                 <div className="px-4 py-8 text-center text-gray-500">
-                  {searchQuery ? 'No activity matches your search' : 'No recent activity'}
+                  {searchQuery ? t('admin.analytics.noActivityMatch') : t('admin.analytics.noRecentActivity')}
                 </div>
               )}
             </div>
@@ -1070,12 +1072,12 @@ function PlatformAnalytics() {
 
       {/* ── Export Reports Section ── */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.exportReports')}</h3>
         <div className="flex flex-wrap gap-3">
           {[
-            { key: 'companies', label: 'Export Companies', handler: handleExportCompanies },
-            { key: 'risk', label: 'Export Risk Data', handler: handleExportRisk },
-            { key: 'activity', label: 'Export Activity', handler: handleExportActivity },
+            { key: 'companies', label: t('admin.analytics.exportCompanies'), handler: handleExportCompanies },
+            { key: 'risk', label: t('admin.analytics.exportRiskData'), handler: handleExportRisk },
+            { key: 'activity', label: t('admin.analytics.exportActivity'), handler: handleExportActivity },
           ].map((btn) => (
             <button
               key={btn.key}

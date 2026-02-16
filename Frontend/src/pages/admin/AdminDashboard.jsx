@@ -103,6 +103,7 @@ function RiskScoreBadge({ score }) {
 }
 
 function StatusBadge({ isActive }) {
+  const { t } = useTranslation();
   return (
     <span
       className={clsx(
@@ -110,7 +111,7 @@ function StatusBadge({ isActive }) {
         isActive ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
       )}
     >
-      {isActive ? 'Active' : 'Inactive'}
+      {isActive ? t('admin.common.active') : t('admin.common.inactive')}
     </span>
   );
 }
@@ -231,7 +232,7 @@ function AdminDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600">{t('admin.dashboard.loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -244,7 +245,7 @@ function AdminDashboard() {
         <p className="text-gray-600 mb-4">{error}</p>
         <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -266,43 +267,43 @@ function AdminDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">
             {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
           </h1>
-          <p className="text-gray-600 mt-1">Platform overview and management</p>
+          <p className="text-gray-600 mt-1">{t('admin.dashboard.subtitle')}</p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
       {/* Section 1: Platform Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Total Companies"
+          title={t('admin.dashboard.totalCompanies')}
           value={totalCompanies}
           icon={Building2}
           color="primary"
-          subtitle={`${totalUsers} total users across platform`}
+          subtitle={t('admin.dashboard.totalUsersAcross', { count: totalUsers })}
         />
         <StatCard
-          title="Total Users"
+          title={t('admin.dashboard.totalUsers')}
           value={totalUsers.toLocaleString()}
           icon={Users}
           color="success"
-          subtitle={`${totalEmployees} employees, ${stats?.total_admins || 0} admins`}
+          subtitle={t('admin.dashboard.employeesAndAdmins', { employees: totalEmployees, admins: stats?.total_admins || 0 })}
         />
         <StatCard
-          title="Active Campaigns"
+          title={t('admin.dashboard.activeCampaigns')}
           value={activeCampaigns}
           icon={Target}
           color="warning"
-          subtitle={`${stats?.total_campaigns || 0} quiz + ${stats?.total_simulations || 0} simulation campaigns`}
+          subtitle={t('admin.dashboard.campaignBreakdown', { quiz: stats?.total_campaigns || 0, simulation: stats?.total_simulations || 0 })}
         />
         <StatCard
-          title="Platform Risk Score"
+          title={t('admin.dashboard.platformRiskScore')}
           value={avgRiskScore ? Math.round(avgRiskScore) : 'N/A'}
           icon={AlertTriangle}
           color={avgRiskScore > 60 ? 'danger' : avgRiskScore > 30 ? 'warning' : 'success'}
-          subtitle={highRiskCount > 0 ? `${highRiskCount} high/critical risk employees` : 'No high risk employees'}
+          subtitle={highRiskCount > 0 ? t('admin.dashboard.highRiskEmployees', { count: highRiskCount }) : t('admin.dashboard.noHighRisk')}
         />
       </div>
 
@@ -314,8 +315,8 @@ function AdminDashboard() {
               <Plus className="h-6 w-6 text-primary-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Create Company</p>
-              <p className="text-sm text-gray-500">Onboard new organization</p>
+              <p className="font-medium text-gray-900">{t('admin.dashboard.createCompany')}</p>
+              <p className="text-sm text-gray-500">{t('admin.dashboard.onboardNewOrg')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -327,8 +328,8 @@ function AdminDashboard() {
               <Building2 className="h-6 w-6 text-success-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">View Companies</p>
-              <p className="text-sm text-gray-500">Manage all organizations</p>
+              <p className="font-medium text-gray-900">{t('admin.dashboard.viewCompanies')}</p>
+              <p className="text-sm text-gray-500">{t('admin.dashboard.manageAllOrgs')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -340,8 +341,8 @@ function AdminDashboard() {
               <BarChart3 className="h-6 w-6 text-warning-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Platform Analytics</p>
-              <p className="text-sm text-gray-500">View detailed reports</p>
+              <p className="font-medium text-gray-900">{t('admin.dashboard.platformAnalytics')}</p>
+              <p className="text-sm text-gray-500">{t('admin.dashboard.viewDetailedReports')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -353,8 +354,8 @@ function AdminDashboard() {
               <Users className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">User Management</p>
-              <p className="text-sm text-gray-500">Manage users per company</p>
+              <p className="font-medium text-gray-900">{t('admin.dashboard.userManagement')}</p>
+              <p className="text-sm text-gray-500">{t('admin.dashboard.manageUsersPerCompany')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -366,12 +367,12 @@ function AdminDashboard() {
         {/* Recent Companies Table */}
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Companies</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.recentCompanies')}</h2>
             <Link
               to="/admin/companies"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
             >
-              View All
+              {t('admin.common.viewAll')}
               <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             </Link>
           </div>
@@ -381,12 +382,12 @@ function AdminDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-start py-3 px-2 text-gray-500 font-medium">Company</th>
-                    <th className="text-start py-3 px-2 text-gray-500 font-medium">Users</th>
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium hidden md:table-cell">Industry</th>
-                    <th className="text-start py-3 px-2 text-gray-500 font-medium">Status</th>
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium hidden sm:table-cell">Created</th>
-                    <th className="text-end py-3 px-2 text-gray-500 font-medium">Action</th>
+                    <th className="text-start py-3 px-2 text-gray-500 font-medium">{t('admin.common.company')}</th>
+                    <th className="text-start py-3 px-2 text-gray-500 font-medium">{t('admin.common.users')}</th>
+                    <th className="text-left py-3 px-2 text-gray-500 font-medium hidden md:table-cell">{t('admin.common.industry')}</th>
+                    <th className="text-start py-3 px-2 text-gray-500 font-medium">{t('admin.common.status')}</th>
+                    <th className="text-left py-3 px-2 text-gray-500 font-medium hidden sm:table-cell">{t('admin.common.created')}</th>
+                    <th className="text-end py-3 px-2 text-gray-500 font-medium">{t('admin.common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -407,7 +408,7 @@ function AdminDashboard() {
                       </td>
                       <td className="py-3 px-2">
                         <p className="text-gray-900 font-medium">{company.total_users || 0}</p>
-                        <p className="text-xs text-gray-400">{company.total_employees || 0} emp</p>
+                        <p className="text-xs text-gray-400">{company.total_employees || 0} {t('admin.dashboard.emp')}</p>
                       </td>
                       <td className="py-3 px-2 hidden md:table-cell">
                         <span className="text-gray-600 text-xs">{company.industry || '-'}</span>
@@ -426,7 +427,7 @@ function AdminDashboard() {
                           className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
                         >
                           <Eye className="h-3.5 w-3.5" />
-                          View
+                          {t('admin.common.view')}
                         </Link>
                       </td>
                     </tr>
@@ -437,12 +438,12 @@ function AdminDashboard() {
           ) : (
             <div className="text-center py-8">
               <Building2 className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No companies yet</p>
+              <p className="text-gray-500">{t('admin.dashboard.noCompaniesYet')}</p>
               <Link
                 to="/admin/companies/create"
                 className="mt-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
               >
-                Create your first company
+                {t('admin.dashboard.createFirstCompany')}
                 <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
               </Link>
             </div>
@@ -452,7 +453,7 @@ function AdminDashboard() {
         {/* Platform Activity */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.recentActivity')}</h2>
             <Activity className="h-5 w-5 text-gray-400" />
           </div>
 
@@ -465,7 +466,7 @@ function AdminDashboard() {
           ) : (
             <div className="text-center py-8">
               <Activity className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No recent activity</p>
+              <p className="text-gray-500">{t('admin.dashboard.noRecentActivity')}</p>
             </div>
           )}
         </div>
@@ -476,58 +477,58 @@ function AdminDashboard() {
         <div className="card bg-gradient-to-br from-primary-50 to-white">
           <div className="flex items-center gap-3 mb-2">
             <CheckCircle className="h-5 w-5 text-primary-600" />
-            <p className="text-sm font-medium text-gray-700">Quiz Campaigns</p>
+            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.quizCampaigns')}</p>
           </div>
           <p className="text-xl font-bold text-gray-900">{stats?.total_campaigns || 0}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {stats?.completed_campaigns || 0} completed, {stats?.active_campaigns || 0} active
+            {t('admin.dashboard.completedActive', { completed: stats?.completed_campaigns || 0, active: stats?.active_campaigns || 0 })}
           </p>
           {stats?.average_quiz_score != null && (
-            <p className="text-xs text-primary-600 mt-1">Avg score: {Math.round(stats.average_quiz_score)}%</p>
+            <p className="text-xs text-primary-600 mt-1">{t('admin.dashboard.avgScore', { score: Math.round(stats.average_quiz_score) })}</p>
           )}
         </div>
 
         <div className="card bg-gradient-to-br from-warning-50 to-white">
           <div className="flex items-center gap-3 mb-2">
             <Mail className="h-5 w-5 text-warning-600" />
-            <p className="text-sm font-medium text-gray-700">Simulations</p>
+            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.simulations')}</p>
           </div>
           <p className="text-xl font-bold text-gray-900">{stats?.total_simulations || 0}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {stats?.completed_simulations || 0} completed, {stats?.active_simulations || 0} active
+            {t('admin.dashboard.completedActive', { completed: stats?.completed_simulations || 0, active: stats?.active_simulations || 0 })}
           </p>
           {stats?.overall_click_rate != null && (
-            <p className="text-xs text-warning-600 mt-1">Click rate: {Math.round(stats.overall_click_rate)}%</p>
+            <p className="text-xs text-warning-600 mt-1">{t('admin.dashboard.clickRate', { rate: Math.round(stats.overall_click_rate) })}</p>
           )}
         </div>
 
         <div className="card bg-gradient-to-br from-success-50 to-white">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="h-5 w-5 text-success-600" />
-            <p className="text-sm font-medium text-gray-700">Training</p>
+            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.training')}</p>
           </div>
           <p className="text-xl font-bold text-gray-900">{stats?.total_trainings_assigned || 0}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {stats?.trainings_completed || 0} completed, {stats?.trainings_passed || 0} passed
+            {t('admin.dashboard.completedPassed', { completed: stats?.trainings_completed || 0, passed: stats?.trainings_passed || 0 })}
           </p>
           {stats?.training_completion_rate != null && (
-            <p className="text-xs text-success-600 mt-1">Completion: {Math.round(stats.training_completion_rate)}%</p>
+            <p className="text-xs text-success-600 mt-1">{t('admin.dashboard.completion', { rate: Math.round(stats.training_completion_rate) })}</p>
           )}
         </div>
 
         <div className="card bg-gradient-to-br from-purple-50 to-white">
           <div className="flex items-center gap-3 mb-2">
             <AlertTriangle className="h-5 w-5 text-purple-600" />
-            <p className="text-sm font-medium text-gray-700">Risk Distribution</p>
+            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.riskDistribution')}</p>
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs px-1.5 py-0.5 rounded bg-success-100 text-success-700">{stats?.low_risk_count || 0} Low</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-warning-100 text-warning-700">{stats?.medium_risk_count || 0} Med</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">{stats?.high_risk_count || 0} High</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-danger-100 text-danger-700">{stats?.critical_risk_count || 0} Crit</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-success-100 text-success-700">{stats?.low_risk_count || 0} {t('admin.dashboard.low')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-warning-100 text-warning-700">{stats?.medium_risk_count || 0} {t('admin.dashboard.med')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">{stats?.high_risk_count || 0} {t('admin.dashboard.high')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-danger-100 text-danger-700">{stats?.critical_risk_count || 0} {t('admin.dashboard.crit')}</span>
           </div>
           {stats?.active_users_30_days != null && (
-            <p className="text-xs text-gray-500 mt-2">{stats.active_users_30_days} active users (30 days)</p>
+            <p className="text-xs text-gray-500 mt-2">{t('admin.dashboard.activeUsers30Days', { count: stats.active_users_30_days })}</p>
           )}
         </div>
       </div>

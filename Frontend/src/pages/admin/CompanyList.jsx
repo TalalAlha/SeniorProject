@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Plus,
   Search,
@@ -227,6 +228,7 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
 // ============================================================================
 
 function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
+  const { t } = useTranslation();
   const isEditing = !!company;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -332,12 +334,12 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Edit Company' : 'Create New Company'} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? t('admin.common.editCompany') : t('admin.companies.createNewCompany')} size="lg">
       <div className="space-y-5">
         {/* Company Name */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="label">Company Name *</label>
+            <label className="label">{t('admin.companies.companyName')} *</label>
             <input
               type="text"
               value={formData.name}
@@ -348,7 +350,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
             {errors.name && <p className="text-xs text-danger-600 mt-1">{errors.name}</p>}
           </div>
           <div>
-            <label className="label">Company Name (Arabic)</label>
+            <label className="label">{t('admin.companies.companyNameAr')}</label>
             <input
               type="text"
               value={formData.name_ar}
@@ -362,7 +364,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
 
         {/* Email */}
         <div>
-          <label className="label">Company Email *</label>
+          <label className="label">{t('admin.companies.companyEmail')} *</label>
           <input
             type="email"
             value={formData.email}
@@ -376,13 +378,13 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
         {/* Industry & Size */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="label">Industry *</label>
+            <label className="label">{t('admin.common.industry')} *</label>
             <select
               value={formData.industry}
               onChange={(e) => updateField('industry', e.target.value)}
               className={clsx('input', errors.industry && 'border-danger-500')}
             >
-              <option value="">Select industry</option>
+              <option value="">{t('admin.companies.selectIndustry')}</option>
               {INDUSTRY_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -390,13 +392,13 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
             {errors.industry && <p className="text-xs text-danger-600 mt-1">{errors.industry}</p>}
           </div>
           <div>
-            <label className="label">Company Size *</label>
+            <label className="label">{t('admin.companies.companySize')} *</label>
             <select
               value={formData.company_size}
               onChange={(e) => updateField('company_size', e.target.value)}
               className={clsx('input', errors.company_size && 'border-danger-500')}
             >
-              <option value="">Select size</option>
+              <option value="">{t('admin.companies.selectSize')}</option>
               {COMPANY_SIZE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -408,7 +410,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
         {/* Contact */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="label">Phone Number</label>
+            <label className="label">{t('admin.companies.phoneNumber')}</label>
             <input
               type="tel"
               value={formData.phone}
@@ -418,7 +420,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
             />
           </div>
           <div>
-            <label className="label">Website</label>
+            <label className="label">{t('admin.companies.website')}</label>
             <input
               type="url"
               value={formData.website}
@@ -433,7 +435,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
         {/* Location */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="label">Country *</label>
+            <label className="label">{t('admin.companies.country')} *</label>
             <input
               type="text"
               value={formData.country}
@@ -444,7 +446,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
             {errors.country && <p className="text-xs text-danger-600 mt-1">{errors.country}</p>}
           </div>
           <div>
-            <label className="label">City *</label>
+            <label className="label">{t('admin.companies.city')} *</label>
             <input
               type="text"
               value={formData.city}
@@ -458,7 +460,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
 
         {/* Address */}
         <div>
-          <label className="label">Address</label>
+          <label className="label">{t('admin.companies.address')}</label>
           <textarea
             value={formData.address}
             onChange={(e) => updateField('address', e.target.value)}
@@ -470,7 +472,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
 
         {/* Description */}
         <div>
-          <label className="label">Description</label>
+          <label className="label">{t('admin.companies.description')}</label>
           <textarea
             value={formData.description}
             onChange={(e) => updateField('description', e.target.value)}
@@ -482,14 +484,14 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+          <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.cancel')}</button>
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isEditing ? 'Save Changes' : 'Create Company'}
+            {isEditing ? t('admin.common.saveChanges') : t('admin.companies.createCompany')}
           </button>
         </div>
       </div>
@@ -502,6 +504,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
 // ============================================================================
 
 function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }) {
+  const { t } = useTranslation();
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
@@ -530,7 +533,7 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
   const riskConfig = getRiskConfig(stats?.average_risk_score);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Company Details" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('admin.companies.companyDetails')} size="lg">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
@@ -545,7 +548,7 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
                 'text-xs font-medium px-2 py-1 rounded-full',
                 company.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
               )}>
-                {company.is_active ? 'Active' : 'Inactive'}
+                {company.is_active ? t('admin.common.active') : t('admin.common.inactive')}
               </span>
               <span className="text-xs text-gray-400">
                 {INDUSTRY_LABELS[company.industry] || company.industry}
@@ -591,24 +594,24 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <Users className="h-5 w-5 text-primary-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{stats.total_users}</p>
-                <p className="text-xs text-gray-500">Total Users</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.totalUsers')}</p>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <Target className="h-5 w-5 text-success-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{stats.active_campaigns}</p>
-                <p className="text-xs text-gray-500">Active Campaigns</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.activeCampaigns')}</p>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <Mail className="h-5 w-5 text-warning-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{stats.total_simulations}</p>
-                <p className="text-xs text-gray-500">Simulations</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.simulations')}</p>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <AlertTriangle className={clsx('h-5 w-5 mx-auto mb-1', riskConfig.bgColor === 'bg-gray-400' ? 'text-gray-400' : riskConfig.color.split(' ')[1])} />
                 <p className="text-lg font-bold text-gray-900">
                   {stats.average_risk_score != null ? Math.round(stats.average_risk_score) : 'N/A'}
                 </p>
-                <p className="text-xs text-gray-500">Avg Risk Score</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.avgRiskScore')}</p>
               </div>
             </div>
 
@@ -616,7 +619,7 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
             {stats.average_risk_score != null && (
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Risk Score</span>
+                  <span className="text-sm font-medium text-gray-700">{t('admin.common.riskScore')}</span>
                   <span className={clsx('text-sm font-medium px-2 py-0.5 rounded-full', riskConfig.color)}>
                     {riskConfig.label}
                   </span>
@@ -628,7 +631,7 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
                   />
                 </div>
                 {stats.employees_at_high_risk > 0 && (
-                  <p className="text-xs text-danger-600 mt-2">{stats.employees_at_high_risk} high risk employees</p>
+                  <p className="text-xs text-danger-600 mt-2">{t('admin.companies.highRiskEmployees', { count: stats.employees_at_high_risk })}</p>
                 )}
               </div>
             )}
@@ -637,32 +640,32 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-gray-900">{stats.total_quiz_completions || 0}</p>
-                <p className="text-xs text-gray-500">Quizzes Done</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.quizzesDone')}</p>
               </div>
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-gray-900">{stats.total_training_completions || 0}</p>
-                <p className="text-xs text-gray-500">Training Done</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.trainingDone')}</p>
               </div>
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-gray-900">{stats.total_phishing_clicks || 0}</p>
-                <p className="text-xs text-gray-500">Phishing Clicks</p>
+                <p className="text-xs text-gray-500">{t('admin.companies.phishingClicks')}</p>
               </div>
             </div>
           </>
         ) : (
-          <div className="text-center py-4 text-gray-500 text-sm">No statistics available</div>
+          <div className="text-center py-4 text-gray-500 text-sm">{t('admin.companies.noStatsAvailable')}</div>
         )}
 
         {/* Meta Info */}
         <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
           <div>
-            <span className="text-gray-500">Created</span>
+            <span className="text-gray-500">{t('admin.common.created')}</span>
             <p className="font-medium text-gray-900">
               {company.created_at ? format(new Date(company.created_at), 'MMM d, yyyy') : 'N/A'}
             </p>
           </div>
           <div>
-            <span className="text-gray-500">Company Size</span>
+            <span className="text-gray-500">{t('admin.companies.companySize')}</span>
             <p className="font-medium text-gray-900">
               {COMPANY_SIZE_OPTIONS.find(s => s.value === company.company_size)?.label || company.company_size || 'N/A'}
             </p>
@@ -671,20 +674,20 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Close</button>
+          <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.close')}</button>
           <button
             onClick={() => { onClose(); onEdit(company); }}
             className="btn-secondary flex-1 flex items-center justify-center gap-2"
           >
             <Edit2 className="h-4 w-4" />
-            Edit
+            {t('common.edit')}
           </button>
           <button
             onClick={() => { onClose(); onManageUsers(company); }}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             <Users className="h-4 w-4" />
-            Manage Users
+            {t('admin.companies.manageUsers')}
           </button>
         </div>
       </div>
@@ -697,6 +700,7 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
 // ============================================================================
 
 function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
+  const { t } = useTranslation();
   const [confirmName, setConfirmName] = useState('');
 
   useEffect(() => {
@@ -716,21 +720,21 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
             <div className="p-2 bg-danger-100 rounded-lg">
               <Trash2 className="h-5 w-5 text-danger-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Delete Company</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('admin.common.deleteCompany')}</h3>
           </div>
 
           <div className="space-y-4">
             <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
               <p className="text-sm text-danger-800 font-medium mb-2">
-                Are you sure you want to delete "{company.name}"?
+                {t('admin.companies.deleteConfirm', { name: company.name })}
               </p>
               <p className="text-sm text-danger-700">
-                This will permanently delete the company and all associated data including:
+                {t('admin.companies.deleteWarning')}
               </p>
               <ul className="text-sm text-danger-700 mt-2 space-y-1 list-disc list-inside">
-                <li>{company.total_users || 0} users</li>
-                <li>All campaigns and simulations</li>
-                <li>All training records</li>
+                <li>{t('admin.companies.usersCount', { count: company.total_users || 0 })}</li>
+                <li>{t('admin.companies.allCampaignsAndSims')}</li>
+                <li>{t('admin.companies.allTrainingRecords')}</li>
               </ul>
             </div>
 
@@ -750,7 +754,7 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
 
           <div className="flex gap-3 justify-end mt-6">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
-              Cancel
+              {t('admin.common.cancel')}
             </button>
             <button
               onClick={onConfirm}
@@ -758,7 +762,7 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
               className="btn-danger flex items-center gap-2"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Delete Company
+              {t('admin.common.deleteCompany')}
             </button>
           </div>
         </div>
@@ -772,6 +776,7 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
 // ============================================================================
 
 function CompanyList() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -983,7 +988,7 @@ function CompanyList() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading companies...</p>
+          <p className="mt-4 text-gray-600">{t('admin.companies.loadingCompanies')}</p>
         </div>
       </div>
     );
@@ -997,7 +1002,7 @@ function CompanyList() {
         <p className="text-gray-600 mb-4">{error}</p>
         <button onClick={fetchCompanies} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -1008,17 +1013,17 @@ function CompanyList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Company Management</h1>
-          <p className="text-gray-600 mt-1">Manage all companies on the platform</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin.companies.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('admin.companies.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Export CSV
+            {t('admin.common.exportCsv')}
           </button>
           <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Create Company
+            {t('admin.companies.createCompany')}
           </button>
         </div>
       </div>
@@ -1027,30 +1032,30 @@ function CompanyList() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Building2}
-          label="Total Companies"
+          label={t('admin.companies.totalCompanies')}
           value={stats.total}
           color="primary"
         />
         <StatCard
           icon={CheckCircle}
-          label="Active Companies"
+          label={t('admin.companies.activeCompanies')}
           value={stats.active}
           color="success"
-          subtext={stats.total > 0 ? `${Math.round(stats.active / stats.total * 100)}% active` : undefined}
+          subtext={stats.total > 0 ? t('admin.companies.percentActive', { percent: Math.round(stats.active / stats.total * 100) }) : undefined}
         />
         <StatCard
           icon={Users}
-          label="Total Users"
+          label={t('admin.companies.totalUsers')}
           value={stats.totalUsers.toLocaleString()}
           color="warning"
-          subtext="Across all companies"
+          subtext={t('admin.companies.acrossAllCompanies')}
         />
         <StatCard
           icon={Shield}
-          label="Avg Risk Score"
+          label={t('admin.companies.avgRiskScore')}
           value={stats.avgRisk || 'N/A'}
           color={stats.avgRisk <= 30 ? 'success' : stats.avgRisk <= 60 ? 'warning' : 'danger'}
-          subtext="Platform-wide"
+          subtext={t('admin.companies.platformWide')}
         />
       </div>
 
@@ -1060,7 +1065,7 @@ function CompanyList() {
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by company name or email..."
+            placeholder={t('admin.companies.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="input ps-10"
@@ -1075,7 +1080,7 @@ function CompanyList() {
           >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {statusFilter === 'ALL' ? 'All Status' : statusFilter === 'ACTIVE' ? 'Active' : 'Inactive'}
+              {statusFilter === 'ALL' ? t('admin.common.allStatus') : statusFilter === 'ACTIVE' ? t('admin.common.active') : t('admin.common.inactive')}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -1092,7 +1097,7 @@ function CompanyList() {
                       statusFilter === status && 'bg-primary-50 text-primary-700'
                     )}
                   >
-                    {status === 'ALL' ? 'All Status' : status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                    {status === 'ALL' ? t('admin.common.allStatus') : status === 'ACTIVE' ? t('admin.common.active') : t('admin.common.inactive')}
                   </button>
                 ))}
               </div>
@@ -1109,7 +1114,7 @@ function CompanyList() {
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               <span className="truncate">
-                {industryFilter === 'ALL' ? 'All Industries' : (INDUSTRY_LABELS[industryFilter] || industryFilter)}
+                {industryFilter === 'ALL' ? t('admin.common.allIndustries') : (INDUSTRY_LABELS[industryFilter] || industryFilter)}
               </span>
             </div>
             <ChevronDown className="h-4 w-4" />
@@ -1125,7 +1130,7 @@ function CompanyList() {
                     industryFilter === 'ALL' && 'bg-primary-50 text-primary-700'
                   )}
                 >
-                  All Industries
+                  {t('admin.common.allIndustries')}
                 </button>
                 {INDUSTRY_OPTIONS.map((opt) => (
                   <button
@@ -1146,7 +1151,7 @@ function CompanyList() {
 
         <button onClick={fetchCompanies} className="btn-secondary flex items-center gap-2">
           <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -1161,39 +1166,39 @@ function CompanyList() {
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
-                    Company
+                    {t('admin.common.company')}
                     <SortIndicator column="name" />
                   </div>
                 </th>
                 <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
-                  Industry
+                  {t('admin.common.industry')}
                 </th>
                 <th
                   className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('total_users')}
                 >
                   <div className="flex items-center gap-1">
-                    Users
+                    {t('admin.common.users')}
                     <SortIndicator column="total_users" />
                   </div>
                 </th>
                 <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
-                  Location
+                  {t('admin.common.location')}
                 </th>
                 <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                  Status
+                  {t('admin.common.status')}
                 </th>
                 <th
                   className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden sm:table-cell"
                   onClick={() => handleSort('created_at')}
                 >
                   <div className="flex items-center gap-1">
-                    Created
+                    {t('admin.common.created')}
                     <SortIndicator column="created_at" />
                   </div>
                 </th>
                 <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                  Actions
+                  {t('admin.common.actions')}
                 </th>
               </tr>
             </thead>
@@ -1236,7 +1241,7 @@ function CompanyList() {
                         'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
                         company.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
                       )}>
-                        {company.is_active ? 'Active' : 'Inactive'}
+                        {company.is_active ? t('admin.common.active') : t('admin.common.inactive')}
                       </span>
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
@@ -1249,19 +1254,19 @@ function CompanyList() {
                         <DropdownMenu
                           trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
                           items={[
-                            { icon: Eye, label: 'View Details', onClick: () => setViewingCompany(company) },
-                            { icon: Edit2, label: 'Edit Company', onClick: () => setEditingCompany(company) },
-                            { icon: Users, label: 'Manage Users', onClick: () => navigate(`/admin/users?company=${company.id}`) },
+                            { icon: Eye, label: t('admin.common.viewDetails'), onClick: () => setViewingCompany(company) },
+                            { icon: Edit2, label: t('admin.common.editCompany'), onClick: () => setEditingCompany(company) },
+                            { icon: Users, label: t('admin.companies.manageUsers'), onClick: () => navigate(`/admin/users?company=${company.id}`) },
                             { divider: true },
                             {
                               icon: company.is_active ? XCircle : CheckCircle,
-                              label: company.is_active ? 'Deactivate' : 'Activate',
+                              label: company.is_active ? t('admin.common.deactivate') : t('admin.common.activate'),
                               onClick: () => setTogglingCompany(company),
                               danger: company.is_active,
                             },
                             {
                               icon: Trash2,
-                              label: 'Delete',
+                              label: t('common.delete'),
                               onClick: () => setDeletingCompany(company),
                               danger: true,
                             },
@@ -1275,16 +1280,16 @@ function CompanyList() {
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
                     <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.companies.noCompaniesFound')}</h3>
                     <p className="text-gray-500 mb-4">
                       {searchQuery || statusFilter !== 'ALL' || industryFilter !== 'ALL'
-                        ? 'Try adjusting your search or filters'
-                        : 'Get started by creating your first company'}
+                        ? t('admin.companies.adjustFilters')
+                        : t('admin.companies.getStarted')}
                     </p>
                     {!searchQuery && statusFilter === 'ALL' && industryFilter === 'ALL' && (
                       <button onClick={() => setShowCreateModal(true)} className="btn-primary">
                         <Plus className="h-4 w-4 me-2" />
-                        Create Company
+                        {t('admin.companies.createCompany')}
                       </button>
                     )}
                   </td>
@@ -1298,7 +1303,7 @@ function CompanyList() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
             <div className="text-sm text-gray-500">
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} companies
+              {t('admin.companies.showingPagination', { from: ((currentPage - 1) * itemsPerPage) + 1, to: Math.min(currentPage * itemsPerPage, totalCount), total: totalCount })}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -1309,7 +1314,7 @@ function CompanyList() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+                {t('admin.common.page')} {currentPage} {t('admin.common.of')} {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -1366,13 +1371,13 @@ function CompanyList() {
         isOpen={!!togglingCompany}
         onClose={() => setTogglingCompany(null)}
         onConfirm={handleToggleStatus}
-        title={togglingCompany?.is_active ? 'Deactivate Company' : 'Activate Company'}
+        title={togglingCompany?.is_active ? t('admin.companies.deactivateCompany') : t('admin.companies.activateCompany')}
         message={
           togglingCompany?.is_active
-            ? `Are you sure you want to deactivate "${togglingCompany?.name}"? Users will no longer be able to access the system.`
-            : `Are you sure you want to activate "${togglingCompany?.name}"? Users will be able to access the system again.`
+            ? t('admin.companies.deactivateConfirm', { name: togglingCompany?.name })
+            : t('admin.companies.activateConfirm', { name: togglingCompany?.name })
         }
-        confirmText={togglingCompany?.is_active ? 'Deactivate' : 'Activate'}
+        confirmText={togglingCompany?.is_active ? t('admin.common.deactivate') : t('admin.common.activate')}
         danger={togglingCompany?.is_active}
         loading={actionLoading}
       />

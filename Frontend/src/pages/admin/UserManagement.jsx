@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Search,
   Users,
@@ -235,13 +236,14 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
 // ── User Details Modal ─────────────────────────────────────
 
 function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
+  const { t } = useTranslation();
   if (!isOpen || !user) return null;
 
   const riskScore = user.risk_score;
   const riskValue = riskScore?.score ?? riskScore?.risk_score ?? null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="User Details" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('admin.users.userDetails')} size="lg">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
@@ -263,7 +265,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
                 'text-xs font-medium px-2 py-1 rounded-full',
                 user.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
               )}>
-                {user.is_active ? 'Active' : 'Inactive'}
+                {user.is_active ? t('admin.common.active') : t('admin.common.inactive')}
               </span>
             </div>
           </div>
@@ -273,7 +275,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-2 text-sm">
             <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">{user._companyName || 'No company'}</span>
+            <span className="text-gray-600">{user._companyName || t('admin.common.noCompany')}</span>
           </div>
           {user.phone_number && (
             <div className="flex items-center gap-2 text-sm">
@@ -283,17 +285,17 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
           )}
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">Joined {formatDate(user.date_joined)}</span>
+            <span className="text-gray-600">{t('admin.users.joined', { date: formatDate(user.date_joined) })}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">Last login {formatRelativeTime(user.last_login)}</span>
+            <span className="text-gray-600">{t('admin.users.lastLoginTime', { time: formatRelativeTime(user.last_login) })}</span>
           </div>
         </div>
 
         {/* Account Status */}
         <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">Account Status</h4>
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('admin.users.accountStatus')}</h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="text-center">
               <div className={clsx(
@@ -302,7 +304,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
               )}>
                 <CheckCircle className={clsx('h-4 w-4', user.is_active ? 'text-success-600' : 'text-gray-400')} />
               </div>
-              <p className="text-xs text-gray-500">Active</p>
+              <p className="text-xs text-gray-500">{t('admin.common.active')}</p>
             </div>
             <div className="text-center">
               <div className={clsx(
@@ -311,7 +313,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
               )}>
                 <Shield className={clsx('h-4 w-4', user.is_verified ? 'text-success-600' : 'text-gray-400')} />
               </div>
-              <p className="text-xs text-gray-500">Verified</p>
+              <p className="text-xs text-gray-500">{t('admin.users.verified')}</p>
             </div>
             <div className="text-center">
               <div className={clsx(
@@ -320,7 +322,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
               )}>
                 <Activity className={clsx('h-4 w-4', user.last_login ? 'text-primary-600' : 'text-gray-400')} />
               </div>
-              <p className="text-xs text-gray-500">Logged In</p>
+              <p className="text-xs text-gray-500">{t('admin.users.loggedIn')}</p>
             </div>
             <div className="text-center">
               <div className={clsx(
@@ -329,7 +331,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
               )}>
                 <Building2 className={clsx('h-4 w-4', user.company ? 'text-primary-600' : 'text-gray-400')} />
               </div>
-              <p className="text-xs text-gray-500">Company</p>
+              <p className="text-xs text-gray-500">{t('admin.common.company')}</p>
             </div>
           </div>
         </div>
@@ -337,13 +339,13 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
         {/* Activity Summary (employees only) */}
         {user.role === 'EMPLOYEE' && riskScore && (
           <div className="p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Activity Summary</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('admin.users.activitySummary')}</h4>
 
             {/* Risk Score Bar */}
             {riskValue != null && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Risk Score</span>
+                  <span className="text-sm text-gray-600">{t('admin.common.riskScore')}</span>
                   <span className={clsx('text-sm font-medium px-2 py-0.5 rounded-full', getRiskBg(riskValue))}>
                     {Math.round(riskValue)} - {riskScore.risk_level || 'N/A'}
                   </span>
@@ -361,28 +363,28 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
               <div className="p-2 bg-white rounded-lg">
                 <Target className="h-4 w-4 text-primary-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{riskScore.total_quizzes_taken || 0}</p>
-                <p className="text-xs text-gray-500">Quizzes Taken</p>
+                <p className="text-xs text-gray-500">{t('admin.users.quizzesTaken')}</p>
               </div>
               <div className="p-2 bg-white rounded-lg">
                 <Mail className="h-4 w-4 text-warning-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{riskScore.total_simulations_received || 0}</p>
-                <p className="text-xs text-gray-500">Sims Received</p>
+                <p className="text-xs text-gray-500">{t('admin.users.simsReceived')}</p>
               </div>
               <div className="p-2 bg-white rounded-lg">
                 <BookOpen className="h-4 w-4 text-success-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{riskScore.trainings_completed || 0}</p>
-                <p className="text-xs text-gray-500">Training Done</p>
+                <p className="text-xs text-gray-500">{t('admin.users.trainingDone')}</p>
               </div>
               <div className="p-2 bg-white rounded-lg">
                 <AlertTriangle className="h-4 w-4 text-danger-600 mx-auto mb-1" />
                 <p className="text-lg font-bold text-gray-900">{riskScore.simulations_clicked || 0}</p>
-                <p className="text-xs text-gray-500">Phish Clicked</p>
+                <p className="text-xs text-gray-500">{t('admin.users.phishClicked')}</p>
               </div>
             </div>
 
             {riskScore.requires_remediation && (
               <div className="mt-3 p-2 bg-danger-50 rounded-lg text-center">
-                <p className="text-xs text-danger-700 font-medium">Requires remediation training</p>
+                <p className="text-xs text-danger-700 font-medium">{t('admin.users.requiresRemediation')}</p>
               </div>
             )}
           </div>
@@ -390,13 +392,13 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Close</button>
+          <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.close')}</button>
           <button
             onClick={() => { onClose(); onEdit(user); }}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             <Edit2 className="h-4 w-4" />
-            Edit User
+            {t('admin.users.editUser')}
           </button>
         </div>
       </div>
@@ -407,6 +409,7 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
 // ── Edit User Modal ────────────────────────────────────────
 
 function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -434,9 +437,9 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.first_name.trim()) newErrors.first_name = 'First name is required';
-    if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
-    if (!formData.role) newErrors.role = 'Role is required';
+    if (!formData.first_name.trim()) newErrors.first_name = t('admin.users.firstNameRequired');
+    if (!formData.last_name.trim()) newErrors.last_name = t('admin.users.lastNameRequired');
+    if (!formData.role) newErrors.role = t('admin.users.roleRequired');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -455,7 +458,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
       };
 
       await companiesAPI.updateUser(user._companyId, user.id, payload);
-      toast.success(`User "${formData.first_name} ${formData.last_name}" updated successfully`);
+      toast.success(t('admin.users.userUpdated', { name: `${formData.first_name} ${formData.last_name}` }));
       onSuccess();
       onClose();
     } catch (err) {
@@ -467,7 +470,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
         }
         setErrors(fieldErrors);
       } else {
-        toast.error(data?.detail || 'Failed to update user');
+        toast.error(data?.detail || t('admin.users.failedToUpdate'));
       }
     } finally {
       setLoading(false);
@@ -482,41 +485,41 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
   if (!user) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit User" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('admin.users.editUser')} size="md">
       <div className="space-y-5">
         {/* Email (read-only) */}
         <div>
-          <label className="label">Email</label>
+          <label className="label">{t('admin.common.email')}</label>
           <input
             type="email"
             value={user.email || ''}
             disabled
             className="input bg-gray-50 text-gray-500 cursor-not-allowed"
           />
-          <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+          <p className="text-xs text-gray-400 mt-1">{t('admin.users.emailCannotChange')}</p>
         </div>
 
         {/* Names */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">First Name *</label>
+            <label className="label">{t('admin.users.firstName')} *</label>
             <input
               type="text"
               value={formData.first_name}
               onChange={(e) => updateField('first_name', e.target.value)}
               className={clsx('input', errors.first_name && 'border-danger-500')}
-              placeholder="First name"
+              placeholder={t('admin.users.firstNamePlaceholder')}
             />
             {errors.first_name && <p className="text-xs text-danger-600 mt-1">{errors.first_name}</p>}
           </div>
           <div>
-            <label className="label">Last Name *</label>
+            <label className="label">{t('admin.users.lastName')} *</label>
             <input
               type="text"
               value={formData.last_name}
               onChange={(e) => updateField('last_name', e.target.value)}
               className={clsx('input', errors.last_name && 'border-danger-500')}
-              placeholder="Last name"
+              placeholder={t('admin.users.lastNamePlaceholder')}
             />
             {errors.last_name && <p className="text-xs text-danger-600 mt-1">{errors.last_name}</p>}
           </div>
@@ -524,7 +527,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
 
         {/* Role */}
         <div>
-          <label className="label">Role *</label>
+          <label className="label">{t('admin.users.role')} *</label>
           <select
             value={formData.role}
             onChange={(e) => updateField('role', e.target.value)}
@@ -536,17 +539,17 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
             ))}
           </select>
           {user.role === 'SUPER_ADMIN' && (
-            <p className="text-xs text-gray-400 mt-1">Super Admin role cannot be changed here</p>
+            <p className="text-xs text-gray-400 mt-1">{t('admin.users.superAdminRoleNote')}</p>
           )}
           {errors.role && <p className="text-xs text-danger-600 mt-1">{errors.role}</p>}
         </div>
 
         {/* Company (read-only display) */}
         <div>
-          <label className="label">Company</label>
+          <label className="label">{t('admin.common.company')}</label>
           <input
             type="text"
-            value={user._companyName || 'No company'}
+            value={user._companyName || t('admin.common.noCompany')}
             disabled
             className="input bg-gray-50 text-gray-500 cursor-not-allowed"
           />
@@ -554,7 +557,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
 
         {/* Phone */}
         <div>
-          <label className="label">Phone Number</label>
+          <label className="label">{t('admin.users.phoneNumber')}</label>
           <input
             type="tel"
             value={formData.phone_number}
@@ -567,9 +570,9 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
         {/* Status Toggle */}
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
           <div>
-            <p className="text-sm font-medium text-gray-900">Account Status</p>
+            <p className="text-sm font-medium text-gray-900">{t('admin.users.accountStatus')}</p>
             <p className="text-xs text-gray-500">
-              {formData.is_active ? 'User has access to the platform' : 'User cannot access the platform'}
+              {formData.is_active ? t('admin.users.hasAccess') : t('admin.users.noAccess')}
             </p>
           </div>
           <button
@@ -591,14 +594,14 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+          <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.cancel')}</button>
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Changes
+            {t('admin.common.saveChanges')}
           </button>
         </div>
       </div>
@@ -609,6 +612,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
 // ── Main UserManagement Component ──────────────────────────
 
 function UserManagement() {
+  const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -676,7 +680,7 @@ function UserManagement() {
 
       setAllUsers(flatUsers);
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to load users';
+      const message = err.response?.data?.detail || t('admin.users.failedToLoad');
       setError(message);
       toast.error(message);
     } finally {
@@ -797,11 +801,11 @@ function UserManagement() {
     try {
       const newStatus = !deactivatingUser.is_active;
       await companiesAPI.updateUser(deactivatingUser._companyId, deactivatingUser.id, { is_active: newStatus });
-      toast.success(`User ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      toast.success(newStatus ? t('admin.users.userActivated') : t('admin.users.userDeactivated'));
       setDeactivatingUser(null);
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to update user status');
+      toast.error(err.response?.data?.detail || t('admin.users.failedToUpdate'));
     } finally {
       setActionLoading(false);
     }
@@ -812,11 +816,11 @@ function UserManagement() {
     setActionLoading(true);
     try {
       await companiesAPI.removeUser(deletingUser._companyId, deletingUser.id);
-      toast.success(`User "${deletingUser.first_name} ${deletingUser.last_name}" has been removed`);
+      toast.success(t('admin.users.userRemoved', { name: `${deletingUser.first_name} ${deletingUser.last_name}` }));
       setDeletingUser(null);
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to delete user');
+      toast.error(err.response?.data?.detail || t('admin.users.failedToUpdate'));
     } finally {
       setActionLoading(false);
     }
@@ -824,7 +828,7 @@ function UserManagement() {
 
   const handleExport = () => {
     if (filteredUsers.length === 0) {
-      toast.error('No users to export');
+      toast.error(t('admin.users.noUsersToExport'));
       return;
     }
 
@@ -845,7 +849,7 @@ function UserManagement() {
     });
 
     downloadCSV(rows, headers, `platform-users-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    toast.success(`Exported ${filteredUsers.length} users`);
+    toast.success(t('admin.users.exportedUsers', { count: filteredUsers.length }));
   };
 
   // Close all filter menus
@@ -862,7 +866,7 @@ function UserManagement() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Loading users across all companies...</p>
+          <p className="mt-4 text-gray-600">{t('admin.users.loadingUsers')}</p>
         </div>
       </div>
     );
@@ -877,7 +881,7 @@ function UserManagement() {
         <p className="text-gray-600 mb-4">{error}</p>
         <button onClick={fetchData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -888,17 +892,17 @@ function UserManagement() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage all users across the platform</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin.users.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('admin.users.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Export CSV
+            {t('admin.common.exportCsv')}
           </button>
           <button onClick={fetchData} className="btn-secondary flex items-center gap-2">
             <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
-            Refresh
+            {t('admin.common.refresh')}
           </button>
         </div>
       </div>
@@ -907,31 +911,31 @@ function UserManagement() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
-          label="Total Users"
+          label={t('admin.users.totalUsers')}
           value={stats.total.toLocaleString()}
           color="primary"
-          subtext={`Across ${companies.length} companies`}
+          subtext={t('admin.users.acrossCompanies', { count: companies.length })}
         />
         <StatCard
           icon={Shield}
-          label="Super Admins"
+          label={t('admin.users.superAdmins')}
           value={stats.superAdmins}
           color="purple"
-          subtext="Platform administrators"
+          subtext={t('admin.users.platformAdmins')}
         />
         <StatCard
           icon={UserCheck}
-          label="Company Admins"
+          label={t('admin.users.companyAdmins')}
           value={stats.companyAdmins}
           color="success"
-          subtext="Company managers"
+          subtext={t('admin.users.companyManagers')}
         />
         <StatCard
           icon={User}
-          label="Employees"
+          label={t('admin.users.employees')}
           value={stats.employees.toLocaleString()}
           color="warning"
-          subtext="End users"
+          subtext={t('admin.users.endUsers')}
         />
       </div>
 
@@ -942,7 +946,7 @@ function UserManagement() {
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder={t('admin.users.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="input ps-10"
@@ -959,8 +963,8 @@ function UserManagement() {
               <Building2 className="h-4 w-4" />
               <span className="truncate max-w-[100px]">
                 {companyFilter === 'ALL'
-                  ? 'All Companies'
-                  : companies.find((c) => String(c.id) === String(companyFilter))?.name || 'Company'}
+                  ? t('admin.common.allCompanies')
+                  : companies.find((c) => String(c.id) === String(companyFilter))?.name || t('admin.common.company')}
               </span>
             </div>
             <ChevronDown className="h-4 w-4" />
@@ -976,7 +980,7 @@ function UserManagement() {
                     companyFilter === 'ALL' && 'bg-primary-50 text-primary-700'
                   )}
                 >
-                  All Companies
+                  {t('admin.common.allCompanies')}
                 </button>
                 {companies.map((c) => (
                   <button
@@ -1003,7 +1007,7 @@ function UserManagement() {
           >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {roleFilter === 'ALL' ? 'All Roles' : ROLE_LABELS[roleFilter] || roleFilter}
+              {roleFilter === 'ALL' ? t('admin.common.allRoles') : ROLE_LABELS[roleFilter] || roleFilter}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -1020,7 +1024,7 @@ function UserManagement() {
                       roleFilter === role && 'bg-primary-50 text-primary-700'
                     )}
                   >
-                    {role === 'ALL' ? 'All Roles' : ROLE_LABELS[role]}
+                    {role === 'ALL' ? t('admin.common.allRoles') : ROLE_LABELS[role]}
                   </button>
                 ))}
               </div>
@@ -1036,7 +1040,7 @@ function UserManagement() {
           >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {statusFilter === 'ALL' ? 'All Status' : statusFilter === 'ACTIVE' ? 'Active' : 'Inactive'}
+              {statusFilter === 'ALL' ? t('admin.common.allStatus') : statusFilter === 'ACTIVE' ? t('admin.common.active') : t('admin.common.inactive')}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -1053,7 +1057,7 @@ function UserManagement() {
                       statusFilter === status && 'bg-primary-50 text-primary-700'
                     )}
                   >
-                    {status === 'ALL' ? 'All Status' : status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                    {status === 'ALL' ? t('admin.common.allStatus') : status === 'ACTIVE' ? t('admin.common.active') : t('admin.common.inactive')}
                   </button>
                 ))}
               </div>
@@ -1065,12 +1069,12 @@ function UserManagement() {
       {/* Active filters indicator */}
       {(companyFilter !== 'ALL' || roleFilter !== 'ALL' || statusFilter !== 'ALL' || searchQuery) && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-gray-500">Showing {filteredUsers.length} of {allUsers.length} users</span>
+          <span className="text-sm text-gray-500">{t('admin.users.showingFiltered', { filtered: filteredUsers.length, total: allUsers.length })}</span>
           <button
             onClick={() => { setCompanyFilter('ALL'); setRoleFilter('ALL'); setStatusFilter('ALL'); setSearchQuery(''); setCurrentPage(1); }}
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
-            Clear all filters
+            {t('admin.users.clearAllFilters')}
           </button>
         </div>
       )}
@@ -1086,7 +1090,7 @@ function UserManagement() {
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
-                    User
+                    {t('admin.users.user')}
                     <SortIndicator column="name" />
                   </div>
                 </th>
@@ -1095,7 +1099,7 @@ function UserManagement() {
                   onClick={() => handleSort('company')}
                 >
                   <div className="flex items-center gap-1">
-                    Company
+                    {t('admin.users.company')}
                     <SortIndicator column="company" />
                   </div>
                 </th>
@@ -1104,27 +1108,27 @@ function UserManagement() {
                   onClick={() => handleSort('role')}
                 >
                   <div className="flex items-center gap-1">
-                    Role
+                    {t('admin.users.role')}
                     <SortIndicator column="role" />
                   </div>
                 </th>
                 <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
-                  Risk Score
+                  {t('admin.common.riskScore')}
                 </th>
                 <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                  Status
+                  {t('admin.common.status')}
                 </th>
                 <th
                   className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden sm:table-cell"
                   onClick={() => handleSort('last_login')}
                 >
                   <div className="flex items-center gap-1">
-                    Last Login
+                    {t('admin.users.lastLogin')}
                     <SortIndicator column="last_login" />
                   </div>
                 </th>
                 <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                  Actions
+                  {t('admin.common.actions')}
                 </th>
               </tr>
             </thead>
@@ -1200,7 +1204,7 @@ function UserManagement() {
                           'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
                           user.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
                         )}>
-                          {user.is_active ? 'Active' : 'Inactive'}
+                          {user.is_active ? t('admin.common.active') : t('admin.common.inactive')}
                         </span>
                       </td>
 
@@ -1217,18 +1221,18 @@ function UserManagement() {
                           <DropdownMenu
                             trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
                             items={[
-                              { icon: Eye, label: 'View Details', onClick: () => setViewingUser(user) },
-                              { icon: Edit2, label: 'Edit User', onClick: () => setEditingUser(user) },
+                              { icon: Eye, label: t('admin.common.viewDetails'), onClick: () => setViewingUser(user) },
+                              { icon: Edit2, label: t('admin.users.editUser'), onClick: () => setEditingUser(user) },
                               { divider: true },
                               {
                                 icon: user.is_active ? XCircle : CheckCircle,
-                                label: user.is_active ? 'Deactivate' : 'Activate',
+                                label: user.is_active ? t('admin.common.deactivate') : t('admin.common.activate'),
                                 onClick: () => setDeactivatingUser(user),
                                 danger: user.is_active,
                               },
                               {
                                 icon: Trash2,
-                                label: 'Remove User',
+                                label: t('admin.users.removeUser'),
                                 onClick: () => setDeletingUser(user),
                                 danger: true,
                               },
@@ -1243,11 +1247,11 @@ function UserManagement() {
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
                     <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.users.noUsersFound')}</h3>
                     <p className="text-gray-500">
                       {searchQuery || companyFilter !== 'ALL' || roleFilter !== 'ALL' || statusFilter !== 'ALL'
-                        ? 'Try adjusting your search or filters'
-                        : 'No users across the platform yet'}
+                        ? t('admin.users.adjustFilters')
+                        : t('admin.users.noUsersPlatform')}
                     </p>
                   </td>
                 </tr>
@@ -1260,7 +1264,7 @@ function UserManagement() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
             <div className="text-sm text-gray-500">
-              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, sortedUsers.length)} of {sortedUsers.length} users
+              {t('admin.users.showingPagination', { from: ((currentPage - 1) * ITEMS_PER_PAGE) + 1, to: Math.min(currentPage * ITEMS_PER_PAGE, sortedUsers.length), total: sortedUsers.length })}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -1271,7 +1275,7 @@ function UserManagement() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+                {t('admin.users.pageOf', { current: currentPage, total: totalPages })}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -1309,13 +1313,13 @@ function UserManagement() {
         isOpen={!!deactivatingUser}
         onClose={() => setDeactivatingUser(null)}
         onConfirm={handleDeactivate}
-        title={deactivatingUser?.is_active ? 'Deactivate User' : 'Activate User'}
+        title={deactivatingUser?.is_active ? t('admin.users.deactivateUser') : t('admin.users.activateUser')}
         message={
           deactivatingUser?.is_active
-            ? `Deactivate ${deactivatingUser?.first_name} ${deactivatingUser?.last_name}? They will lose access to the platform.`
-            : `Activate ${deactivatingUser?.first_name} ${deactivatingUser?.last_name}? They will regain access to the platform.`
+            ? t('admin.users.deactivateConfirm', { name: `${deactivatingUser?.first_name} ${deactivatingUser?.last_name}` })
+            : t('admin.users.activateConfirm', { name: `${deactivatingUser?.first_name} ${deactivatingUser?.last_name}` })
         }
-        confirmText={deactivatingUser?.is_active ? 'Deactivate' : 'Activate'}
+        confirmText={deactivatingUser?.is_active ? t('admin.common.deactivate') : t('admin.common.activate')}
         danger={deactivatingUser?.is_active}
         loading={actionLoading}
       />
@@ -1325,9 +1329,9 @@ function UserManagement() {
         isOpen={!!deletingUser}
         onClose={() => setDeletingUser(null)}
         onConfirm={handleDelete}
-        title="Remove User"
-        message={`Remove "${deletingUser?.first_name} ${deletingUser?.last_name}" from ${deletingUser?._companyName}? This action cannot be undone. All user data including quiz results and activity will be removed.`}
-        confirmText="Remove User"
+        title={t('admin.users.removeTitle')}
+        message={t('admin.users.removeConfirm', { name: `${deletingUser?.first_name} ${deletingUser?.last_name}`, company: deletingUser?._companyName })}
+        confirmText={t('admin.users.removeUser')}
         danger
         loading={actionLoading}
       />
