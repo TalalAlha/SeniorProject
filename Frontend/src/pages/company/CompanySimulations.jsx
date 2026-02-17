@@ -935,8 +935,8 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
       label: 'Mark as Sent',
       onClick: () => onMarkSent(simulation.id),
     },
-    simulation.status === 'DRAFT' && { divider: true },
-    simulation.status === 'DRAFT' && { icon: Trash2, label: 'Delete', onClick: () => onDelete(simulation.id), danger: true },
+    { divider: true },
+    { icon: Trash2, label: 'Delete', onClick: () => onDelete(simulation.id), danger: true },
   ].filter(Boolean);
 
   return (

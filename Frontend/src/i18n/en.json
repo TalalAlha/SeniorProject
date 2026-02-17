@@ -303,6 +303,7 @@
     "assigning": "Assigning...",
     "assignSuccess": "Training assigned to {{count}} employee(s)",
     "assignSkipped": "{{count}} employee(s) already had this training assigned",
+    "alreadyAssigned": "Already Assigned",
     "management": "Training Management",
     "managementDesc": "Manage training modules and assign them to your employees",
     "assigned": "Assigned",

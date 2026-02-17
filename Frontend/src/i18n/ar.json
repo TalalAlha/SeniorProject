@@ -303,6 +303,7 @@
     "assigning": "جاري التعيين...",
     "assignSuccess": "تم تعيين التدريب لـ {{count}} موظف",
     "assignSkipped": "{{count}} موظف لديهم هذا التدريب بالفعل",
+    "alreadyAssigned": "تم التعيين مسبقاً",
     "management": "إدارة التدريب",
     "managementDesc": "إدارة وحدات التدريب وتعيينها لموظفيك",
     "assigned": "معيّن",

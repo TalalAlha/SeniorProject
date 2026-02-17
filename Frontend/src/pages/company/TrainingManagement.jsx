@@ -38,6 +38,7 @@ function TrainingManagement() {
   const [dueDate, setDueDate] = useState('');
   const [assignLoading, setAssignLoading] = useState(false);
   const [employeesLoading, setEmployeesLoading] = useState(false);
+  const [alreadyAssignedIds, setAlreadyAssignedIds] = useState(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -90,6 +91,16 @@ function TrainingManagement() {
     setDueDate('');
     setShowModal(true);
 
+    // Compute already-assigned employee IDs for this module
+    if (module) {
+      const moduleAssignments = assignments.filter(
+        (a) => a.training_module === module.id || a.module === module.id
+      );
+      setAlreadyAssignedIds(new Set(moduleAssignments.map((a) => a.employee)));
+    } else {
+      setAlreadyAssignedIds(new Set());
+    }
+
     if (!employees.length && companyId) {
       setEmployeesLoading(true);
       try {
@@ -114,10 +125,13 @@ function TrainingManagement() {
   };
 
   const toggleAllEmployees = () => {
-    if (selectedEmployees.size === employees.length) {
+    const selectableIds = employees
+      .filter((e) => !alreadyAssignedIds.has(e.id))
+      .map((e) => e.id);
+    if (selectedEmployees.size === selectableIds.length) {
       setSelectedEmployees(new Set());
     } else {
-      setSelectedEmployees(new Set(employees.map((e) => e.id)));
+      setSelectedEmployees(new Set(selectableIds));
     }
   };
 
@@ -205,11 +219,14 @@ function TrainingManagement() {
       {modules.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((module) => {
-            const completionRate = module.times_assigned > 0
-              ? Math.round((module.times_completed / module.times_assigned) * 100)
+            const assigned = module.times_assigned || 0;
+            const completed = module.times_completed || 0;
+            const passed = module.times_passed || 0;
+            const completionRate = assigned > 0
+              ? Math.round((completed / assigned) * 100)
               : 0;
-            const passRate = module.times_completed > 0
-              ? Math.round((module.times_passed / module.times_completed) * 100)
+            const passRate = completed > 0
+              ? Math.round((passed / completed) * 100)
               : 0;
 
             return (
@@ -363,6 +380,15 @@ function TrainingManagement() {
                   onChange={(e) => {
                     const mod = modules.find((m) => m.id === parseInt(e.target.value));
                     setSelectedModule(mod || null);
+                    setSelectedEmployees(new Set());
+                    if (mod) {
+                      const moduleAssignments = assignments.filter(
+                        (a) => a.training_module === mod.id || a.module === mod.id
+                      );
+                      setAlreadyAssignedIds(new Set(moduleAssignments.map((a) => a.employee)));
+                    } else {
+                      setAlreadyAssignedIds(new Set());
+                    }
                   }}
                   className="input w-full"
                 >
@@ -394,25 +420,39 @@ function TrainingManagement() {
                   </div>
                 ) : (
                   <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
-                    {employees.map((emp) => (
-                      <label
-                        key={emp.id}
-                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedEmployees.has(emp.id)}
-                          onChange={() => toggleEmployee(emp.id)}
-                          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
-                            {emp.first_name} {emp.last_name}
+                    {employees.map((emp) => {
+                      const isAlreadyAssigned = alreadyAssignedIds.has(emp.id);
+                      return (
+                        <label
+                          key={emp.id}
+                          className={clsx(
+                            'flex items-center gap-3 px-3 py-2',
+                            isAlreadyAssigned
+                              ? 'opacity-60 cursor-not-allowed bg-gray-50'
+                              : 'hover:bg-gray-50 cursor-pointer'
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isAlreadyAssigned || selectedEmployees.has(emp.id)}
+                            disabled={isAlreadyAssigned}
+                            onChange={() => { if (!isAlreadyAssigned) toggleEmployee(emp.id); }}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className={clsx('text-sm font-medium truncate', isAlreadyAssigned ? 'text-gray-400' : 'text-gray-900')}>
+                              {emp.first_name} {emp.last_name}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate">{emp.email}</div>
                           </div>
-                          <div className="text-xs text-gray-500 truncate">{emp.email}</div>
-                        </div>
-                      </label>
-                    ))}
+                          {isAlreadyAssigned && (
+                            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium whitespace-nowrap">
+                              {t('training.alreadyAssigned') || 'Already Assigned'}
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
                     {employees.length === 0 && (
                       <p className="text-sm text-gray-500 text-center py-4">No employees found</p>
                     )}

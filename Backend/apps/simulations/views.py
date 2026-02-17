@@ -239,15 +239,7 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Prevent deleting campaigns that are not in DRAFT status."""
-        instance = self.get_object()
-
-        if instance.status != 'DRAFT':
-            return Response(
-                {'error': 'Cannot delete campaign that is not in DRAFT status.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+        """Delete a simulation campaign regardless of status."""
         return super().destroy(request, *args, **kwargs)
 
     # -------------------------------------------------------------------------
