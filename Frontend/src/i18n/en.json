@@ -29,7 +29,9 @@
     "phone": "Phone",
     "language": "Language",
     "english": "English",
-    "arabic": "Arabic"
+    "arabic": "Arabic",
+    "active": "Active",
+    "inactive": "Inactive"
   },
   "auth": {
     "login": "Login",

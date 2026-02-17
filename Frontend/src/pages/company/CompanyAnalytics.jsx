@@ -321,7 +321,9 @@ function CompanyAnalytics() {
       setSimulations(simulationsRes.data?.results || simulationsRes.data || []);
       setHighRiskEmployees(highRiskRes.data?.results || highRiskRes.data || []);
       setTrainingEffectiveness(
-        Array.isArray(trainingRes.data) ? trainingRes.data : trainingRes.data?.results || []
+        Array.isArray(trainingRes.data)
+          ? trainingRes.data
+          : trainingRes.data?.module_stats || trainingRes.data?.results || []
       );
     } catch (err) {
       const message = err.response?.data?.detail || 'Failed to load analytics data';
@@ -426,7 +428,7 @@ function CompanyAnalytics() {
   const trainingBarData = useMemo(() => {
     if (!trainingEffectiveness?.length) return [];
     return trainingEffectiveness.map((t) => ({
-      name: t.name || t.title || `Module ${t.id}`,
+      name: t.module_title || t.name || t.title || `Module ${t.module_id || t.id}`,
       rate: typeof t.completion_rate === 'number'
         ? (t.completion_rate <= 1 ? t.completion_rate * 100 : t.completion_rate)
         : 0,

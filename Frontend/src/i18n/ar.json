@@ -29,7 +29,9 @@
     "phone": "الهاتف",
     "language": "اللغة",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "active": "نشط",
+    "inactive": "غير نشط"
   },
   "auth": {
     "login": "تسجيل الدخول",
