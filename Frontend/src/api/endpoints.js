@@ -62,6 +62,13 @@ export const campaignsAPI = {
   getProgress: (id) => api.get(`/campaigns/campaigns/${id}/progress/`),
   // Employee-specific endpoints
   getMyQuizzes: (params) => api.get('/campaigns/quizzes/', { params }),
+  // Quiz actions
+  getQuiz: (id) => api.get(`/campaigns/quizzes/${id}/`),
+  getQuizQuestions: (id) => api.get(`/campaigns/quizzes/${id}/questions/`),
+  startQuiz: (id) => api.post(`/campaigns/quizzes/${id}/start/`),
+  answerQuestion: (id, data) => api.post(`/campaigns/quizzes/${id}/answer_question/`, data),
+  submitQuiz: (id) => api.post(`/campaigns/quizzes/${id}/submit/`),
+  getQuizResult: (id) => api.get(`/campaigns/quizzes/${id}/result/`),
 };
 
 // ============== Simulations ==============

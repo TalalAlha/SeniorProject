@@ -102,6 +102,25 @@ function formatShortDate(d) {
   }
 }
 
+/**
+ * Fill a dateMap with entries for every day in [startDate, endDate].
+ * Missing days get the provided defaults. Keys are ISO strings (YYYY-MM-DD).
+ */
+function fillDateRange(dateMap, startDate, endDate, defaults = {}) {
+  if (!startDate || !endDate) return dateMap;
+  const filled = { ...dateMap };
+  const cur = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  while (cur <= end) {
+    const key = cur.toISOString().split('T')[0];
+    if (!filled[key]) {
+      filled[key] = { date: formatShortDate(key), ...defaults };
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return filled;
+}
+
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -331,10 +350,15 @@ function CompanyAnalytics() {
     // Backend returns average_risk_scores as [{date, value}, ...]
     const scores = trends?.average_risk_scores;
     if (!scores?.length) return [];
-    return scores.map((point) => ({
-      date: formatShortDate(point.date),
-      score: point.value ?? 0,
-    }));
+    const dateMap = {};
+    scores.forEach((point) => {
+      const key = String(point.date);
+      dateMap[key] = { date: formatShortDate(point.date), score: point.value ?? 0 };
+    });
+    const filled = fillDateRange(dateMap, trends?.start_date, trends?.end_date, { score: 0 });
+    return Object.entries(filled)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, v]) => ({ ...v, date: v.date || formatShortDate(v.date) }));
   }, [trends]);
 
   const riskDistData = useMemo(() => {
@@ -361,21 +385,43 @@ function CompanyAnalytics() {
   );
 
   const activityBarData = useMemo(() => {
-    // Backend returns quiz_completions and simulation_click_rates as [{date, value, count?}, ...]
-    // Merge both datasets by date
+    // Backend returns quiz_completions, simulation_click_rates, training_completions as [{date, value, count?}, ...]
+    // Merge all datasets by date
     const dateMap = {};
     (trends?.quiz_completions || []).forEach((point) => {
       const key = String(point.date);
       if (!dateMap[key]) dateMap[key] = { date: formatShortDate(point.date), completions: 0, clicks: 0 };
-      dateMap[key].completions = point.count ?? point.value ?? 0;
+      dateMap[key].completions += (point.count ?? point.value ?? 0);
+    });
+    (trends?.training_completions || []).forEach((point) => {
+      const key = String(point.date);
+      if (!dateMap[key]) dateMap[key] = { date: formatShortDate(point.date), completions: 0, clicks: 0 };
+      dateMap[key].completions += (point.count ?? point.value ?? 0);
     });
     (trends?.simulation_click_rates || []).forEach((point) => {
       const key = String(point.date);
       if (!dateMap[key]) dateMap[key] = { date: formatShortDate(point.date), completions: 0, clicks: 0 };
       dateMap[key].clicks = point.count ?? point.value ?? 0;
     });
-    return Object.values(dateMap).sort((a, b) => a.date.localeCompare(b.date));
-  }, [trends]);
+    // Fill in empty dates across the full period range
+    const filled = fillDateRange(dateMap, trends?.start_date, trends?.end_date, { completions: 0, clicks: 0 });
+    const trendData = Object.entries(filled)
+      .sort(([a], [b]) => a.localeCompare(b))  // sort by ISO date key (YYYY-MM-DD)
+      .map(([, v]) => v);
+
+    if (trendData.length > 0) return trendData;
+
+    // Fallback: build from campaigns list
+    if (campaigns.length > 0) {
+      return campaigns.slice(0, 10).map((c) => ({
+        date: c.name,
+        completions: c.completed_participants ?? 0,
+        clicks: 0,
+      }));
+    }
+
+    return [];
+  }, [trends, campaigns]);
 
   const trainingBarData = useMemo(() => {
     if (!trainingEffectiveness?.length) return [];
@@ -657,7 +703,7 @@ function CompanyAnalytics() {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend />
-                <Bar dataKey="completions" name="Campaign Completions" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completions" name="Training Completions" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="clicks" name="Simulation Clicks" fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -770,11 +816,11 @@ function CompanyAnalytics() {
                   pagedData.map((c) => {
                     const progress = c.progress ?? c.completion_rate ?? 0;
                     const progressPct = progress <= 1 ? progress * 100 : progress;
-                    const avgScore = c.avg_score ?? c.average_score ?? null;
+                    const avgScore = c.average_score ?? null;
                     return (
                       <tr key={c.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
-                        <td className="px-4 py-3 text-gray-600">{c.assigned_count ?? c.total_employees ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{c.total_participants ?? '—'}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-gray-200 rounded-full h-2">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Plus,
   Search,
@@ -110,19 +111,38 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
   );
 }
 
-// Dropdown Menu Component
+// Dropdown Menu Component (Portal-based to avoid overflow clipping)
 function DropdownMenu({ trigger, items }) {
   const [isOpen, setIsOpen] = useState(false);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isOpen && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menuHeight = menuRef.current?.offsetHeight || 220;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow < menuHeight + 8
+        ? rect.top - menuHeight - 4
+        : rect.bottom + 4;
+      setPos({ top, left: rect.right - 192 });
+    }
+  }, [isOpen]);
 
   return (
     <div className="relative">
-      <button onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         {trigger}
       </button>
-      {isOpen && (
+      {isOpen && createPortal(
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div
+            ref={menuRef}
+            className="fixed w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            style={{ top: pos.top, left: pos.left }}
+          >
             {items.map((item, index) =>
               item.divider ? (
                 <hr key={index} className="my-1" />
@@ -135,7 +155,7 @@ function DropdownMenu({ trigger, items }) {
                   }}
                   disabled={item.disabled}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors',
+                    'w-full px-4 py-2 text-start text-sm flex items-center gap-2 transition-colors',
                     item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
@@ -146,7 +166,8 @@ function DropdownMenu({ trigger, items }) {
               )
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
@@ -973,13 +994,14 @@ function CompanyEmployees() {
   const handleDeactivate = async () => {
     if (!deactivatingEmployee) return;
     setActionLoading(true);
+    const newStatus = !deactivatingEmployee.is_active;
     try {
-      await companiesAPI.removeUser(companyId, deactivatingEmployee.id);
-      toast.success('Employee deactivated successfully');
+      await companiesAPI.updateUser(companyId, deactivatingEmployee.id, { is_active: newStatus });
+      toast.success(newStatus ? 'Employee activated successfully' : 'Employee deactivated successfully');
       setDeactivatingEmployee(null);
       fetchEmployees();
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to deactivate employee';
+      const message = err.response?.data?.detail || 'Failed to update employee status';
       toast.error(message);
     } finally {
       setActionLoading(false);

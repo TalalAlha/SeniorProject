@@ -483,9 +483,9 @@ function CampaignDetails() {
   const StatusIcon = status.icon;
 
   // Calculate statistics
-  const totalAssigned = campaign.total_assigned || assignedEmployees.length || 0;
-  const totalCompleted = campaign.total_completed || 0;
-  const avgScore = campaign.avg_score || statistics?.avg_score || 0;
+  const totalAssigned = campaign.total_participants || assignedEmployees.length || 0;
+  const totalCompleted = campaign.completed_participants || 0;
+  const avgScore = campaign.average_score || statistics?.avg_score || 0;
   const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
 
   return (

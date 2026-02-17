@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -455,15 +455,16 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
 // Campaign Card Component
 function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const status = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.DRAFT;
   const StatusIcon = status.icon;
 
-  const progress = campaign.total_assigned > 0
-    ? Math.round((campaign.total_completed / campaign.total_assigned) * 100)
+  const progress = campaign.total_participants > 0
+    ? Math.round((campaign.completed_participants / campaign.total_participants) * 100)
     : 0;
 
   const menuItems = [
-    { icon: BarChart3, label: 'View Details', onClick: () => {} },
+    { icon: BarChart3, label: 'View Details', onClick: () => navigate(`/company/campaigns/${campaign.id}`) },
     { icon: Edit2, label: 'Edit', onClick: () => onEdit(campaign) },
     { icon: UserPlus, label: 'Assign Employees', onClick: () => onAssign(campaign) },
     { divider: true },
@@ -472,17 +473,12 @@ function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
       label: 'Activate',
       onClick: () => onActivate(campaign),
     },
-    campaign.status === 'ACTIVE' && {
-      icon: Pause,
-      label: 'Pause',
-      onClick: () => onActivate(campaign),
-    },
     { divider: true },
     { icon: Trash2, label: 'Delete', onClick: () => onDelete(campaign), danger: true },
   ].filter(Boolean);
 
   return (
-    <div className="card group">
+    <div className="card group cursor-pointer" onClick={() => navigate(`/company/campaigns/${campaign.id}`)}>
       <div className="flex items-start justify-between mb-4">
         <div className="p-3 rounded-lg bg-primary-100">
           <Target className="h-6 w-6 text-primary-600" />
@@ -492,10 +488,12 @@ function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
             <StatusIcon className="h-3 w-3" />
             {status.label}
           </span>
-          <DropdownMenu
-            trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
-            items={menuItems}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu
+              trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
+              items={menuItems}
+            />
+          </div>
         </div>
       </div>
 
@@ -508,7 +506,7 @@ function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
       <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
         <span className="flex items-center gap-1">
           <Users className="h-4 w-4" />
-          {campaign.total_assigned || 0} assigned
+          {campaign.total_participants || 0} assigned
         </span>
         <span className="flex items-center gap-1">
           <Mail className="h-4 w-4" />
@@ -516,14 +514,14 @@ function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
         </span>
       </div>
 
-      {campaign.avg_score !== undefined && campaign.avg_score !== null && (
+      {campaign.average_score !== undefined && campaign.average_score !== null && (
         <div className="flex items-center gap-2 text-sm mb-4">
           <span className="text-gray-500">Avg Score:</span>
           <span className={clsx(
             'font-medium',
-            campaign.avg_score >= 70 ? 'text-success-600' : campaign.avg_score >= 50 ? 'text-warning-600' : 'text-danger-600'
+            campaign.average_score >= 70 ? 'text-success-600' : campaign.average_score >= 50 ? 'text-warning-600' : 'text-danger-600'
           )}>
-            {Math.round(campaign.avg_score)}%
+            {Math.round(campaign.average_score)}%
           </span>
         </div>
       )}
@@ -531,7 +529,7 @@ function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">{t('training.progress')}</span>
-          <span className="font-medium">{campaign.total_completed || 0}/{campaign.total_assigned || 0}</span>
+          <span className="font-medium">{campaign.completed_participants || 0}/{campaign.total_participants || 0}</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div
@@ -615,17 +613,12 @@ function CampaignList() {
     if (!activatingCampaign) return;
     setActionLoading(true);
     try {
-      if (activatingCampaign.status === 'ACTIVE') {
-        await campaignsAPI.deactivate(activatingCampaign.id);
-        toast.success('Campaign paused');
-      } else {
-        await campaignsAPI.activate(activatingCampaign.id);
-        toast.success('Campaign activated');
-      }
+      await campaignsAPI.activate(activatingCampaign.id);
+      toast.success('Campaign activated');
       setActivatingCampaign(null);
       fetchCampaigns();
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to update campaign status';
+      const message = err.response?.data?.detail || 'Failed to activate campaign';
       toast.error(message);
     } finally {
       setActionLoading(false);
@@ -805,13 +798,9 @@ function CampaignList() {
         isOpen={!!activatingCampaign}
         onClose={() => setActivatingCampaign(null)}
         onConfirm={handleActivate}
-        title={activatingCampaign?.status === 'ACTIVE' ? 'Pause Campaign' : 'Activate Campaign'}
-        message={
-          activatingCampaign?.status === 'ACTIVE'
-            ? `Are you sure you want to pause "${activatingCampaign?.name}"?`
-            : `Are you sure you want to activate "${activatingCampaign?.name}"? Emails will start being sent to assigned employees.`
-        }
-        confirmText={activatingCampaign?.status === 'ACTIVE' ? 'Pause' : 'Activate'}
+        title="Activate Campaign"
+        message={`Are you sure you want to activate "${activatingCampaign?.name}"? Emails will start being sent to assigned employees.`}
+        confirmText="Activate"
         loading={actionLoading}
       />
     </div>

@@ -160,13 +160,8 @@ function EmployeeQuizzes() {
                 {getStatusBadge(quiz.status, quiz.progress_percentage)}
               </div>
 
-              {/* Campaign name */}
-              <p className="text-xs text-gray-500 mb-1">
-                {quiz.campaign?.name || 'General Quiz'}
-              </p>
-
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Quiz #{quiz.id}
+                {quiz.campaign_name || 'Security Quiz'}
               </h3>
 
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">

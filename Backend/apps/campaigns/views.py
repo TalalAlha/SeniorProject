@@ -7,6 +7,9 @@ from django.utils import timezone
 from django.db.models import Q
 from django.db import transaction
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import Campaign, Quiz, QuizResult
 from apps.assessments.models import EmailTemplate, QuizQuestion
@@ -64,6 +67,28 @@ class CampaignViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsSuperAdminOrCompanyAdmin()]
         return [IsAuthenticated(), HasCompanyAccess()]
+
+    def perform_create(self, serializer):
+        """Create campaign and auto-generate AI email templates."""
+        campaign = serializer.save()
+
+        try:
+            from apps.campaigns.ai_helper import generate_campaign_emails
+
+            templates = generate_campaign_emails(
+                campaign=campaign,
+                num_phishing=campaign.num_phishing_emails,
+                num_legitimate=campaign.num_legitimate_emails,
+            )
+            logger.info(
+                "Generated %d AI email templates for campaign '%s'",
+                len(templates), campaign.name,
+            )
+        except Exception as e:
+            logger.error(
+                "AI email generation failed for campaign '%s': %s",
+                campaign.name, e,
+            )
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsSuperAdminOrCompanyAdmin])
     def activate(self, request, pk=None):
@@ -255,13 +280,20 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         questions = quiz.questions.all().order_by('question_number')
         serializer = QuizQuestionSimpleSerializer(questions, many=True)
 
+        # Replace {employee_name} placeholder with the actual employee name
+        employee_name = quiz.employee.first_name or quiz.employee.get_full_name() or 'User'
+        questions_data = serializer.data
+        for q in questions_data:
+            if q.get('email_body'):
+                q['email_body'] = q['email_body'].replace('{employee_name}', employee_name)
+
         return Response({
             'quiz_id': quiz.id,
             'campaign_name': quiz.campaign.name,
             'status': quiz.status,
             'total_questions': quiz.total_questions,
             'current_question_index': quiz.current_question_index,
-            'questions': serializer.data
+            'questions': questions_data
         }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsEmployee])
@@ -276,10 +308,16 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        if quiz.status != 'NOT_STARTED':
+        if quiz.status == 'COMPLETED':
             return Response(
-                {'error': f'Quiz has already been {quiz.status.lower()}'},
+                {'error': 'Quiz has already been completed'},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if quiz.status == 'IN_PROGRESS':
+            return Response(
+                QuizSerializer(quiz).data,
+                status=status.HTTP_200_OK
             )
 
         quiz.status = 'IN_PROGRESS'

@@ -88,11 +88,12 @@ class CompanyViewSet(viewsets.ModelViewSet):
         else:
             queryset = Company.objects.none()
 
-        # Apply filters from query params
-        is_active = self.request.query_params.get('is_active')
-        if is_active is not None:
-            is_active_bool = is_active.lower() == 'true'
-            queryset = queryset.filter(is_active=is_active_bool)
+        # Apply filters from query params (only for company list, not nested actions like users)
+        if self.action == 'list':
+            is_active = self.request.query_params.get('is_active')
+            if is_active is not None:
+                is_active_bool = is_active.lower() == 'true'
+                queryset = queryset.filter(is_active=is_active_bool)
 
         industry = self.request.query_params.get('industry')
         if industry:

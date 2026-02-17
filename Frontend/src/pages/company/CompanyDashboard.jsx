@@ -180,7 +180,9 @@ function CampaignStatusBadge({ status }) {
 
 // Campaign Card Component
 function CampaignCard({ campaign }) {
-  const progress = campaign.progress || 0;
+  const rawRate = campaign.completion_rate ?? campaign.progress ?? 0;
+  const progress = rawRate <= 1 && rawRate > 0 ? rawRate * 100 : Number(rawRate);
+  const employeeCount = campaign.total_participants ?? campaign.assigned_count ?? 0;
 
   return (
     <Link
@@ -192,13 +194,13 @@ function CampaignCard({ campaign }) {
         <CampaignStatusBadge status={campaign.status} />
       </div>
       <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-        <span>{campaign.assigned_count || 0} employees</span>
+        <span>{employeeCount} employees</span>
         <span>{Math.round(progress)}% complete</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-1.5">
         <div
           className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
+          style={{ width: `${Math.min(progress, 100)}%` }}
         />
       </div>
     </Link>
