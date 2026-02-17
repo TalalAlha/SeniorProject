@@ -22,6 +22,7 @@ import EmployeeDashboard from '../pages/employee/EmployeeDashboard';
 import EmployeeQuizzes from '../pages/employee/EmployeeQuizzes';
 import TakeQuiz from '../pages/employee/TakeQuiz';
 import EmployeeTraining from '../pages/employee/EmployeeTraining';
+import TakeTraining from '../pages/employee/TakeTraining';
 import EmployeeBadges from '../pages/employee/EmployeeBadges';
 import EmployeeLeaderboard from '../pages/employee/EmployeeLeaderboard';
 import EmployeeProfile from '../pages/employee/EmployeeProfile';
@@ -95,6 +96,7 @@ const router = createBrowserRouter([
       { path: 'quizzes', element: <EmployeeQuizzes /> },
       { path: 'quizzes/:id', element: <TakeQuiz /> },
       { path: 'training', element: <EmployeeTraining /> },
+      { path: 'training/:id', element: <TakeTraining /> },
       { path: 'badges', element: <EmployeeBadges /> },
       { path: 'leaderboard', element: <EmployeeLeaderboard /> },
       { path: 'profile', element: <EmployeeProfile /> },

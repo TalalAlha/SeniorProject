@@ -107,17 +107,29 @@ export const quizzesAPI = {
 
 // ============== Training ==============
 export const trainingAPI = {
-  list: (params) => api.get('/training/', { params }),
-  create: (data) => api.post('/training/', data),
-  get: (id) => api.get(`/training/${id}/`),
-  update: (id, data) => api.patch(`/training/${id}/`, data),
-  delete: (id) => api.delete(`/training/${id}/`),
-  getModules: (id) => api.get(`/training/${id}/modules/`),
-  startModule: (id, moduleId) => api.post(`/training/${id}/modules/${moduleId}/start/`),
-  completeModule: (id, moduleId) => api.post(`/training/${id}/modules/${moduleId}/complete/`),
-  getMyProgress: () => api.get('/training/my-progress/'),
-  // Employee-specific endpoints
+  // Modules (admin)
+  getModules: (params) => api.get('/training/modules/', { params }),
+  getModule: (id) => api.get(`/training/modules/${id}/`),
+  getModuleQuestions: (id) => api.get(`/training/modules/${id}/questions/`),
+  getCategories: () => api.get('/training/modules/categories/'),
+
+  // Assignments
+  getAssignments: (params) => api.get('/training/assignments/', { params }),
+  getAssignment: (id) => api.get(`/training/assignments/${id}/`),
+
+  // Employee actions
   getMyTrainings: (params) => api.get('/training/assignments/my_trainings/', { params }),
+  startTraining: (id) => api.post(`/training/assignments/${id}/start/`),
+  viewContent: (id, data) => api.post(`/training/assignments/${id}/view_content/`, data),
+  getQuiz: (id) => api.get(`/training/assignments/${id}/quiz/`),
+  submitQuiz: (id, answers) => api.post(`/training/assignments/${id}/submit_quiz/`, { answers }),
+
+  // Admin actions
+  bulkAssign: (data) => api.post('/training/assignments/bulk_assign/', data),
+  getPending: (params) => api.get('/training/assignments/pending/', { params }),
+  getOverdue: (params) => api.get('/training/assignments/overdue/', { params }),
+
+  // Risk scores
   getMyRiskScore: () => api.get('/training/risk-scores/my_score/'),
 };
 
