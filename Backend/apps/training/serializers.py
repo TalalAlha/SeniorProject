@@ -216,6 +216,9 @@ class TrainingModuleListSerializer(serializers.ModelSerializer):
     total_questions = serializers.IntegerField(read_only=True)
     completion_rate = serializers.DecimalField(max_digits=5, decimal_places=1, read_only=True)
     pass_rate = serializers.DecimalField(max_digits=5, decimal_places=1, read_only=True)
+    times_assigned = serializers.IntegerField(read_only=True)
+    times_completed = serializers.IntegerField(read_only=True)
+    times_passed = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = TrainingModule
@@ -224,9 +227,9 @@ class TrainingModuleListSerializer(serializers.ModelSerializer):
             'difficulty', 'duration_minutes', 'passing_score',
             'total_questions', 'is_active', 'is_mandatory',
             'company', 'company_name', 'times_assigned', 'times_completed',
-            'completion_rate', 'pass_rate', 'created_at'
+            'times_passed', 'completion_rate', 'pass_rate', 'created_at'
         ]
-        read_only_fields = ['id', 'created_at', 'times_assigned', 'times_completed']
+        read_only_fields = ['id', 'created_at', 'times_assigned', 'times_completed', 'times_passed']
 
 
 class TrainingModuleDetailSerializer(serializers.ModelSerializer):

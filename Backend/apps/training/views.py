@@ -370,6 +370,53 @@ class TrainingModuleViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsSuperAdminOrCompanyAdmin()]
         return [IsAuthenticated(), HasCompanyAccess()]
 
+    def list(self, request, *args, **kwargs):
+        """Return modules with company-scoped stats for non-super-admins."""
+        queryset = self.filter_queryset(self.get_queryset())
+        user = request.user
+        company = getattr(user, 'company', None)
+
+        # For company users, annotate with company-specific assignment stats
+        if company and not user.is_super_admin:
+            queryset = queryset.annotate(
+                company_times_assigned=Count(
+                    'assignments',
+                    filter=Q(assignments__company=company)
+                ),
+                company_times_completed=Count(
+                    'assignments',
+                    filter=Q(assignments__company=company, assignments__status__in=['COMPLETED', 'PASSED', 'FAILED'])
+                ),
+                company_times_passed=Count(
+                    'assignments',
+                    filter=Q(assignments__company=company, assignments__status='PASSED')
+                ),
+            )
+
+        page = self.paginate_queryset(queryset)
+        modules = page if page is not None else queryset
+
+        serializer = self.get_serializer(modules, many=True)
+        data = serializer.data
+
+        # Override global stats with company-scoped stats
+        if company and not user.is_super_admin:
+            module_list = list(modules)
+            for i, module_data in enumerate(data):
+                mod = module_list[i]
+                assigned = getattr(mod, 'company_times_assigned', 0)
+                completed = getattr(mod, 'company_times_completed', 0)
+                passed = getattr(mod, 'company_times_passed', 0)
+                module_data['times_assigned'] = assigned
+                module_data['times_completed'] = completed
+                module_data['times_passed'] = passed
+                module_data['completion_rate'] = round((completed / assigned) * 100, 1) if assigned > 0 else 0
+                module_data['pass_rate'] = round((passed / completed) * 100, 1) if completed > 0 else 0
+
+        if page is not None:
+            return self.get_paginated_response(data)
+        return Response(data)
+
     def perform_create(self, serializer):
         """Set created_by on creation."""
         user = self.request.user
