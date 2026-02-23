@@ -74,6 +74,26 @@ const enhanceInlineText = (text) => {
   });
 };
 
+/**
+ * Pick a gradient based on email type + question index so the button
+ * isn't always blue.
+ */
+const getButtonColor = (emailType, index) => {
+  const phishingColors = [
+    'from-blue-600 via-blue-700 to-blue-800',
+    'from-red-600 via-red-700 to-red-800',
+    'from-orange-600 via-orange-700 to-orange-800',
+    'from-purple-600 via-purple-700 to-purple-800',
+  ];
+  const legitimateColors = [
+    'from-blue-600 via-blue-700 to-blue-800',
+    'from-green-600 via-green-700 to-green-800',
+    'from-slate-600 via-slate-700 to-slate-800',
+  ];
+  const palette = emailType === 'PHISHING' ? phishingColors : legitimateColors;
+  return palette[index % palette.length];
+};
+
 /** Urgency keyword patterns */
 const URGENCY_PATTERNS = [
   /urgent/i,
@@ -89,8 +109,9 @@ const URGENCY_PATTERNS = [
  * Render email body paragraphs and, when actionable link keywords are
  * detected, append a centered CTA button at the end.
  * Text is never split or modified — it displays exactly as received.
+ * First paragraph is rendered slightly larger for visual hierarchy.
  */
-const formatEmailBody = (body = '', isRtl = false) => {
+const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', questionIndex = 0) => {
   if (!body) return null;
 
   // Keyword-based detection: does this email ask the reader to take action?
@@ -99,13 +120,22 @@ const formatEmailBody = (body = '', isRtl = false) => {
     : /\blink\b|\bclick\b|\bverify\b|\bupdate\b|\bconfirm\b|\breschedule\b/i.test(body);
 
   const paragraphs = body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const buttonGradient = getButtonColor(emailType, questionIndex);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       {paragraphs.map((para, idx) => {
         const lines = para.split('\n');
+        const isFirst = idx === 0;
         return (
-          <p key={idx} className="leading-relaxed">
+          <p
+            key={idx}
+            className={
+              isFirst
+                ? 'text-base font-medium text-gray-800 leading-[1.8]'
+                : 'text-[15px] text-gray-700 leading-[1.7]'
+            }
+          >
             {lines.map((line, li) => (
               <span key={li}>
                 {enhanceInlineText(line)}
@@ -119,10 +149,10 @@ const formatEmailBody = (body = '', isRtl = false) => {
       {hasLink && (
         <div className="flex justify-center pt-4 pb-2">
           <div
-            className={`inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white rounded-xl shadow-xl cursor-default select-none border border-blue-500/30 ${isRtl ? 'flex-row-reverse' : ''}`}
+            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${buttonGradient} text-white rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 cursor-default select-none ${isRtl ? 'flex-row-reverse' : ''}`}
           >
-            <ExternalLink className="h-5 w-5 flex-shrink-0" />
-            <span className="font-semibold text-lg">
+            <ExternalLink className="h-4 w-4 flex-shrink-0" />
+            <span className="font-semibold text-base">
               {isRtl ? 'انقر هنا' : 'Click Here'}
             </span>
           </div>
@@ -463,10 +493,10 @@ function TakeQuiz() {
 
         {/* ── Urgency badge (shown only when email contains urgency keywords) ── */}
         {isUrgent && (
-          <div className="px-6 pt-4 pb-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              {isArabic ? 'عاجل' : 'Urgent'}
+          <div className="px-6 pt-4 pb-1">
+            <div className={`flex items-center gap-2 px-3 py-2 bg-red-50 border-l-4 border-red-500 rounded text-sm font-semibold text-red-800 ${isArabic ? 'flex-row-reverse border-l-0 border-r-4 text-right' : ''}`}>
+              <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+              {isArabic ? 'تنبيه: إجراء عاجل مطلوب' : 'Warning: Urgent Action Required'}
             </div>
           </div>
         )}
@@ -487,9 +517,17 @@ function TakeQuiz() {
                   {formatEmailDate(currentIndex)}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 truncate">
-                &lt;{question.email_sender_email}&gt;
-              </p>
+              <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                <p className="text-xs text-gray-500 font-mono">
+                  &lt;{question.email_sender_email}&gt;
+                </p>
+                {question.email_type === 'PHISHING' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-[11px] font-medium rounded">
+                    <AlertCircle className="h-3 w-3" />
+                    Suspicious
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-gray-400 mt-0.5">to me</p>
             </div>
           </div>
@@ -526,7 +564,7 @@ function TakeQuiz() {
             color: '#374151',
           }}
         >
-          {formatEmailBody(question.email_body, isArabic)}
+          {formatEmailBody(question.email_body, isArabic, question.email_type, currentIndex)}
 
           {/* Fake attachment pill for phishing emails without a real attachment */}
           {showFakeAttachment && (
