@@ -147,6 +147,7 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
     description: '',
     num_emails: 10,
     phishing_ratio: 0.5,
+    english_ratio: 0.5,
   });
 
   useEffect(() => {
@@ -156,9 +157,10 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
         description: campaign.description || '',
         num_emails: campaign.num_emails || 10,
         phishing_ratio: campaign.phishing_ratio || 0.5,
+        english_ratio: campaign.english_ratio || 0.5,
       });
     } else {
-      setFormData({ name: '', description: '', num_emails: 10, phishing_ratio: 0.5 });
+      setFormData({ name: '', description: '', num_emails: 10, phishing_ratio: 0.5, english_ratio: 0.5 });
     }
   }, [campaign, isOpen]);
 
@@ -191,6 +193,10 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
 
   const phishingCount = Math.round(formData.num_emails * formData.phishing_ratio);
   const legitimateCount = formData.num_emails - phishingCount;
+  const phishingEnCount = Math.round(phishingCount * formData.english_ratio);
+  const phishingArCount = phishingCount - phishingEnCount;
+  const legitEnCount = Math.round(legitimateCount * formData.english_ratio);
+  const legitArCount = legitimateCount - legitEnCount;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={campaign ? 'Edit Campaign' : 'Create Campaign'} size="md">
@@ -255,26 +261,53 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
           <p className="text-sm text-gray-500 mt-1">Percentage of phishing emails vs legitimate emails</p>
         </div>
 
+        {/* Language Distribution */}
+        <div>
+          <label className="label">Language Distribution</label>
+          <div className="flex items-center gap-4">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={formData.english_ratio}
+              onChange={(e) => setFormData({ ...formData, english_ratio: parseFloat(e.target.value) })}
+              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+            />
+            <span className="w-12 text-center font-medium text-gray-900">{Math.round(formData.english_ratio * 100)}%</span>
+          </div>
+          <div className="flex justify-between text-xs text-gray-400 mt-1 px-0.5">
+            <span>100% Arabic</span>
+            <span>50 / 50</span>
+            <span>100% English</span>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+            {Math.round(formData.english_ratio * 100)}% English · {Math.round((1 - formData.english_ratio) * 100)}% Arabic
+          </p>
+        </div>
+
         {/* Preview */}
         <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Campaign Preview</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Email Distribution Preview</h4>
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-danger-100 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-danger-100 rounded-lg shrink-0">
                 <Mail className="h-5 w-5 text-danger-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Phishing Emails</p>
+                <p className="text-sm text-gray-500">Phishing</p>
                 <p className="text-lg font-semibold text-danger-600">{phishingCount}</p>
+                <p className="text-xs text-gray-400">{phishingEnCount} EN · {phishingArCount} AR</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-success-50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-success-50 rounded-lg shrink-0">
                 <Mail className="h-5 w-5 text-success-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Legitimate Emails</p>
+                <p className="text-sm text-gray-500">Legitimate</p>
                 <p className="text-lg font-semibold text-success-600">{legitimateCount}</p>
+                <p className="text-xs text-gray-400">{legitEnCount} EN · {legitArCount} AR</p>
               </div>
             </div>
           </div>

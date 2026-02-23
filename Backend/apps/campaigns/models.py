@@ -56,6 +56,14 @@ class Campaign(models.Model):
         default=0.5,
         help_text=_('Ratio of phishing emails (0.2-0.8, e.g., 0.5 = 50%)')
     )
+    english_ratio = models.DecimalField(
+        _('English email ratio'),
+        max_digits=3,
+        decimal_places=2,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        default=0.5,
+        help_text=_('Ratio of English emails vs Arabic (0.0 to 1.0, e.g., 0.7 = 70% English)')
+    )
 
     # Status and Dates
     status = models.CharField(

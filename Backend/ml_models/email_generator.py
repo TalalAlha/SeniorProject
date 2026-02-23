@@ -352,15 +352,20 @@ def generate_campaign_emails(campaign, num_phishing: int, num_legitimate: int):
     generator = _get_generator()
     templates = []
 
-    # Build a list of (email_type, language) tasks, alternating EN/AR
-    tasks = []
-    for i in range(num_phishing):
-        lang = 'ar' if i % 2 == 1 else 'en'
-        tasks.append(('phishing', lang))
-    for i in range(num_legitimate):
-        lang = 'ar' if i % 2 == 1 else 'en'
-        tasks.append(('legitimate', lang))
+    # Determine language distribution from campaign's english_ratio (default 0.5)
+    english_ratio = float(getattr(campaign, 'english_ratio', 0.5))
 
+    phishing_en = round(num_phishing * english_ratio)
+    phishing_ar = num_phishing - phishing_en
+    legit_en = round(num_legitimate * english_ratio)
+    legit_ar = num_legitimate - legit_en
+
+    tasks = (
+        [('phishing', 'en')] * phishing_en +
+        [('phishing', 'ar')] * phishing_ar +
+        [('legitimate', 'en')] * legit_en +
+        [('legitimate', 'ar')] * legit_ar
+    )
     random.shuffle(tasks)
 
     for email_type, language in tasks:

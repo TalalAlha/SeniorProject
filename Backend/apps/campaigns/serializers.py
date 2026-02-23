@@ -21,7 +21,7 @@ class CampaignListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'name_ar', 'company', 'company_name',
             'created_by', 'created_by_name', 'status', 'num_emails',
-            'phishing_ratio', 'num_phishing_emails', 'num_legitimate_emails',
+            'phishing_ratio', 'english_ratio', 'num_phishing_emails', 'num_legitimate_emails',
             'start_date', 'end_date', 'is_active', 'total_participants',
             'completed_participants', 'completion_rate', 'average_score',
             'created_at', 'updated_at'
@@ -44,7 +44,7 @@ class CampaignDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'name_ar', 'description', 'description_ar',
             'company', 'company_name', 'created_by', 'created_by_name',
-            'num_emails', 'phishing_ratio', 'num_phishing_emails',
+            'num_emails', 'phishing_ratio', 'english_ratio', 'num_phishing_emails',
             'num_legitimate_emails', 'status', 'start_date', 'end_date',
             'is_active', 'total_participants', 'completed_participants',
             'completion_rate', 'average_score', 'created_at', 'updated_at'
@@ -59,14 +59,20 @@ class CampaignCreateSerializer(serializers.ModelSerializer):
         model = Campaign
         fields = [
             'name', 'name_ar', 'description', 'description_ar',
-            'company', 'num_emails', 'phishing_ratio', 'status',
-            'start_date', 'end_date'
+            'company', 'num_emails', 'phishing_ratio', 'english_ratio',
+            'status', 'start_date', 'end_date'
         ]
 
     def validate_phishing_ratio(self, value):
         """Validate phishing ratio is within acceptable range."""
         if value < 0.2 or value > 0.8:
             raise serializers.ValidationError("Phishing ratio must be between 0.2 and 0.8")
+        return value
+
+    def validate_english_ratio(self, value):
+        """Validate English ratio is within acceptable range."""
+        if value < 0.0 or value > 1.0:
+            raise serializers.ValidationError("English ratio must be between 0.0 and 1.0")
         return value
 
     def validate_num_emails(self, value):
