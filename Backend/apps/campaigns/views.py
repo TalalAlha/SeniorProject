@@ -302,13 +302,18 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
 
         if user.is_super_admin:
-            return Quiz.objects.all()
+            qs = Quiz.objects.all()
+        elif user.is_company_admin:
+            qs = Quiz.objects.filter(campaign__company=user.company)
+        else:
+            # Employees see only their own quizzes
+            qs = Quiz.objects.filter(employee=user)
 
-        if user.is_company_admin:
-            return Quiz.objects.filter(campaign__company=user.company)
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            qs = qs.filter(status=status_param)
 
-        # Employees see only their own quizzes
-        return Quiz.objects.filter(employee=user)
+        return qs
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def questions(self, request, pk=None):
