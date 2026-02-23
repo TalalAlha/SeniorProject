@@ -14,10 +14,62 @@ import {
   User,
   Paperclip,
   RefreshCw,
+  MoreVertical,
+  ExternalLink,
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import { campaignsAPI } from '../../api';
+
+// ── Email rendering helpers ──────────────────────────────────────────────────
+
+/** Detect Arabic characters in a string */
+const isArabicText = (text = '') => /[\u0600-\u06FF]/.test(text);
+
+/**
+ * Return a realistic-looking date/time string, slightly offset per question
+ * so consecutive emails don't all show the same time.
+ */
+const formatEmailDate = (index = 0) => {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - (75 + index * 47));
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
+
+/**
+ * Split raw email body text into paragraphs.
+ * Double newlines → paragraph break; single newlines → <br />.
+ */
+const formatEmailBody = (body = '') => {
+  if (!body) return null;
+  return body
+    .split(/\n{2,}/)
+    .map((para, idx) => {
+      const trimmed = para.trim();
+      if (!trimmed) return null;
+      const lines = trimmed.split('\n');
+      return (
+        <p key={idx} className="mb-4 last:mb-0">
+          {lines.map((line, li) => (
+            <span key={li}>
+              {line}
+              {li < lines.length - 1 && <br />}
+            </span>
+          ))}
+        </p>
+      );
+    })
+    .filter(Boolean);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function TakeQuiz() {
   const { t } = useTranslation();
@@ -278,6 +330,9 @@ function TakeQuiz() {
   const question = questions[currentIndex];
   const selectedAnswer = answers[question.question_number] || null;
   const answeredCount = Object.keys(answers).length;
+  const isArabic = isArabicText(
+    (question.email_body || '') + (question.email_subject || '')
+  );
 
   return (
     <div className="fade-in max-w-3xl mx-auto">
@@ -319,55 +374,98 @@ function TakeQuiz() {
         </p>
       </div>
 
-      {/* Email Preview Card */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-6 overflow-hidden">
-        {/* Email header */}
-        <div className="border-b border-gray-100 px-6 py-4 space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-              <User className="h-5 w-5 text-gray-500" />
+      {/* Email Client — Gmail-style */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-6">
+
+        {/* ── Toolbar ── */}
+        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
+            <Mail className="h-4 w-4" />
+            <span>Inbox</span>
+          </div>
+          <MoreVertical className="h-4 w-4 text-gray-400" />
+        </div>
+
+        {/* ── Subject ── */}
+        <div className="px-6 pt-5 pb-3">
+          <h2 className="text-[18px] font-bold text-gray-900 leading-snug">
+            {question.email_subject}
+          </h2>
+        </div>
+
+        {/* ── Sender row ── */}
+        <div className="px-6 pb-5 border-b border-gray-100">
+          <div className="flex items-start gap-3">
+            {/* Initials avatar */}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 select-none">
+              {(question.email_sender_name || '?').charAt(0).toUpperCase()}
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {question.email_sender_name}
-              </p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {question.email_sender_name}
+                </p>
+                <span className="text-xs text-gray-400 flex-shrink-0">
+                  {formatEmailDate(currentIndex)}
+                </span>
+              </div>
               <p className="text-xs text-gray-500 truncate">
                 &lt;{question.email_sender_email}&gt;
               </p>
+              <p className="text-xs text-gray-400 mt-0.5">to me</p>
             </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('quiz.subject')}:</p>
-            <p className="text-base font-medium text-gray-900">
-              {question.email_subject}
-            </p>
-          </div>
+
+          {/* Attachments */}
           {question.has_attachments && question.attachment_names?.length > 0 && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Paperclip className="h-3 w-3" />
-              <span>{question.attachment_names.join(', ')}</span>
+            <div className="mt-4">
+              <p className="text-[11px] text-gray-400 uppercase tracking-wide font-medium mb-2">
+                Attachments
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {question.attachment_names.map((name, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs text-gray-700"
+                  >
+                    <Paperclip className="h-3 w-3 text-gray-500 flex-shrink-0" />
+                    <span>{name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Email body */}
-        <div className="px-6 py-5">
-          <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-            {question.email_body}
-          </div>
-        </div>
+        {/* ── Email body ── */}
+        <div
+          className={`px-6 py-6 ${isArabic ? 'text-right' : ''}`}
+          dir={isArabic ? 'rtl' : 'ltr'}
+          style={{
+            fontFamily: 'system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
+            fontSize: '15px',
+            lineHeight: '1.65',
+            color: '#374151',
+          }}
+        >
+          {formatEmailBody(question.email_body)}
 
-        {/* Links display */}
-        {question.links?.length > 0 && (
-          <div className="border-t border-gray-100 px-6 py-3">
-            <p className="text-xs text-gray-400 mb-1">Links in this email:</p>
-            {question.links.map((link, i) => (
-              <p key={i} className="text-xs text-blue-600 underline truncate">
-                {link}
-              </p>
-            ))}
-          </div>
-        )}
+          {/* Link CTA buttons */}
+          {question.links?.length > 0 && (
+            <div className={`mt-5 flex flex-wrap gap-3 ${isArabic ? 'justify-end' : ''}`}>
+              {question.links.map((link, i) => (
+                <div
+                  key={i}
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg shadow-sm cursor-default select-none max-w-full"
+                  title={link}
+                >
+                  <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                  <span className="font-medium text-sm truncate">{link}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Answer Buttons */}
