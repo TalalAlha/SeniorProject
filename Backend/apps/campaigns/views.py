@@ -73,7 +73,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign = serializer.save()
 
         try:
-            from apps.campaigns.ai_helper import generate_campaign_emails
+            from ml_models import generate_campaign_emails
 
             templates = generate_campaign_emails(
                 campaign=campaign,
@@ -216,6 +216,44 @@ class CampaignViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, HasCompanyAccess])
+    def assigned_employees(self, request, pk=None):
+        """Return every employee assigned to this campaign with their quiz status."""
+        campaign = self.get_object()
+        from django.db.models import Count, Q
+
+        quizzes = (
+            campaign.quizzes
+            .select_related('employee')
+            .annotate(
+                total_q=Count('questions'),
+                answered_q=Count('questions', filter=Q(questions__answer__isnull=False)),
+            )
+            .order_by('created_at')
+        )
+
+        data = []
+        for quiz in quizzes:
+            score = None
+            try:
+                score = float(quiz.result.score)
+            except Exception:
+                pass
+            progress = round(quiz.answered_q / quiz.total_q * 100, 1) if quiz.total_q > 0 else 0
+            data.append({
+                'id': quiz.employee.id,
+                'employee_id': quiz.employee.id,
+                'first_name': quiz.employee.first_name,
+                'last_name': quiz.employee.last_name,
+                'email': quiz.employee.email,
+                'quiz_status': quiz.status,
+                'progress': progress,
+                'score': score,
+                'assigned_at': quiz.created_at,
+            })
+
+        return Response(data, status=status.HTTP_200_OK)
 
     def _get_risk_distribution(self, campaign):
         """Get distribution of risk levels for campaign results."""
