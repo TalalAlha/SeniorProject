@@ -16,6 +16,8 @@ import {
   RefreshCw,
   MoreVertical,
   ExternalLink,
+  AlertTriangle,
+  Download,
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
@@ -44,29 +46,90 @@ const formatEmailDate = (index = 0) => {
 };
 
 /**
- * Split raw email body text into paragraphs.
- * Double newlines → paragraph break; single newlines → <br />.
+ * Wrap currency amounts and time-period phrases in styled React nodes.
+ * Amounts   → bold dark gray
+ * Deadlines → bold blue
  */
-const formatEmailBody = (body = '') => {
-  if (!body) return null;
-  return body
-    .split(/\n{2,}/)
-    .map((para, idx) => {
-      const trimmed = para.trim();
-      if (!trimmed) return null;
-      const lines = trimmed.split('\n');
+const enhanceInlineText = (text) => {
+  if (!text) return text;
+  const pattern =
+    /(\$[\d,]+(?:\.\d{2})?|[\d,]+\s*ريال|\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام))/gi;
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    if (/^\$/.test(part) || /ريال/.test(part)) {
       return (
-        <p key={idx} className="mb-4 last:mb-0">
-          {lines.map((line, li) => (
-            <span key={li}>
-              {line}
-              {li < lines.length - 1 && <br />}
-            </span>
-          ))}
-        </p>
+        <strong key={i} className="font-bold text-gray-900">
+          {part}
+        </strong>
       );
-    })
-    .filter(Boolean);
+    }
+    if (/\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام)/i.test(part)) {
+      return (
+        <strong key={i} className="font-semibold text-blue-700">
+          {part}
+        </strong>
+      );
+    }
+    return part;
+  });
+};
+
+/** Urgency keyword patterns */
+const URGENCY_PATTERNS = [
+  /urgent/i,
+  /immediate/i,
+  /action\s+required/i,
+  /within\s+24\s+hours?/i,
+  /عاجل/,
+  /فوري/,
+  /خلال\s+24\s+ساعة/,
+];
+
+/**
+ * Render email body paragraphs and, when actionable link keywords are
+ * detected, append a centered CTA button at the end.
+ * Text is never split or modified — it displays exactly as received.
+ */
+const formatEmailBody = (body = '', isRtl = false) => {
+  if (!body) return null;
+
+  // Keyword-based detection: does this email ask the reader to take action?
+  const hasLink = isRtl
+    ? /رابط|انقر|اضغط|تحقق|حدث/.test(body)
+    : /\blink\b|\bclick\b|\bverify\b|\bupdate\b|\bconfirm\b|\breschedule\b/i.test(body);
+
+  const paragraphs = body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+
+  return (
+    <div className="space-y-4">
+      {paragraphs.map((para, idx) => {
+        const lines = para.split('\n');
+        return (
+          <p key={idx} className="leading-relaxed">
+            {lines.map((line, li) => (
+              <span key={li}>
+                {enhanceInlineText(line)}
+                {li < lines.length - 1 && <br />}
+              </span>
+            ))}
+          </p>
+        );
+      })}
+
+      {hasLink && (
+        <div className="flex justify-center pt-4 pb-2">
+          <div
+            className={`inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white rounded-xl shadow-xl cursor-default select-none border border-blue-500/30 ${isRtl ? 'flex-row-reverse' : ''}`}
+          >
+            <ExternalLink className="h-5 w-5 flex-shrink-0" />
+            <span className="font-semibold text-lg">
+              {isRtl ? 'انقر هنا' : 'Click Here'}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -334,6 +397,18 @@ function TakeQuiz() {
     (question.email_body || '') + (question.email_subject || '')
   );
 
+  // Urgency: any urgency keyword in body or subject
+  const isUrgent = URGENCY_PATTERNS.some(
+    (p) =>
+      p.test(question.email_body || '') || p.test(question.email_subject || '')
+  );
+
+  // Deterministic fake attachment for phishing emails that have no real attachment
+  const showFakeAttachment =
+    question.email_type === 'PHISHING' &&
+    !question.has_attachments &&
+    (question.question_number || 0) % 2 === 0;
+
   return (
     <div className="fade-in max-w-3xl mx-auto">
       {/* Header */}
@@ -375,10 +450,10 @@ function TakeQuiz() {
       </div>
 
       {/* Email Client — Gmail-style */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
 
         {/* ── Toolbar ── */}
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
+        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between overflow-hidden rounded-t-xl">
           <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
             <Mail className="h-4 w-4" />
             <span>Inbox</span>
@@ -388,7 +463,13 @@ function TakeQuiz() {
 
         {/* ── Subject ── */}
         <div className="px-6 pt-5 pb-3">
-          <h2 className="text-[18px] font-bold text-gray-900 leading-snug">
+          {isUrgent && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold mb-3">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {isArabic ? 'عاجل' : 'Urgent'}
+            </div>
+          )}
+          <h2 className="text-[18px] font-bold text-gray-900 leading-snug break-words whitespace-normal overflow-visible">
             {question.email_subject}
           </h2>
         </div>
@@ -448,21 +529,21 @@ function TakeQuiz() {
             color: '#374151',
           }}
         >
-          {formatEmailBody(question.email_body)}
+          {formatEmailBody(question.email_body, isArabic)}
 
-          {/* Link CTA buttons */}
-          {question.links?.length > 0 && (
-            <div className={`mt-5 flex flex-wrap gap-3 ${isArabic ? 'justify-end' : ''}`}>
-              {question.links.map((link, i) => (
-                <div
-                  key={i}
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg shadow-sm cursor-default select-none max-w-full"
-                  title={link}
-                >
-                  <ExternalLink className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-medium text-sm truncate">{link}</span>
-                </div>
-              ))}
+          {/* Fake attachment pill for phishing emails without a real attachment */}
+          {showFakeAttachment && (
+            <div
+              className={`mt-5 inline-flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg cursor-default select-none max-w-xs ${isArabic ? 'flex-row-reverse' : ''}`}
+            >
+              <Paperclip className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-700">
+                  {isArabic ? 'فاتورة.pdf' : 'Invoice.pdf'}
+                </p>
+                <p className="text-xs text-gray-400">245 KB</p>
+              </div>
+              <Download className="h-4 w-4 text-gray-400 flex-shrink-0" />
             </div>
           )}
         </div>
