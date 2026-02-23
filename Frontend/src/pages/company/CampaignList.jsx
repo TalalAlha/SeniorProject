@@ -301,6 +301,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [alreadyAssignedIds, setAlreadyAssignedIds] = useState(new Set());
   const [assignedIds, setAssignedIds] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -308,16 +309,25 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
 
   useEffect(() => {
     if (isOpen && campaign && companyId) {
-      fetchEmployees();
+      setAssignedIds(new Set());
+      fetchData();
     }
   }, [isOpen, campaign, companyId]);
 
-  const fetchEmployees = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const employeesRes = await companiesAPI.getUsers(companyId, { limit: 100 });
+      const [employeesRes, assignedRes] = await Promise.all([
+        companiesAPI.getUsers(companyId, { limit: 100 }),
+        campaignsAPI.getAssignedEmployees(campaign.id).catch(() => ({ data: [] })),
+      ]);
       const employeeList = employeesRes.data?.results || employeesRes.data || [];
       setEmployees(employeeList);
+
+      const assigned = Array.isArray(assignedRes.data)
+        ? assignedRes.data
+        : (assignedRes.data?.results || []);
+      setAlreadyAssignedIds(new Set(assigned.map(a => a.employee_id || a.id)));
     } catch (err) {
       toast.error('Failed to load employees');
     } finally {
@@ -326,6 +336,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
   };
 
   const toggleEmployee = (id) => {
+    if (alreadyAssignedIds.has(id)) return;
     const newSet = new Set(assignedIds);
     if (newSet.has(id)) {
       newSet.delete(id);
@@ -336,7 +347,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
   };
 
   const selectAll = () => {
-    setAssignedIds(new Set(filteredEmployees.map(e => e.id)));
+    setAssignedIds(new Set(filteredEmployees.filter(e => !alreadyAssignedIds.has(e.id)).map(e => e.id)));
   };
 
   const deselectAll = () => {
@@ -344,10 +355,14 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
   };
 
   const handleSave = async () => {
+    if (assignedIds.size === 0) {
+      toast.error('Select at least one employee to assign');
+      return;
+    }
     setSaving(true);
     try {
       await campaignsAPI.assignEmployees(campaign.id, Array.from(assignedIds));
-      toast.success(`Assigned ${assignedIds.size} employees to campaign`);
+      toast.success(`Assigned ${assignedIds.size} employee(s) to campaign`);
       onSuccess();
       onClose();
     } catch (err) {
@@ -393,37 +408,50 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
           {/* Selected Count */}
           <div className="flex items-center justify-between px-4 py-2 bg-primary-50 rounded-lg">
             <span className="text-sm text-primary-700">
-              <strong>{assignedIds.size}</strong> of {employees.length} employees selected
+              <strong>{assignedIds.size}</strong> new employee(s) selected
             </span>
           </div>
 
           {/* Employee List */}
           <div className="max-h-80 overflow-y-auto border rounded-lg divide-y">
             {filteredEmployees.length > 0 ? (
-              filteredEmployees.map((employee) => (
-                <label
-                  key={employee.id}
-                  className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={assignedIds.has(employee.id)}
-                    onChange={() => toggleEmployee(employee.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900">
-                      {employee.first_name} {employee.last_name}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">{employee.email}</p>
-                  </div>
-                  {employee.department && (
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">
-                      {employee.department}
-                    </span>
-                  )}
-                </label>
-              ))
+              filteredEmployees.map((employee) => {
+                const isAlready = alreadyAssignedIds.has(employee.id);
+                return (
+                  <label
+                    key={employee.id}
+                    className={clsx(
+                      'flex items-center gap-4 p-4',
+                      isAlready
+                        ? 'bg-gray-50 opacity-60 cursor-not-allowed'
+                        : 'hover:bg-gray-50 cursor-pointer'
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isAlready || assignedIds.has(employee.id)}
+                      disabled={isAlready}
+                      onChange={() => toggleEmployee(employee.id)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className={clsx('font-medium', isAlready ? 'text-gray-400' : 'text-gray-900')}>
+                        {employee.first_name} {employee.last_name}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">{employee.email}</p>
+                    </div>
+                    {isAlready ? (
+                      <span className="shrink-0 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                        Already Assigned
+                      </span>
+                    ) : employee.department ? (
+                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">
+                        {employee.department}
+                      </span>
+                    ) : null}
+                  </label>
+                );
+              })
             ) : (
               <div className="p-8 text-center text-gray-500">
                 <Users className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -443,7 +471,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
               className="btn-primary flex-1 flex items-center justify-center gap-2"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              Assign {assignedIds.size} Employees
+              Assign ({assignedIds.size})
             </button>
           </div>
         </div>
@@ -453,7 +481,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
 }
 
 // Campaign Card Component
-function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
+function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const status = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.DRAFT;
@@ -468,14 +496,8 @@ function CampaignCard({ campaign, onEdit, onDelete, onActivate, onAssign }) {
     { icon: Edit2, label: 'Edit', onClick: () => onEdit(campaign) },
     { icon: UserPlus, label: 'Assign Employees', onClick: () => onAssign(campaign) },
     { divider: true },
-    campaign.status === 'DRAFT' && {
-      icon: Play,
-      label: 'Activate',
-      onClick: () => onActivate(campaign),
-    },
-    { divider: true },
     { icon: Trash2, label: 'Delete', onClick: () => onDelete(campaign), danger: true },
-  ].filter(Boolean);
+  ];
 
   return (
     <div className="card group cursor-pointer" onClick={() => navigate(`/company/campaigns/${campaign.id}`)}>
@@ -562,7 +584,6 @@ function CampaignList() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [deletingCampaign, setDeletingCampaign] = useState(null);
-  const [activatingCampaign, setActivatingCampaign] = useState(null);
   const [assigningCampaign, setAssigningCampaign] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -603,22 +624,6 @@ function CampaignList() {
       fetchCampaigns();
     } catch (err) {
       const message = err.response?.data?.detail || 'Failed to delete campaign';
-      toast.error(message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleActivate = async () => {
-    if (!activatingCampaign) return;
-    setActionLoading(true);
-    try {
-      await campaignsAPI.activate(activatingCampaign.id);
-      toast.success('Campaign activated');
-      setActivatingCampaign(null);
-      fetchCampaigns();
-    } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to activate campaign';
       toast.error(message);
     } finally {
       setActionLoading(false);
@@ -739,7 +744,6 @@ function CampaignList() {
               campaign={campaign}
               onEdit={(c) => setEditingCampaign(c)}
               onDelete={(c) => setDeletingCampaign(c)}
-              onActivate={(c) => setActivatingCampaign(c)}
               onAssign={(c) => setAssigningCampaign(c)}
             />
           ))}
@@ -793,16 +797,6 @@ function CampaignList() {
         loading={actionLoading}
       />
 
-      {/* Activate Confirmation */}
-      <ConfirmDialog
-        isOpen={!!activatingCampaign}
-        onClose={() => setActivatingCampaign(null)}
-        onConfirm={handleActivate}
-        title="Activate Campaign"
-        message={`Are you sure you want to activate "${activatingCampaign?.name}"? Emails will start being sent to assigned employees.`}
-        confirmText="Activate"
-        loading={actionLoading}
-      />
     </div>
   );
 }

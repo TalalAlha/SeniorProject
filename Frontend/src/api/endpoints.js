@@ -59,6 +59,7 @@ export const campaignsAPI = {
   assignEmployees: (id, employeeIds) => api.post(`/campaigns/campaigns/${id}/assign_to_employees/`, { employee_ids: employeeIds }),
   unassignEmployees: (id, employeeIds) => api.post(`/campaigns/campaigns/${id}/unassign_employees/`, { employee_ids: employeeIds }),
   getStatistics: (id) => api.get(`/campaigns/campaigns/${id}/statistics/`),
+  getAssignedEmployees: (id) => api.get(`/campaigns/campaigns/${id}/assigned_employees/`),
   getProgress: (id) => api.get(`/campaigns/campaigns/${id}/progress/`),
   // Employee-specific endpoints
   getMyQuizzes: (params) => api.get('/campaigns/quizzes/', { params }),

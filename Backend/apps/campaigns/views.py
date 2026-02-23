@@ -158,6 +158,13 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
         # Update campaign statistics
         campaign.total_participants = campaign.quizzes.count()
+
+        # Auto-activate campaign when first employees are assigned
+        if campaign.status == 'DRAFT' and created_quizzes:
+            campaign.status = 'ACTIVE'
+            if not campaign.start_date:
+                campaign.start_date = timezone.now()
+
         campaign.save()
 
         return Response({
