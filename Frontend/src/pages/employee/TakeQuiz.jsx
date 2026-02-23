@@ -461,18 +461,15 @@ function TakeQuiz() {
           <MoreVertical className="h-4 w-4 text-gray-400" />
         </div>
 
-        {/* ── Subject ── */}
-        <div className="px-6 pt-5 pb-3">
-          {isUrgent && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold mb-3">
+        {/* ── Urgency badge (shown only when email contains urgency keywords) ── */}
+        {isUrgent && (
+          <div className="px-6 pt-4 pb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
               <AlertTriangle className="h-3.5 w-3.5" />
               {isArabic ? 'عاجل' : 'Urgent'}
             </div>
-          )}
-          <h2 className="text-[18px] font-bold text-gray-900 leading-snug break-words whitespace-normal overflow-visible">
-            {question.email_subject}
-          </h2>
-        </div>
+          </div>
+        )}
 
         {/* ── Sender row ── */}
         <div className="px-6 pb-5 border-b border-gray-100">
