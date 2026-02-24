@@ -46,28 +46,45 @@ const formatEmailDate = (index = 0) => {
 };
 
 /**
- * Wrap currency amounts and time-period phrases in styled React nodes.
- * Amounts   → bold dark gray
- * Deadlines → bold blue
+ * Wrap currency amounts, time-period phrases, and (for phishing emails)
+ * suspicious phrases in styled React nodes.
+ * Amounts          → bold dark gray
+ * Deadlines        → bold blue
+ * Phishing phrases → yellow highlight
  */
-const enhanceInlineText = (text) => {
+const enhanceInlineText = (text, emailType = 'LEGITIMATE') => {
   if (!text) return text;
-  const pattern =
-    /(\$[\d,]+(?:\.\d{2})?|[\d,]+\s*ريال|\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام))/gi;
-  const parts = text.split(pattern);
+
+  const splitPattern =
+    emailType === 'PHISHING'
+      ? /(\$[\d,]+(?:\.\d{2})?|[\d,]+\s*ريال|\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام)|click\s+here|click\s+below|verify\s+your\s+\w+|urgent|immediately|restricted|locked|unusual\s+activity|unauthorized\s+access)/gi
+      : /(\$[\d,]+(?:\.\d{2})?|[\d,]+\s*ريال|\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام))/gi;
+
+  const parts = text.split(splitPattern).filter(Boolean);
+
   return parts.map((part, i) => {
-    if (/^\$/.test(part) || /ريال/.test(part)) {
+    if (/^\$[\d,]+(?:\.\d{2})?$/.test(part) || /^[\d,]+\s*ريال$/.test(part)) {
       return (
         <strong key={i} className="font-bold text-gray-900">
           {part}
         </strong>
       );
     }
-    if (/\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام)/i.test(part)) {
+    if (/^\d+\s*(?:business\s+)?(?:hours?|days?|ساعة|يوم|أيام)$/i.test(part)) {
       return (
         <strong key={i} className="font-semibold text-blue-700">
           {part}
         </strong>
+      );
+    }
+    if (
+      emailType === 'PHISHING' &&
+      /^(?:click\s+here|click\s+below|verify\s+your\s+\w+|urgent|immediately|restricted|locked|unusual\s+activity|unauthorized\s+access)$/i.test(part)
+    ) {
+      return (
+        <mark key={i} className="bg-yellow-100 px-0.5 rounded not-italic">
+          {part}
+        </mark>
       );
     }
     return part;
@@ -75,22 +92,22 @@ const enhanceInlineText = (text) => {
 };
 
 /**
- * Pick a gradient based on email type + question index so the button
- * isn't always blue.
+ * Return a full button class string (background + shadow) based on email type
+ * and question index — varies style beyond just color.
  */
-const getButtonColor = (emailType, index) => {
-  const phishingColors = [
-    'from-blue-600 via-blue-700 to-blue-800',
-    'from-red-600 via-red-700 to-red-800',
-    'from-orange-600 via-orange-700 to-orange-800',
-    'from-purple-600 via-purple-700 to-purple-800',
+const getButtonStyle = (emailType, index) => {
+  const phishingStyles = [
+    'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg hover:shadow-xl',
+    'bg-red-600 border-2 border-red-700 shadow-md hover:shadow-lg',
+    'bg-gradient-to-r from-orange-500 to-red-600 shadow-lg hover:shadow-xl',
+    'bg-slate-800 border border-slate-600 shadow-xl hover:shadow-2xl',
   ];
-  const legitimateColors = [
-    'from-blue-600 via-blue-700 to-blue-800',
-    'from-green-600 via-green-700 to-green-800',
-    'from-slate-600 via-slate-700 to-slate-800',
+  const legitimateStyles = [
+    'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg hover:shadow-xl',
+    'bg-gradient-to-r from-green-600 to-green-700 shadow-lg hover:shadow-xl',
+    'bg-slate-700 border border-slate-500 shadow-md hover:shadow-lg',
   ];
-  const palette = emailType === 'PHISHING' ? phishingColors : legitimateColors;
+  const palette = emailType === 'PHISHING' ? phishingStyles : legitimateStyles;
   return palette[index % palette.length];
 };
 
@@ -108,37 +125,38 @@ const URGENCY_PATTERNS = [
 /**
  * Render email body paragraphs and, when actionable link keywords are
  * detected, append a centered CTA button at the end.
- * Text is never split or modified — it displays exactly as received.
- * First paragraph is rendered slightly larger for visual hierarchy.
+ * – First paragraph: larger, bolder, with a subtle left-border callout
+ * – Remaining paragraphs: standard body text with improved line height
+ * – Phishing phrases highlighted in yellow via enhanceInlineText
  */
 const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', questionIndex = 0) => {
   if (!body) return null;
 
-  // Keyword-based detection: does this email ask the reader to take action?
   const hasLink = isRtl
     ? /رابط|انقر|اضغط|تحقق|حدث/.test(body)
     : /\blink\b|\bclick\b|\bverify\b|\bupdate\b|\bconfirm\b|\breschedule\b/i.test(body);
 
   const paragraphs = body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
-  const buttonGradient = getButtonColor(emailType, questionIndex);
+  const buttonStyle = getButtonStyle(emailType, questionIndex);
+
+  // Direction-aware left-border callout for the opening paragraph
+  const firstParaClass = isRtl
+    ? 'text-[15px] font-semibold text-gray-900 leading-relaxed border-r-4 border-blue-400 pr-4 py-2'
+    : 'text-[15px] font-semibold text-gray-900 leading-relaxed border-l-4 border-blue-400 pl-4 py-2';
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {paragraphs.map((para, idx) => {
         const lines = para.split('\n');
         const isFirst = idx === 0;
         return (
           <p
             key={idx}
-            className={
-              isFirst
-                ? 'text-base font-medium text-gray-800 leading-[1.8]'
-                : 'text-[15px] text-gray-700 leading-[1.7]'
-            }
+            className={isFirst ? firstParaClass : 'text-[15px] text-gray-700 leading-[1.8]'}
           >
             {lines.map((line, li) => (
               <span key={li}>
-                {enhanceInlineText(line)}
+                {enhanceInlineText(line, emailType)}
                 {li < lines.length - 1 && <br />}
               </span>
             ))}
@@ -149,7 +167,7 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
       {hasLink && (
         <div className="flex justify-center pt-4 pb-2">
           <div
-            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${buttonGradient} text-white rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 cursor-default select-none ${isRtl ? 'flex-row-reverse' : ''}`}
+            className={`inline-flex items-center gap-2 px-6 py-3 ${buttonStyle} text-white rounded-lg hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 cursor-default select-none ${isRtl ? 'flex-row-reverse' : ''}`}
           >
             <ExternalLink className="h-4 w-4 flex-shrink-0" />
             <span className="font-semibold text-base">
@@ -160,6 +178,12 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
       )}
     </div>
   );
+};
+
+/** Estimate reading time in minutes (200 wpm average). */
+const getReadTime = (text = '') => {
+  const words = text.trim().split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / 200));
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -480,7 +504,7 @@ function TakeQuiz() {
       </div>
 
       {/* Email Client — Gmail-style */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-200 mb-6 hover:shadow-2xl transition-shadow duration-300">
 
         {/* ── Toolbar ── */}
         <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between overflow-hidden rounded-t-xl">
@@ -488,7 +512,13 @@ function TakeQuiz() {
             <Mail className="h-4 w-4" />
             <span>Inbox</span>
           </div>
-          <MoreVertical className="h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Clock className="h-3 w-3" />
+              <span>{getReadTime(question.email_body)} min read</span>
+            </div>
+            <MoreVertical className="h-4 w-4 text-gray-400" />
+          </div>
         </div>
 
         {/* ── Urgency badge (shown only when email contains urgency keywords) ── */}
@@ -555,7 +585,7 @@ function TakeQuiz() {
 
         {/* ── Email body ── */}
         <div
-          className={`px-6 py-6 ${isArabic ? 'text-right' : ''}`}
+          className={`px-8 py-7 ${isArabic ? 'text-right' : ''}`}
           dir={isArabic ? 'rtl' : 'ltr'}
           style={{
             fontFamily: 'system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
