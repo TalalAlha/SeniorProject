@@ -63,8 +63,14 @@ const enhanceInlineText = (text, emailType = 'LEGITIMATE') => {
   const parts = text.split(splitPattern).filter(Boolean);
 
   return parts.map((part, i) => {
-    if (/^\$[\d,]+(?:\.\d{2})?$/.test(part) || /^[\d,]+\s*ريال$/.test(part)) {
-      return (
+    const isAmount = /^\$[\d,]+(?:\.\d{2})?$/.test(part) || /^[\d,]+\s*ريال$/.test(part);
+    if (isAmount) {
+      // Phishing: oversized green (over-formatted); Legitimate: clean dark gray
+      return emailType === 'PHISHING' ? (
+        <strong key={i} className="text-emerald-600 font-bold text-[17px]">
+          {part}
+        </strong>
+      ) : (
         <strong key={i} className="font-bold text-gray-900">
           {part}
         </strong>
@@ -81,10 +87,11 @@ const enhanceInlineText = (text, emailType = 'LEGITIMATE') => {
       emailType === 'PHISHING' &&
       /^(?:click\s+here|click\s+below|verify\s+your\s+\w+|urgent|immediately|restricted|locked|unusual\s+activity|unauthorized\s+access)$/i.test(part)
     ) {
+      // Phishing: aggressive red+uppercase (excessive formatting clue)
       return (
-        <mark key={i} className="bg-yellow-100 px-0.5 rounded not-italic">
+        <strong key={i} className="text-red-600 font-bold uppercase">
           {part}
-        </mark>
+        </strong>
       );
     }
     return part;
@@ -129,14 +136,16 @@ const URGENCY_PATTERNS = [
  * – Remaining paragraphs: standard body text with improved line height
  * – Phishing phrases highlighted in yellow via enhanceInlineText
  */
-const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', questionIndex = 0) => {
+const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', questionIndex = 0, senderEmail = '') => {
   if (!body) return null;
 
   const hasLink = isRtl
     ? /رابط|انقر|اضغط|تحقق|حدث/.test(body)
     : /\blink\b|\bclick\b|\bverify\b|\bupdate\b|\bconfirm\b|\breschedule\b/i.test(body);
 
-  const paragraphs = body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  // Phishing: amplify single ! → !!! to simulate over-formatted scam emails
+  const displayBody = emailType === 'PHISHING' ? body.replace(/!(?!!)/g, '!!!') : body;
+  const paragraphs = displayBody.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const buttonStyle = getButtonStyle(emailType, questionIndex);
 
   // Direction-aware left-border callout for the opening paragraph
@@ -166,13 +175,31 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
 
       {hasLink && (
         <div className="flex justify-center pt-4 pb-2">
-          <div
-            className={`inline-flex items-center gap-2 px-6 py-3 ${buttonStyle} text-white rounded-lg hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 cursor-default select-none ${isRtl ? 'flex-row-reverse' : ''}`}
-          >
-            <ExternalLink className="h-4 w-4 flex-shrink-0" />
-            <span className="font-semibold text-base">
-              {isRtl ? 'انقر هنا' : 'Click Here'}
-            </span>
+          <div className="relative group">
+            {/* Button */}
+            <div
+              className={`inline-flex items-center gap-2 px-6 py-3 ${buttonStyle} text-white rounded-lg hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 cursor-default select-none ${isRtl ? 'flex-row-reverse' : ''}`}
+            >
+              <ExternalLink className="h-4 w-4 flex-shrink-0" />
+              <span className="font-semibold text-base">
+                {isRtl ? 'انقر هنا' : 'Click Here'}
+              </span>
+            </div>
+            {/* URL preview tooltip — appears on hover */}
+            <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 pointer-events-none">
+              <div className="bg-gray-900 text-white rounded-lg shadow-2xl px-4 py-3 min-w-[260px] max-w-[320px]">
+                <div className={`flex items-center gap-1.5 text-[10px] text-gray-400 uppercase tracking-wide mb-1.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  {isRtl ? 'معاينة الرابط' : 'Link Preview'}
+                </div>
+                <p className="font-mono text-xs break-all text-gray-100 leading-relaxed">
+                  {generateLinkUrl(senderEmail, emailType, questionIndex)}
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <div className="border-8 border-transparent border-t-gray-900 -mt-1" />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -185,6 +212,90 @@ const getReadTime = (text = '') => {
   const words = text.trim().split(/\s+/).length;
   return Math.max(1, Math.ceil(words / 200));
 };
+
+// ── Link hover preview ───────────────────────────────────────────────────────
+
+const PHISHING_PATHS = [
+  '/account/verify.php',
+  '/login/confirm.aspx',
+  '/secure/validate.html',
+  '/verify-identity.php',
+  '/account-update.asp',
+  '/confirm-details.php',
+  '/security/verify.html',
+  '/signin/update.php',
+];
+
+const LEGITIMATE_PATHS = [
+  '/portal/employee',
+  '/intranet/announcements',
+  '/hr/benefits',
+  '/resources/training',
+  '/employee/dashboard',
+];
+
+const SESSION_IDS = ['x4k2m9p', 'r7n1q5w', 'b8j3s6t', 'h2f9k4v', 'm1d7p3n', 'q5t8g2c'];
+const USER_IDS = ['475829', '312056', '638741', '291834', '583920', '147263'];
+
+/**
+ * Build a URL whose domain is extracted from the sender email so the hover
+ * tooltip always matches the From address — no more domain mismatch.
+ * Phishing:   http://  + suspicious path + query params
+ * Legitimate: https:// + clean intranet path
+ */
+const generateLinkUrl = (senderEmail, emailType, index) => {
+  const domain =
+    (senderEmail || '').split('@')[1] ||
+    (emailType === 'PHISHING' ? 'paypa1.com' : 'company.sa');
+
+  if (emailType === 'PHISHING') {
+    const path = PHISHING_PATHS[index % PHISHING_PATHS.length];
+    const session = SESSION_IDS[index % SESSION_IDS.length];
+    const userId = USER_IDS[index % USER_IDS.length];
+    return `http://${domain}${path}?session=${session}&user=${userId}&verify=true`;
+  }
+
+  return `https://${domain}${LEGITIMATE_PATHS[index % LEGITIMATE_PATHS.length]}`;
+};
+
+// ── Sender email fallback (Feature 2) ────────────────────────────────────────
+
+const PHISHING_DOMAINS = [
+  'paypa1.com', 'microsfot.com', 'goog1e.com',
+  'app1e.com', 'netf1ix.com', 'paypal-verify.net',
+  'microsoft-security.com', 'amazon-account.net', 'bank-secure-a1ert.net',
+];
+const EMAIL_PREFIXES = ['security', 'noreply', 'support', 'accounts', 'verify', 'notification'];
+
+/**
+ * Fallback sender email used only when the backend field is empty.
+ * Index-based selection keeps the result deterministic across renders.
+ */
+const generateSenderEmail = (senderName, emailType, index) => {
+  if (emailType === 'PHISHING') {
+    return `${EMAIL_PREFIXES[index % EMAIL_PREFIXES.length]}@${PHISHING_DOMAINS[index % PHISHING_DOMAINS.length]}`;
+  }
+  return `${(senderName || 'noreply').toLowerCase().replace(/\s+/g, '.')}@company.sa`;
+};
+
+// ── Email signature data (Feature 3) ─────────────────────────────────────────
+
+const EN_TITLES = [
+  'Senior Manager', 'HR Director', 'Finance Manager',
+  'IT Administrator', 'Department Head', 'Team Lead',
+];
+const AR_TITLES = [
+  'مدير أول', 'مدير الموارد البشرية', 'مدير المالية',
+  'مسؤول تقنية المعلومات', 'رئيس القسم',
+];
+const PHONE_SUFFIXES = ['1234', '5678', '9012', '3456', '7890', '2345'];
+
+/** Returns deterministic signature metadata based on question index. */
+const getSignatureData = (index, isRtl) => ({
+  title: isRtl ? AR_TITLES[index % AR_TITLES.length] : EN_TITLES[index % EN_TITLES.length],
+  phone: `+966 12 345 ${PHONE_SUFFIXES[index % PHONE_SUFFIXES.length]}`,
+  tagline: isRtl ? 'التميز في خدمة العملاء' : 'Excellence in Customer Service',
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -463,6 +574,8 @@ function TakeQuiz() {
     !question.has_attachments &&
     (question.question_number || 0) % 2 === 0;
 
+  const sig = getSignatureData(currentIndex, isArabic);
+
   return (
     <div className="fade-in max-w-3xl mx-auto">
       {/* Header */}
@@ -549,7 +662,7 @@ function TakeQuiz() {
               </div>
               <div className="flex items-center gap-2 flex-wrap mt-0.5">
                 <p className="text-xs text-gray-500 font-mono">
-                  &lt;{question.email_sender_email}&gt;
+                  &lt;{question.email_sender_email || generateSenderEmail(question.email_sender_name, question.email_type, currentIndex)}&gt;
                 </p>
                 {question.email_type === 'PHISHING' && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-[11px] font-medium rounded">
@@ -594,7 +707,13 @@ function TakeQuiz() {
             color: '#374151',
           }}
         >
-          {formatEmailBody(question.email_body, isArabic, question.email_type, currentIndex)}
+          {formatEmailBody(
+            question.email_body,
+            isArabic,
+            question.email_type,
+            currentIndex,
+            question.email_sender_email || generateSenderEmail(question.email_sender_name, question.email_type, currentIndex)
+          )}
 
           {/* Fake attachment pill for phishing emails without a real attachment */}
           {showFakeAttachment && (
@@ -609,6 +728,19 @@ function TakeQuiz() {
                 <p className="text-xs text-gray-400">245 KB</p>
               </div>
               <Download className="h-4 w-4 text-gray-400 flex-shrink-0" />
+            </div>
+          )}
+
+          {/* Email signature — legitimate emails only (phishing rarely has professional signatures) */}
+          {question.email_type === 'LEGITIMATE' && (
+            <div className={`mt-8 pt-5 border-t border-gray-200 text-sm space-y-0.5 ${isArabic ? 'text-right' : ''}`}>
+              <p className="font-semibold text-gray-900 text-[15px]">{question.email_sender_name}</p>
+              <p className="text-gray-500">{sig.title}</p>
+              <p className="text-gray-400 font-mono text-xs">
+                {question.email_sender_email || generateSenderEmail(question.email_sender_name, 'LEGITIMATE', currentIndex)}
+              </p>
+              <p className="text-gray-400 text-xs">{sig.phone}</p>
+              <p className="text-gray-400 italic text-xs mt-2 pt-1.5 border-t border-gray-100">{sig.tagline}</p>
             </div>
           )}
         </div>
