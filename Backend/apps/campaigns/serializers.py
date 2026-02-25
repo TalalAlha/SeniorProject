@@ -116,7 +116,8 @@ class QuizQuestionSimpleSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'question_number', 'email_subject', 'email_sender_name',
             'email_sender_email', 'email_body', 'has_attachments',
-            'attachment_names', 'links', 'answer', 'confidence_level'
+            'attachment_names', 'links', 'answer', 'confidence_level',
+            'selected_flags'
         ]
         read_only_fields = ['id', 'question_number']
 
@@ -132,7 +133,8 @@ class QuizQuestionDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'question_number', 'email_template', 'answer',
             'is_correct', 'correct_answer', 'confidence_level',
-            'time_spent_seconds', 'answered_at', 'requires_training'
+            'time_spent_seconds', 'answered_at', 'requires_training',
+            'selected_flags'
         ]
         read_only_fields = ['id', 'question_number', 'is_correct', 'correct_answer']
 
@@ -209,3 +211,9 @@ class AnswerQuestionSerializer(serializers.Serializer):
     answer = serializers.ChoiceField(choices=['PHISHING', 'LEGITIMATE'])
     confidence_level = serializers.IntegerField(min_value=1, max_value=5, required=False)
     time_spent_seconds = serializers.IntegerField(min_value=0, required=False)
+    selected_flags = serializers.ListField(
+        child=serializers.CharField(max_length=50),
+        required=False,
+        default=list,
+        help_text='List of red flag IDs selected by the employee (only for PHISHING answers)'
+    )

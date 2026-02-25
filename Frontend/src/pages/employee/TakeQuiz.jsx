@@ -18,6 +18,12 @@ import {
   ExternalLink,
   AlertTriangle,
   Download,
+  Info,
+  Check,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Award,
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
@@ -297,10 +303,235 @@ const getSignatureData = (index, isRtl) => ({
   tagline: isRtl ? 'التميز في خدمة العملاء' : 'Excellence in Customer Service',
 });
 
+// ── Red flag detection ────────────────────────────────────────────────────────
+
+/**
+ * Decoy flags pool — plausible red flags that may or may not be present in
+ * any given email. Selecting a decoy flag costs the user points.
+ * Using realistic categories (not 'decoy') so the UI doesn't reveal them.
+ */
+const DECOY_FLAGS = {
+  en: [
+    { id: 'decoy_spelling',     label: 'Multiple spelling or grammar errors',                          points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_attachments',  label: 'Contains a suspicious attachment',                             points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_sender_name',  label: "Sender name doesn't match the email address",                  points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_time',         label: 'Email sent at an unusual time (late night / early morning)',   points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_images',       label: 'Contains suspicious images or fake logos',                     points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_reply',        label: 'Reply-to address is different from the sender address',        points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_cc',           label: "CC'd to multiple unknown recipients",                          points: -10, category: 'content', isDecoy: true },
+  ],
+  ar: [
+    { id: 'decoy_spelling',     label: 'أخطاء إملائية أو نحوية متعددة',                              points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_attachments',  label: 'يحتوي على ملف مرفق مشبوه',                                   points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_sender_name',  label: 'اسم المرسل لا يتطابق مع عنوان البريد الإلكتروني',           points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_time',         label: 'تم الإرسال في وقت غير عادي (في وقت متأخر من الليل)',         points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_images',       label: 'يحتوي على صور مشبوهة أو شعارات مزيفة',                      points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_reply',        label: 'عنوان الرد يختلف عن عنوان المرسل',                           points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_cc',           label: 'نسخة إلى عدة مستلمين غير معروفين',                           points: -10, category: 'content', isDecoy: true },
+  ],
+};
+
+/**
+ * Decoy IDs that overlap with real flag IDs conceptually — we exclude the
+ * decoy when the real flag has already been detected to avoid showing the
+ * same concept twice.
+ */
+const DECOY_REAL_CONFLICTS = {
+  decoy_spelling: 'poor_grammar',
+};
+
+/**
+ * Core detector: finds only the REAL red flags present in the email.
+ * Returns an array of flag objects: { id, label, points, category }
+ */
+const detectRealFlagsOnly = (question, language = 'en') => {
+  const flags = [];
+  const body = question.email_body || '';
+  const senderEmail = (question.email_sender_email || '').toLowerCase();
+
+  // 1. Suspicious sender domain
+  const domain = senderEmail.split('@')[1] || '';
+  const suspiciousDomainPatterns = [/\d/, /verify|secure|alert|account-/i, /-com\.net|-net\.com/i];
+  const isSuspiciousDomain =
+    suspiciousDomainPatterns.some((p) => p.test(domain)) || !domain.endsWith('company.sa');
+
+  if (isSuspiciousDomain && question.email_type === 'PHISHING') {
+    flags.push({
+      id: 'suspicious_domain',
+      label:
+        language === 'ar'
+          ? 'نطاق المرسل مشبوه (مثل: paypa1.com بدلاً من paypal.com)'
+          : 'Suspicious sender domain (e.g., paypa1.com instead of paypal.com)',
+      points: 20,
+      category: 'sender',
+    });
+  }
+
+  // 2. Generic greeting
+  if (/dear (customer|user|member|sir|madam|valued|client)/i.test(body)) {
+    flags.push({
+      id: 'generic_greeting',
+      label:
+        language === 'ar'
+          ? 'تحية عامة (عزيزي العميل بدلاً من الاسم الشخصي)'
+          : 'Generic greeting (Dear Customer instead of personal name)',
+      points: 15,
+      category: 'content',
+    });
+  }
+
+  // 3. Urgency / time pressure
+  if (
+    /urgent|immediately|asap|within \d+\s*(hours?|days?)|act now|limited time|expires|عاجل|فوراً|خلال|حالاً/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'urgency',
+      label:
+        language === 'ar'
+          ? 'لغة الإلحاح والضغط الزمني (خلال 24 ساعة، إجراء عاجل)'
+          : 'Urgency and time pressure (within 24 hours, act now)',
+      points: 20,
+      category: 'content',
+    });
+  }
+
+  // 4. Threats
+  if (
+    /suspend|suspended|block|blocked|restrict|close|closed|terminate|terminated|freeze|frozen|deactivate|تعليق|حظر|إغلاق|تجميد|إلغاء/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'threats',
+      label:
+        language === 'ar'
+          ? 'تهديدات (تعليق الحساب، حظر الوصول، إغلاق الخدمة)'
+          : 'Threats (account suspension, access blocking, service termination)',
+      points: 20,
+      category: 'content',
+    });
+  }
+
+  // 5. Requests personal / sensitive information
+  if (
+    /password|credit card|debit card|ssn|social security|pin|otp|cvv|account number|routing number|كلمة المرور|كلمة السر|رقم سري|بطاقة ائتمان|رقم الحساب/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'personal_info',
+      label:
+        language === 'ar'
+          ? 'طلب معلومات شخصية حساسة (كلمة المرور، بطاقة ائتمان، رقم حساب)'
+          : 'Requests sensitive personal information (password, credit card, account number)',
+      points: 25,
+      category: 'content',
+    });
+  }
+
+  // 6. Suspicious link
+  if (
+    /(click|verify|update|confirm|reset).*link|link.*(below|here|above)|الرابط|انقر|اضغط/i.test(body)
+  ) {
+    flags.push({
+      id: 'suspicious_link',
+      label:
+        language === 'ar' ? 'طلب النقر على رابط مشبوه' : 'Asks to click a suspicious link',
+      points: 20,
+      category: 'link',
+    });
+  }
+
+  // 7. Multiple spelling errors
+  const spellingErrors = (
+    body.match(
+      /\b(recieve|occured|seperrate|definately|occassion|accomodate|beleive|untill|sucessful|adress)\b/gi
+    ) || []
+  ).length;
+  if (spellingErrors >= 2) {
+    flags.push({
+      id: 'poor_grammar',
+      label:
+        language === 'ar'
+          ? 'أخطاء إملائية أو نحوية متعددة'
+          : 'Multiple spelling or grammar errors',
+      points: 15,
+      category: 'format',
+    });
+  }
+
+  // 8. No professional signature
+  const hasSignature =
+    /best regards|sincerely|kind regards|تحياتي|مع تحياتي|وتفضلوا بقبول/i.test(body);
+  if (!hasSignature && question.email_type === 'PHISHING') {
+    flags.push({
+      id: 'no_signature',
+      label:
+        language === 'ar'
+          ? 'لا يوجد توقيع احترافي أو معلومات اتصال'
+          : 'Missing professional signature or contact information',
+      points: 10,
+      category: 'format',
+    });
+  }
+
+  // 9. Excessive formatting
+  const hasExcessiveFormatting =
+    (body.match(/!!!/g) || []).length > 0 ||
+    (body.match(/[A-Z]{10,}/g) || []).length > 0 ||
+    body.includes('⚠️⚠️');
+
+  if (hasExcessiveFormatting) {
+    flags.push({
+      id: 'excessive_formatting',
+      label:
+        language === 'ar'
+          ? 'تنسيق مبالغ فيه (أحرف كبيرة، رموز تحذير متعددة)'
+          : 'Excessive formatting (ALL CAPS, multiple warning symbols)',
+      points: 10,
+      category: 'format',
+    });
+  }
+
+  return flags;
+};
+
+/**
+ * Full detection: real flags + 3-4 random decoys, all shuffled.
+ * Returns { allFlags, realFlagIds, decoyFlagIds }
+ * Points are NOT shown in the modal — they are revealed only in results.
+ */
+const detectRedFlags = (question, language = 'en') => {
+  const realFlags = detectRealFlagsOnly(question, language);
+  const realFlagIdSet = new Set(realFlags.map((f) => f.id));
+
+  // Exclude decoys that conceptually overlap with an already-detected real flag
+  const decoyPool = (DECOY_FLAGS[language] || DECOY_FLAGS.en).filter((d) => {
+    const conflictId = DECOY_REAL_CONFLICTS[d.id];
+    return !conflictId || !realFlagIdSet.has(conflictId);
+  });
+
+  // Pick 3-4 random decoys
+  const shuffled = [...decoyPool].sort(() => Math.random() - 0.5);
+  const count = 3 + Math.floor(Math.random() * 2); // 3 or 4
+  const selectedDecoys = shuffled.slice(0, count);
+
+  // Merge and shuffle so decoys aren't bunched at the end
+  const allFlags = [...realFlags, ...selectedDecoys].sort(() => Math.random() - 0.5);
+
+  return {
+    allFlags,
+    realFlagIds: realFlags.map((f) => f.id),
+    decoyFlagIds: selectedDecoys.map((f) => f.id),
+  };
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function TakeQuiz() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -313,6 +544,23 @@ function TakeQuiz() {
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [result, setResult] = useState(null);
+
+  // Red flags modal state
+  const [showRedFlagsModal, setShowRedFlagsModal] = useState(false);
+  const [selectedFlags, setSelectedFlags] = useState([]);
+  const [detectedRedFlags, setDetectedRedFlags] = useState([]);
+  // Real / decoy IDs for the currently open modal
+  const [realFlagIds, setRealFlagIds] = useState([]);
+  const [decoyFlagIds, setDecoyFlagIds] = useState([]);
+  // Per-question selected flags stored for results display: { [question_number]: string[] }
+  const [answersFlags, setAnswersFlags] = useState({});
+  // Per-question full flags data (real + decoys) for accurate results breakdown
+  // { [question_number]: { allFlags, realFlagIds, decoyFlagIds } }
+  const [questionFlagsData, setQuestionFlagsData] = useState({});
+  // question_details returned by the result API (available after quiz completion)
+  const [questionDetails, setQuestionDetails] = useState([]);
+  // Which accordion item is expanded in the completed results view (index or null)
+  const [expandedQuestion, setExpandedQuestion] = useState(null);
 
   // Time tracking per question
   const questionStartTime = useRef(Date.now());
@@ -357,6 +605,9 @@ function TakeQuiz() {
         try {
           const resultRes = await campaignsAPI.getQuizResult(id);
           setResult(resultRes.data.result);
+          if (resultRes.data.question_details) {
+            setQuestionDetails(resultRes.data.question_details);
+          }
         } catch {
           // Result may not exist yet
         }
@@ -386,7 +637,7 @@ function TakeQuiz() {
     questionStartTime.current = Date.now();
   }, [currentIndex]);
 
-  const handleAnswer = async (answer) => {
+  const handleAnswer = async (answer, flags = []) => {
     const question = questions[currentIndex];
     if (!question) return;
 
@@ -398,6 +649,9 @@ function TakeQuiz() {
 
     // Optimistic update
     setAnswers((prev) => ({ ...prev, [question.question_number]: answer }));
+    if (answer === 'PHISHING') {
+      setAnswersFlags((prev) => ({ ...prev, [question.question_number]: flags }));
+    }
 
     // Submit answer to backend
     try {
@@ -405,6 +659,7 @@ function TakeQuiz() {
         question_number: question.question_number,
         answer,
         time_spent_seconds: timeSpent,
+        selected_flags: flags,
       });
     } catch (err) {
       // Revert on failure
@@ -415,6 +670,91 @@ function TakeQuiz() {
       });
       toast.error(err.response?.data?.error || 'Failed to save answer');
     }
+  };
+
+  // ── Red flags modal handlers ───────────────────────────────────────────────
+
+  const handlePhishingClick = () => {
+    const question = questions[currentIndex];
+    if (!question) return;
+    const flagsData = detectRedFlags(
+      {
+        email_body: question.email_body,
+        email_sender_email: question.email_sender_email,
+        email_type: question.email_type,
+      },
+      i18n.language
+    );
+    setDetectedRedFlags(flagsData.allFlags);
+    setRealFlagIds(flagsData.realFlagIds);
+    setDecoyFlagIds(flagsData.decoyFlagIds);
+    // Store for results page so we know which were real vs decoy
+    setQuestionFlagsData((prev) => ({
+      ...prev,
+      [question.question_number]: flagsData,
+    }));
+    setSelectedFlags([]);
+    setShowRedFlagsModal(true);
+  };
+
+  const toggleFlag = (flagId) => {
+    setSelectedFlags((prev) =>
+      prev.includes(flagId) ? prev.filter((f) => f !== flagId) : [...prev, flagId]
+    );
+  };
+
+  const submitWithRedFlags = () => {
+    if (selectedFlags.length === 0) {
+      toast.error(t('quiz.selectAtLeastOneFlag'));
+      return;
+    }
+
+    const question = questions[currentIndex];
+
+    // Tally correct selections (real flags the user picked)
+    const correctSelections = selectedFlags.filter((id) => realFlagIds.includes(id));
+    // Tally penalty selections (decoy flags the user picked)
+    const incorrectSelections = selectedFlags.filter((id) => decoyFlagIds.includes(id));
+    // Real flags the user did not pick at all
+    const missedFlagIds = realFlagIds.filter((id) => !selectedFlags.includes(id));
+
+    const earnedPoints = correctSelections.reduce((sum, id) => {
+      const flag = detectedRedFlags.find((f) => f.id === id);
+      return sum + (flag?.points || 0);
+    }, 0);
+
+    const penaltyPoints = incorrectSelections.reduce((sum, id) => {
+      const flag = detectedRedFlags.find((f) => f.id === id);
+      return sum + Math.abs(flag?.points || 0);
+    }, 0);
+
+    const maxScore = realFlagIds.reduce((sum, id) => {
+      const flag = detectedRedFlags.find((f) => f.id === id);
+      return sum + (flag?.points || 0);
+    }, 0);
+
+    const finalScore = Math.max(0, earnedPoints - penaltyPoints);
+
+    // Persist per-question scoring breakdown for the results page
+    if (question) {
+      setQuestionFlagsData((prev) => ({
+        ...prev,
+        [question.question_number]: {
+          ...(prev[question.question_number] || {}),
+          scoringResult: {
+            correct: correctSelections,
+            incorrect: incorrectSelections,
+            missed: missedFlagIds,
+            score: finalScore,
+            maxScore,
+          },
+        },
+      }));
+    }
+
+    handleAnswer('PHISHING', selectedFlags);
+    setShowRedFlagsModal(false);
+    setSelectedFlags([]);
   };
 
   const handleSubmitQuiz = async () => {
@@ -514,7 +854,7 @@ function TakeQuiz() {
           </div>
 
           {/* Risk Level */}
-          <div className="mb-8">
+          <div className="mb-6">
             <span
               className={clsx(
                 'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium',
@@ -533,9 +873,326 @@ function TakeQuiz() {
             </span>
           </div>
 
-          <Link to="/employee/quizzes" className="btn-primary">
-            {t('quiz.backToQuizzes')}
-          </Link>
+          {(() => {
+            // Helper: compute per-question flag breakdown using stored state or API fallback
+            const getQuestionBreakdown = (q) => {
+              const userAnswer = answers[q.question_number];
+              const qData = questionFlagsData[q.question_number];
+              const qd = questionDetails.find((d) => d.question_number === q.question_number);
+              const userFlagIds = answersFlags[q.question_number] || qd?.selected_flags || [];
+              let correctFlags = [], missedFlags = [], incorrectFlags = [], scoringResult = null;
+
+              if (userAnswer === 'PHISHING') {
+                if (qData) {
+                  const { allFlags, realFlagIds: rIds, decoyFlagIds: dIds } = qData;
+                  correctFlags   = allFlags.filter((f) => rIds.includes(f.id) && userFlagIds.includes(f.id));
+                  missedFlags    = allFlags.filter((f) => rIds.includes(f.id) && !userFlagIds.includes(f.id));
+                  incorrectFlags = allFlags.filter((f) => dIds.includes(f.id) && userFlagIds.includes(f.id));
+                  scoringResult  = qData.scoringResult;
+                } else {
+                  const realFlags = detectRealFlagsOnly({
+                    email_body: q.email_body,
+                    email_sender_email: q.email_sender_email || qd?.email_template?.sender_email,
+                    email_type: q.email_type,
+                  }, i18n.language);
+                  correctFlags = realFlags.filter((f) => userFlagIds.includes(f.id));
+                  missedFlags  = realFlags.filter((f) => !userFlagIds.includes(f.id));
+                }
+              } else if (q.email_type === 'PHISHING') {
+                const realFlags = detectRealFlagsOnly({
+                  email_body: q.email_body,
+                  email_sender_email: q.email_sender_email || qd?.email_template?.sender_email,
+                  email_type: q.email_type,
+                }, i18n.language);
+                missedFlags = realFlags;
+              }
+
+              return {
+                isCorrect: userAnswer === q.email_type,
+                userAnswer,
+                correctFlags,
+                missedFlags,
+                incorrectFlags,
+                scoringResult,
+              };
+            };
+
+            // Aggregate flag stats for the summary row
+            const flagStats = questions.reduce((acc, q) => {
+              const { correctFlags, missedFlags, incorrectFlags } = getQuestionBreakdown(q);
+              return {
+                correct:   acc.correct   + correctFlags.length,
+                missed:    acc.missed    + missedFlags.length,
+                incorrect: acc.incorrect + incorrectFlags.length,
+              };
+            }, { correct: 0, missed: 0, incorrect: 0 });
+
+            const resultIsArabic = isArabicText(
+              (questions[0]?.email_body || '') + (questions[0]?.email_subject || '')
+            );
+
+            return (
+              <>
+                {/* Flag Detection Summary */}
+                {(flagStats.correct + flagStats.missed + flagStats.incorrect) > 0 && (
+                  <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 justify-center">
+                      <Award className="h-4 w-4 text-blue-600" />
+                      {t('quiz.redFlagsAccuracy')}
+                    </h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-2 bg-green-50 rounded-lg">
+                        <p className="text-2xl font-bold text-green-600">{flagStats.correct}</p>
+                        <p className="text-xs text-green-700">{t('quiz.correctFlags')}</p>
+                      </div>
+                      <div className="text-center p-2 bg-orange-50 rounded-lg">
+                        <p className="text-2xl font-bold text-orange-500">{flagStats.missed}</p>
+                        <p className="text-xs text-orange-700">{t('quiz.missedFlags')}</p>
+                      </div>
+                      <div className="text-center p-2 bg-red-50 rounded-lg">
+                        <p className="text-2xl font-bold text-red-600">{flagStats.incorrect}</p>
+                        <p className="text-xs text-red-700">{t('quiz.incorrectFlags')}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Detailed Results Accordion */}
+                <div className="mt-2 text-left space-y-2">
+                  <h3 className="text-base font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-orange-500" />
+                    {t('quiz.detailedResults')}
+                  </h3>
+
+                  {questions.map((q, idx) => {
+                    const {
+                      isCorrect, userAnswer, correctFlags, missedFlags,
+                      incorrectFlags, scoringResult,
+                    } = getQuestionBreakdown(q);
+                    const isExpanded = expandedQuestion === idx;
+
+                    return (
+                      <div key={q.question_number} className="border border-gray-200 rounded-xl overflow-hidden">
+                        {/* Accordion header */}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedQuestion(isExpanded ? null : idx)}
+                          className={clsx(
+                            'w-full p-4 flex items-center justify-between transition-colors text-left',
+                            isCorrect ? 'bg-green-50 hover:bg-green-100' : 'bg-red-50 hover:bg-red-100'
+                          )}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div
+                              className={clsx(
+                                'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                                isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                              )}
+                            >
+                              {isCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                {resultIsArabic ? `السؤال ${q.question_number}` : `Q${q.question_number}`}
+                                {q.email_subject && (
+                                  <span className="text-gray-500 font-normal"> — {q.email_subject}</span>
+                                )}
+                              </p>
+                              <p className={clsx('text-xs', isCorrect ? 'text-green-700' : 'text-red-700')}>
+                                {isCorrect
+                                  ? (userAnswer === 'PHISHING'
+                                      ? (resultIsArabic ? 'تصيد احتيالي — صحيح ✓' : 'Phishing — Correct ✓')
+                                      : (resultIsArabic ? 'شرعي — صحيح ✓' : 'Legitimate — Correct ✓'))
+                                  : (userAnswer === 'PHISHING'
+                                      ? (resultIsArabic ? 'هذا كان بريداً شرعياً ✗' : 'This was a legitimate email ✗')
+                                      : (resultIsArabic ? 'هذا كان تصيداً احتيالياً ✗' : 'This was a phishing email ✗'))}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                            {scoringResult && scoringResult.maxScore > 0 && (
+                              <div className="text-right">
+                                <p className="text-sm font-bold text-blue-700">
+                                  {scoringResult.score}
+                                  <span className="text-xs text-blue-400 font-normal">/{scoringResult.maxScore}</span>
+                                </p>
+                                <p className="text-[10px] text-gray-400">{resultIsArabic ? 'نقاط' : 'flag pts'}</p>
+                              </div>
+                            )}
+                            {isExpanded
+                              ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                          </div>
+                        </button>
+
+                        {/* Accordion body */}
+                        {isExpanded && (
+                          <div className="p-4 bg-white border-t border-gray-100 space-y-3">
+                            {/* PHISHING answered as PHISHING */}
+                            {userAnswer === 'PHISHING' && q.email_type === 'PHISHING' && (
+                              <>
+                                {scoringResult && (
+                                  <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                                    <p className="text-xs font-semibold text-blue-900">
+                                      {resultIsArabic ? 'نقاط العلامات: ' : 'Flag score: '}
+                                      <span className="text-sm">{scoringResult.score}</span>
+                                      <span className="text-blue-500 font-normal"> / {scoringResult.maxScore}</span>
+                                      {scoringResult.incorrect.length > 0 && (
+                                        <span className="text-red-600 font-normal ml-1">
+                                          ({resultIsArabic
+                                            ? `خصم ${scoringResult.incorrect.length * 10} نقطة`
+                                            : `-${scoringResult.incorrect.length * 10} pts penalty`})
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+                                {correctFlags.length > 0 && (
+                                  <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
+                                    <h4 className="font-semibold text-green-800 text-xs mb-2 flex items-center gap-1">
+                                      <Check className="w-3.5 h-3.5" />
+                                      {t('quiz.correctlyIdentified')} ({correctFlags.length})
+                                    </h4>
+                                    <ul className="space-y-1">
+                                      {correctFlags.map((f) => (
+                                        <li key={f.id} className="text-xs text-green-700 flex justify-between gap-2">
+                                          <span>• {f.label}</span>
+                                          <span className="text-green-600 font-semibold flex-shrink-0">+{f.points}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {incorrectFlags.length > 0 && (
+                                  <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+                                    <h4 className="font-semibold text-red-800 text-xs mb-1 flex items-center gap-1">
+                                      <X className="w-3.5 h-3.5" />
+                                      {t('quiz.incorrectSelections')} ({incorrectFlags.length})
+                                    </h4>
+                                    <p className="text-[10px] text-red-500 mb-2">{t('quiz.theseWereNotInEmail')}</p>
+                                    <ul className="space-y-1">
+                                      {incorrectFlags.map((f) => (
+                                        <li key={f.id} className="text-xs text-red-700 flex justify-between gap-2">
+                                          <span>• {f.label}</span>
+                                          <span className="text-red-600 font-semibold flex-shrink-0">{f.points}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {missedFlags.length > 0 && (
+                                  <div className="bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
+                                    <h4 className="font-semibold text-orange-800 text-xs mb-1 flex items-center gap-1">
+                                      <AlertTriangle className="w-3.5 h-3.5" />
+                                      {t('quiz.youMissed')} ({missedFlags.length})
+                                    </h4>
+                                    <p className="text-[10px] text-orange-500 mb-2">{t('quiz.theseWerePresent')}</p>
+                                    <ul className="space-y-1">
+                                      {missedFlags.map((f) => (
+                                        <li key={f.id} className="text-xs text-orange-700">• {f.label}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {correctFlags.length === 0 && missedFlags.length === 0 && incorrectFlags.length === 0 && (
+                                  <p className="text-xs text-gray-400 italic text-center py-2">
+                                    {resultIsArabic ? 'لا تتوفر تفاصيل العلامات' : 'No flag details available'}
+                                  </p>
+                                )}
+                                {scoringResult
+                                  && scoringResult.score === scoringResult.maxScore
+                                  && scoringResult.maxScore > 0 && (
+                                    <div className="bg-yellow-50 border-2 border-yellow-400 p-3 rounded text-center">
+                                      <p className="text-sm font-bold text-yellow-800 flex items-center justify-center gap-1">
+                                        <Award className="w-4 h-4" />
+                                        {t('quiz.perfectFlagScore')}
+                                      </p>
+                                    </div>
+                                  )}
+                              </>
+                            )}
+                            {/* PHISHING answered as LEGITIMATE */}
+                            {userAnswer === 'LEGITIMATE' && q.email_type === 'PHISHING' && (
+                              <div className="space-y-2">
+                                <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+                                  <p className="text-sm font-semibold text-red-800">
+                                    {resultIsArabic
+                                      ? 'كانت هذه رسالة تصيدية! يجب أن تكون الإجابة "تصيد احتيالي".'
+                                      : 'This was a phishing email! The correct answer was "Phishing".'}
+                                  </p>
+                                </div>
+                                {missedFlags.length > 0 && (
+                                  <div className="bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
+                                    <h4 className="font-semibold text-orange-800 text-xs mb-2 flex items-center gap-1">
+                                      <AlertTriangle className="w-3.5 h-3.5" />
+                                      {resultIsArabic ? 'العلامات التحذيرية التي كان يجب ملاحظتها:' : 'Red flags you should have noticed:'}
+                                    </h4>
+                                    <ul className="space-y-1">
+                                      {missedFlags.map((f) => (
+                                        <li key={f.id} className="text-xs text-orange-700">• {f.label}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {/* LEGITIMATE answered correctly */}
+                            {userAnswer === 'LEGITIMATE' && q.email_type === 'LEGITIMATE' && (
+                              <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
+                                <p className="text-sm text-green-800 flex items-center gap-2">
+                                  <Check className="w-4 h-4 flex-shrink-0" />
+                                  {t('quiz.correctlyIdentifiedLegitimate')}
+                                </p>
+                              </div>
+                            )}
+                            {/* LEGITIMATE answered as PHISHING (false positive) */}
+                            {userAnswer === 'PHISHING' && q.email_type === 'LEGITIMATE' && (
+                              <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+                                <p className="text-sm text-red-800 flex items-center gap-2">
+                                  <X className="w-4 h-4 flex-shrink-0" />
+                                  {resultIsArabic
+                                    ? 'هذا كان بريداً شرعياً! تجنب الإيجابيات الكاذبة.'
+                                    : 'This was a legitimate email! Avoid false positives.'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Key Takeaways */}
+                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-left">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-blue-600" />
+                    {t('quiz.keyTakeaways')}
+                  </h4>
+                  <ul className="space-y-2 text-sm text-blue-800">
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0">•</span>
+                      <span>{t('quiz.takeaway1')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0">•</span>
+                      <span>{t('quiz.takeaway2')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0">•</span>
+                      <span>{t('quiz.takeaway3')}</span>
+                    </li>
+                  </ul>
+                </div>
+              </>
+            );
+          })()}
+
+          <div className="mt-8">
+            <Link to="/employee/quizzes" className="btn-primary">
+              {t('quiz.backToQuizzes')}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -749,7 +1406,7 @@ function TakeQuiz() {
       {/* Answer Buttons */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <button
-          onClick={() => handleAnswer('PHISHING')}
+          onClick={handlePhishingClick}
           className={clsx(
             'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
             selectedAnswer === 'PHISHING'
@@ -762,7 +1419,7 @@ function TakeQuiz() {
         </button>
 
         <button
-          onClick={() => handleAnswer('LEGITIMATE')}
+          onClick={() => handleAnswer('LEGITIMATE', [])}
           className={clsx(
             'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
             selectedAnswer === 'LEGITIMATE'
@@ -774,6 +1431,133 @@ function TakeQuiz() {
           <span className="text-lg">{t('quiz.legitimate')}</span>
         </button>
       </div>
+
+      {/* Red Flags Modal */}
+      {showRedFlagsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-5 text-white">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-7 h-7 flex-shrink-0" />
+                <div>
+                  <h2 className="text-xl font-bold">
+                    {i18n.language === 'ar'
+                      ? 'ما هي العلامات المشبوهة التي لاحظتها؟'
+                      : 'What red flags did you notice?'}
+                  </h2>
+                  <p className="text-sm text-red-100 mt-1">
+                    {i18n.language === 'ar'
+                      ? 'اختر فقط العلامات الموجودة فعلاً في هذا البريد — الاختيارات الخاطئة تخصم نقاطاً'
+                      : 'Select only flags actually present in this email — wrong selections cost points'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {detectedRedFlags.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p>{i18n.language === 'ar' ? 'لا توجد علامات مشبوهة للعرض' : 'No red flags to display'}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {detectedRedFlags.map((flag) => (
+                    <label
+                      key={flag.id}
+                      className={clsx(
+                        'flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                        selectedFlags.includes(flag.id)
+                          ? 'bg-red-50 border-red-500 shadow-md scale-[1.02]'
+                          : 'bg-white border-gray-200 hover:border-red-300 hover:bg-red-50 hover:shadow-sm'
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedFlags.includes(flag.id)}
+                        onChange={() => toggleFlag(flag.id)}
+                        className="mt-1 w-5 h-5 text-red-600 rounded focus:ring-red-500 cursor-pointer flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium text-gray-800 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+                          {flag.label}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                            {flag.category}
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {/* Selection count + penalty hint */}
+              <div className="mt-4 space-y-2">
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800 flex items-center gap-2">
+                    <Info className="w-4 h-4 flex-shrink-0" />
+                    {i18n.language === 'ar'
+                      ? `تم اختيار ${selectedFlags.length} من ${detectedRedFlags.length} علامات`
+                      : `${selectedFlags.length} of ${detectedRedFlags.length} flags selected`}
+                  </p>
+                </div>
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-xs text-amber-800 flex items-start gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    {i18n.language === 'ar'
+                      ? 'تحذير: اختيار علامة غير موجودة في هذا البريد يخصم نقاطاً من نتيجتك. حلّل البريد بعناية!'
+                      : 'Tip: Selecting a flag that is not actually in this email will deduct points. Analyze carefully!'}
+                  </p>
+                </div>
+              </div>
+
+              {selectedFlags.length === 0 && (
+                <p className="text-sm text-orange-600 mt-3 flex items-center gap-2 bg-orange-50 p-3 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>
+                    {i18n.language === 'ar'
+                      ? 'يجب اختيار علامة واحدة مشبوهة على الأقل للمتابعة'
+                      : 'Please select at least one red flag to continue'}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setShowRedFlagsModal(false);
+                  setSelectedFlags([]);
+                }}
+                className="px-5 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+              >
+                {i18n.language === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+
+              <button
+                onClick={submitWithRedFlags}
+                disabled={selectedFlags.length === 0}
+                className={clsx(
+                  'px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2',
+                  selectedFlags.length === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700 shadow-lg hover:shadow-xl hover:scale-105'
+                )}
+              >
+                {i18n.language === 'ar' ? 'تأكيد الإجابة' : 'Submit Answer'}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="flex items-center justify-between">

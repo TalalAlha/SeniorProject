@@ -226,6 +226,12 @@ class QuizQuestion(models.Model):
         default=False,
         help_text=_('Flag if employee needs additional training on this type')
     )
+    selected_flags = models.JSONField(
+        _('selected red flags'),
+        default=list,
+        blank=True,
+        help_text=_('List of red flag IDs the employee selected when answering PHISHING')
+    )
 
     # Timestamps
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)

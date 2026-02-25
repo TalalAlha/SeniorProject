@@ -421,6 +421,11 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         question.confidence_level = serializer.validated_data.get('confidence_level')
         question.time_spent_seconds = serializer.validated_data.get('time_spent_seconds')
         question.answered_at = timezone.now()
+        # Store red flags only when the answer is PHISHING
+        if question.answer == 'PHISHING':
+            question.selected_flags = serializer.validated_data.get('selected_flags', [])
+        else:
+            question.selected_flags = []
         question.check_answer()  # Check if answer is correct
         question.save()
 
