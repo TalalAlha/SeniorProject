@@ -288,7 +288,26 @@
     "keyTakeaways": "النقاط الرئيسية المستفادة",
     "takeaway1": "تحقق دائماً من نطاق المرسل بحثاً عن الأخطاء الإملائية أو الأحرف المتشابهة",
     "takeaway2": "انتبه للإلحاح والتهديدات وأساليب الضغط — صُممت لجعلك تتصرف دون تفكير",
-    "takeaway3": "مرّر مؤشر الفأرة فوق الروابط قبل النقر للتحقق من أن العنوان الحقيقي يطابق النص الظاهر"
+    "takeaway3": "مرّر مؤشر الفأرة فوق الروابط قبل النقر للتحقق من أن العنوان الحقيقي يطابق النص الظاهر",
+    "answerRecorded": "تم تسجيل إجابتك",
+    "continueToNext": "انتقل إلى السؤال التالي ←",
+    "readyToSubmit": "جاهز لإرسال الاختبار",
+    "assessmentTitle": "تعليمات الاختبار",
+    "resultsAfterCompletion": "لن يتم عرض النتائج حتى إكمال جميع الأسئلة",
+    "cannotGoBack": "لا يمكن العودة للأسئلة السابقة",
+    "passThresholdMsg": "النسبة المطلوبة للنجاح: 70٪",
+    "assessmentPassed": "نجحت!",
+    "assessmentNotPassed": "لم تنجح",
+    "needToPassMsg": "تحتاج {{threshold}}٪ للنجاح. يمكنك إعادة المحاولة.",
+    "leaderboardImpact": "التأثير على لوحة المتصدرين",
+    "basePoints": "النقاط الأساسية",
+    "performanceBonus": "مكافأة الأداء",
+    "forCompletion": "للإكمال",
+    "totalEarned": "المجموع المكتسب",
+    "leaderboardPoints": "نقاط لوحة المتصدرين",
+    "excellentPerformance": "أداء ممتاز! حصلت على أقصى النقاط!",
+    "goodPerformance": "عمل جيد! استمر في العمل الرائع!",
+    "keepImproving": "استمر في الممارسة لكسب المزيد من النقاط!"
   },
   "training": {
     "title": "التدريب",
@@ -619,6 +638,14 @@
       "firstNamePlaceholder": "الاسم الأول",
       "lastNamePlaceholder": "اسم العائلة"
     }
+  },
+  "leaderboard": {
+    "howQuizPointsWork": "كيف تعمل نقاط الاختبار",
+    "basePoints": "النقاط الأساسية",
+    "performanceBonus": "مكافأة الأداء",
+    "scoreMultiplied": "الدرجة × 0.7",
+    "example": "مثال",
+    "points": "نقاط"
   },
   "errors": {
     "required": "هذا الحقل مطلوب",

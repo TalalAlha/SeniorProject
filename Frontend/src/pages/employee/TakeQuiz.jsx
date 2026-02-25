@@ -637,12 +637,12 @@ function TakeQuiz() {
     questionStartTime.current = Date.now();
   }, [currentIndex]);
 
-  const handleAnswer = async (answer, flags = []) => {
+  const handleAnswer = async (answer, flags = [], flagScoreData = null) => {
     const question = questions[currentIndex];
     if (!question) return;
 
-    // If already answered with the same value, do nothing
-    if (answers[question.question_number] === answer) return;
+    // Lock answers in assessment mode — once answered, cannot change
+    if (answers[question.question_number]) return;
 
     // Calculate time spent on this question
     const timeSpent = Math.round((Date.now() - questionStartTime.current) / 1000);
@@ -660,6 +660,10 @@ function TakeQuiz() {
         answer,
         time_spent_seconds: timeSpent,
         selected_flags: flags,
+        ...(flagScoreData && {
+          flag_score: flagScoreData.score,
+          flag_max_score: flagScoreData.maxScore,
+        }),
       });
     } catch (err) {
       // Revert on failure
@@ -752,7 +756,7 @@ function TakeQuiz() {
       }));
     }
 
-    handleAnswer('PHISHING', selectedFlags);
+    handleAnswer('PHISHING', selectedFlags, { score: finalScore, maxScore });
     setShowRedFlagsModal(false);
     setSelectedFlags([]);
   };
@@ -825,7 +829,83 @@ function TakeQuiz() {
           <div className="text-5xl font-bold text-primary-600 mb-2">
             {Math.round(result.score)}%
           </div>
-          <p className="text-gray-500 mb-8">{t('quiz.yourScore')}</p>
+          <p className="text-gray-500 mb-4">{t('quiz.yourScore')}</p>
+
+          {/* Pass/Fail Badge */}
+          {(() => {
+            const passThreshold = 70;
+            const hasPassed = Math.round(result.score) >= passThreshold;
+            return (
+              <div className="mb-8">
+                <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-bold ${
+                  hasPassed
+                    ? 'bg-green-100 text-green-800 border-2 border-green-500'
+                    : 'bg-red-100 text-red-800 border-2 border-red-500'
+                }`}>
+                  {hasPassed ? (
+                    <>
+                      <CheckCircle className="w-6 h-6" />
+                      {i18n.language === 'ar' ? 'نجحت!' : t('quiz.assessmentPassed')}
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-6 h-6" />
+                      {i18n.language === 'ar' ? 'لم تنجح' : t('quiz.assessmentNotPassed')}
+                    </>
+                  )}
+                </div>
+                {!hasPassed && (
+                  <p className="text-sm text-red-700 mt-2">
+                    {i18n.language === 'ar'
+                      ? `تحتاج ${passThreshold}٪ للنجاح. يمكنك إعادة المحاولة.`
+                      : t('quiz.needToPassMsg', { threshold: passThreshold })}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Leaderboard Impact Card */}
+          {(() => {
+            const finalScore = Math.round(result.score);
+            const basePoints = 30;
+            const performanceBonus = Math.floor(finalScore * 0.7);
+            const totalEarned = basePoints + performanceBonus;
+            return (
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-6">
+                <h4 className="font-semibold text-purple-900 mb-4 flex items-center gap-2 justify-center">
+                  <Award className="w-5 h-5" />
+                  {t('quiz.leaderboardImpact')}
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-1">{t('quiz.basePoints')}</p>
+                    <p className="text-2xl font-bold text-green-600">{basePoints}</p>
+                    <p className="text-xs text-gray-500">{t('quiz.forCompletion')}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-1">{t('quiz.performanceBonus')}</p>
+                    <p className="text-2xl font-bold text-blue-600">+{performanceBonus}</p>
+                    <p className="text-xs text-gray-500">{finalScore}% × 0.7</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-1">{t('quiz.totalEarned')}</p>
+                    <p className="text-2xl font-bold text-purple-600">{totalEarned}</p>
+                    <p className="text-xs text-gray-500">{t('quiz.leaderboardPoints')}</p>
+                  </div>
+                </div>
+                <div className="mt-4 text-center">
+                  {finalScore >= 90 ? (
+                    <p className="text-sm text-green-700 font-medium">{t('quiz.excellentPerformance')}</p>
+                  ) : finalScore >= 70 ? (
+                    <p className="text-sm text-blue-700 font-medium">{t('quiz.goodPerformance')}</p>
+                  ) : (
+                    <p className="text-sm text-orange-700 font-medium">{t('quiz.keepImproving')}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Stats grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -880,6 +960,9 @@ function TakeQuiz() {
               const qData = questionFlagsData[q.question_number];
               const qd = questionDetails.find((d) => d.question_number === q.question_number);
               const userFlagIds = answersFlags[q.question_number] || qd?.selected_flags || [];
+              // email_type is NOT in the simple questions list (hidden during quiz to prevent cheating).
+              // Use the detailed result (qd) which is returned only after quiz completion.
+              const emailType = qd?.email_template?.email_type;
               let correctFlags = [], missedFlags = [], incorrectFlags = [], scoringResult = null;
 
               if (userAnswer === 'PHISHING') {
@@ -893,22 +976,24 @@ function TakeQuiz() {
                   const realFlags = detectRealFlagsOnly({
                     email_body: q.email_body,
                     email_sender_email: q.email_sender_email || qd?.email_template?.sender_email,
-                    email_type: q.email_type,
+                    email_type: emailType,
                   }, i18n.language);
                   correctFlags = realFlags.filter((f) => userFlagIds.includes(f.id));
                   missedFlags  = realFlags.filter((f) => !userFlagIds.includes(f.id));
                 }
-              } else if (q.email_type === 'PHISHING') {
+              } else if (emailType === 'PHISHING') {
                 const realFlags = detectRealFlagsOnly({
                   email_body: q.email_body,
                   email_sender_email: q.email_sender_email || qd?.email_template?.sender_email,
-                  email_type: q.email_type,
+                  email_type: emailType,
                 }, i18n.language);
                 missedFlags = realFlags;
               }
 
               return {
-                isCorrect: userAnswer === q.email_type,
+                // Use is_correct from backend result; fall back to local comparison if results not loaded yet
+                isCorrect: qd ? Boolean(qd.is_correct) : (userAnswer === emailType),
+                emailType,
                 userAnswer,
                 correctFlags,
                 missedFlags,
@@ -966,7 +1051,7 @@ function TakeQuiz() {
 
                   {questions.map((q, idx) => {
                     const {
-                      isCorrect, userAnswer, correctFlags, missedFlags,
+                      isCorrect, emailType, userAnswer, correctFlags, missedFlags,
                       incorrectFlags, scoringResult,
                     } = getQuestionBreakdown(q);
                     const isExpanded = expandedQuestion === idx;
@@ -1029,7 +1114,7 @@ function TakeQuiz() {
                         {isExpanded && (
                           <div className="p-4 bg-white border-t border-gray-100 space-y-3">
                             {/* PHISHING answered as PHISHING */}
-                            {userAnswer === 'PHISHING' && q.email_type === 'PHISHING' && (
+                            {userAnswer === 'PHISHING' && emailType === 'PHISHING' && (
                               <>
                                 {scoringResult && (
                                   <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
@@ -1112,7 +1197,7 @@ function TakeQuiz() {
                               </>
                             )}
                             {/* PHISHING answered as LEGITIMATE */}
-                            {userAnswer === 'LEGITIMATE' && q.email_type === 'PHISHING' && (
+                            {userAnswer === 'LEGITIMATE' && emailType === 'PHISHING' && (
                               <div className="space-y-2">
                                 <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
                                   <p className="text-sm font-semibold text-red-800">
@@ -1137,7 +1222,7 @@ function TakeQuiz() {
                               </div>
                             )}
                             {/* LEGITIMATE answered correctly */}
-                            {userAnswer === 'LEGITIMATE' && q.email_type === 'LEGITIMATE' && (
+                            {userAnswer === 'LEGITIMATE' && emailType === 'LEGITIMATE' && (
                               <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
                                 <p className="text-sm text-green-800 flex items-center gap-2">
                                   <Check className="w-4 h-4 flex-shrink-0" />
@@ -1146,7 +1231,7 @@ function TakeQuiz() {
                               </div>
                             )}
                             {/* LEGITIMATE answered as PHISHING (false positive) */}
-                            {userAnswer === 'PHISHING' && q.email_type === 'LEGITIMATE' && (
+                            {userAnswer === 'PHISHING' && emailType === 'LEGITIMATE' && (
                               <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
                                 <p className="text-sm text-red-800 flex items-center gap-2">
                                   <X className="w-4 h-4 flex-shrink-0" />
@@ -1214,7 +1299,9 @@ function TakeQuiz() {
 
   const question = questions[currentIndex];
   const selectedAnswer = answers[question.question_number] || null;
+  const isAnswered = selectedAnswer !== null;
   const answeredCount = Object.keys(answers).length;
+  const allQuestionsAnswered = answeredCount === questions.length;
   const isArabic = isArabicText(
     (question.email_body || '') + (question.email_subject || '')
   );
@@ -1264,6 +1351,29 @@ function TakeQuiz() {
           }}
         />
       </div>
+
+      {/* Assessment Instructions — shown before first answer */}
+      {answeredCount === 0 && !isAnswered && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h4 className="font-semibold text-yellow-800 mb-2">
+            {i18n.language === 'ar' ? '⚠️ تعليمات الاختبار' : `⚠️ ${t('quiz.assessmentTitle')}`}
+          </h4>
+          <ul className="text-sm text-yellow-700 space-y-1">
+            <li>• {i18n.language === 'ar'
+              ? 'لن يتم عرض النتائج حتى إكمال جميع الأسئلة'
+              : t('quiz.resultsAfterCompletion')}
+            </li>
+            <li>• {i18n.language === 'ar'
+              ? 'لا يمكن العودة للأسئلة السابقة'
+              : t('quiz.cannotGoBack')}
+            </li>
+            <li>• {i18n.language === 'ar'
+              ? 'النسبة المطلوبة للنجاح: 70٪'
+              : t('quiz.passThresholdMsg')}
+            </li>
+          </ul>
+        </div>
+      )}
 
       {/* Prompt */}
       <div className="flex items-center gap-2 mb-4">
@@ -1404,32 +1514,59 @@ function TakeQuiz() {
       </div>
 
       {/* Answer Buttons */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <button
-          onClick={handlePhishingClick}
-          className={clsx(
-            'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
-            selectedAnswer === 'PHISHING'
-              ? 'border-danger-500 bg-danger-50 text-danger-700 shadow-md'
-              : 'border-gray-200 text-gray-600 hover:border-danger-300 hover:bg-danger-50/50'
-          )}
-        >
-          <ShieldAlert className="h-6 w-6" />
-          <span className="text-lg">{t('quiz.phishing')}</span>
-        </button>
+      <div className="space-y-4 mb-6">
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={handlePhishingClick}
+            disabled={isAnswered}
+            className={clsx(
+              'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
+              isAnswered
+                ? selectedAnswer === 'PHISHING'
+                  ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md cursor-default'
+                  : 'border-gray-200 bg-gray-50 text-gray-400 opacity-50 cursor-not-allowed'
+                : 'border-gray-200 text-gray-600 hover:border-danger-300 hover:bg-danger-50/50'
+            )}
+          >
+            <ShieldAlert className="h-6 w-6" />
+            <span className="text-lg">{t('quiz.phishing')}</span>
+          </button>
 
-        <button
-          onClick={() => handleAnswer('LEGITIMATE', [])}
-          className={clsx(
-            'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
-            selectedAnswer === 'LEGITIMATE'
-              ? 'border-success-500 bg-success-50 text-success-700 shadow-md'
-              : 'border-gray-200 text-gray-600 hover:border-success-300 hover:bg-success-50/50'
-          )}
-        >
-          <ShieldCheck className="h-6 w-6" />
-          <span className="text-lg">{t('quiz.legitimate')}</span>
-        </button>
+          <button
+            onClick={() => handleAnswer('LEGITIMATE', [])}
+            disabled={isAnswered}
+            className={clsx(
+              'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
+              isAnswered
+                ? selectedAnswer === 'LEGITIMATE'
+                  ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md cursor-default'
+                  : 'border-gray-200 bg-gray-50 text-gray-400 opacity-50 cursor-not-allowed'
+                : 'border-gray-200 text-gray-600 hover:border-success-300 hover:bg-success-50/50'
+            )}
+          >
+            <ShieldCheck className="h-6 w-6" />
+            <span className="text-lg">{t('quiz.legitimate')}</span>
+          </button>
+        </div>
+
+        {/* Answer recorded notification */}
+        {isAnswered && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+            <p className="text-blue-800 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              {i18n.language === 'ar' ? 'تم تسجيل إجابتك' : t('quiz.answerRecorded')}
+            </p>
+            {currentIndex < questions.length - 1 ? (
+              <p className="text-sm text-blue-600 mt-2">
+                {i18n.language === 'ar' ? 'انتقل إلى السؤال التالي' : t('quiz.continueToNext')}
+              </p>
+            ) : (
+              <p className="text-sm text-blue-600 mt-2">
+                {i18n.language === 'ar' ? 'جاهز لإرسال الاختبار' : t('quiz.readyToSubmit')}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Red Flags Modal */}
@@ -1559,21 +1696,16 @@ function TakeQuiz() {
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setCurrentIndex((prev) => prev - 1)}
-          disabled={currentIndex === 0}
-          className="btn-secondary"
-        >
-          <ArrowLeft className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
-          {t('quiz.previousQuestion')}
-        </button>
-
+      {/* Navigation — assessment mode: no back, Next only enabled after answering */}
+      <div className="flex items-center justify-end">
         {currentIndex < questions.length - 1 ? (
           <button
             onClick={() => setCurrentIndex((prev) => prev + 1)}
-            className="btn-primary"
+            disabled={!isAnswered}
+            className={clsx(
+              'btn-primary flex items-center gap-2',
+              !isAnswered && 'opacity-50 cursor-not-allowed'
+            )}
           >
             {t('quiz.nextQuestion')}
             <ArrowRight className="h-5 w-5 ltr:ml-2 rtl:mr-2" />
@@ -1581,13 +1713,16 @@ function TakeQuiz() {
         ) : (
           <button
             onClick={handleSubmitQuiz}
-            disabled={submitting}
-            className="btn-primary"
+            disabled={submitting || !allQuestionsAnswered}
+            className={clsx(
+              'btn-primary flex items-center gap-2',
+              (submitting || !allQuestionsAnswered) && 'opacity-50 cursor-not-allowed'
+            )}
           >
             {submitting ? (
               <>
                 <RefreshCw className="h-5 w-5 animate-spin ltr:mr-2 rtl:ml-2" />
-                Submitting...
+                {i18n.language === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}
               </>
             ) : (
               t('quiz.submitQuiz')
@@ -1596,23 +1731,22 @@ function TakeQuiz() {
         )}
       </div>
 
-      {/* Question dots navigator */}
+      {/* Question progress dots — non-interactive in assessment mode */}
       <div className="flex flex-wrap justify-center gap-2 mt-8">
         {questions.map((q, idx) => (
-          <button
+          <div
             key={q.id}
-            onClick={() => setCurrentIndex(idx)}
             className={clsx(
-              'w-8 h-8 rounded-full text-xs font-medium transition-colors',
+              'w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center',
               idx === currentIndex
                 ? 'bg-primary-600 text-white'
                 : answers[q.question_number]
-                  ? 'bg-success-100 text-success-700'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-500'
             )}
           >
-            {idx + 1}
-          </button>
+            {answers[q.question_number] && idx !== currentIndex ? '✓' : idx + 1}
+          </div>
         ))}
       </div>
     </div>

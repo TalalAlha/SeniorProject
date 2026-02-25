@@ -18,6 +18,7 @@ import logging
 from .services import (
     POINTS_CONFIG,
     award_points,
+    calculate_quiz_points,
     check_and_award_badge,
     check_training_champion_badge,
     check_security_aware_badge,
@@ -48,26 +49,27 @@ def handle_quiz_result(sender, instance, created, **kwargs):
             return
 
         with transaction.atomic():
-            # Award base points for completing quiz
+            # Hybrid scoring: 50 base + (score * 0.5) performance bonus
+            quiz_score = instance.score or 0
+            breakdown = calculate_quiz_points(quiz_score)
+
             award_points(
                 employee=employee,
                 transaction_type='QUIZ_COMPLETED',
-                points=POINTS_CONFIG['QUIZ_COMPLETED'],
+                points=breakdown['total'],
                 source_type='QuizResult',
                 source_id=instance.id,
-                description=f'Completed quiz in {instance.campaign.name if hasattr(instance, "campaign") else "campaign"}'
+                description=f'Completed quiz: {quiz_score}% score → {breakdown["base_points"]} base + {breakdown["performance_bonus"]} bonus = {breakdown["total"]} pts',
+                metadata={
+                    'quiz_score': quiz_score,
+                    'base_points': breakdown['base_points'],
+                    'performance_bonus': breakdown['performance_bonus'],
+                    'total_points': breakdown['total'],
+                }
             )
 
-            # Check for perfect score badge
-            if instance.score == 100:
-                award_points(
-                    employee=employee,
-                    transaction_type='QUIZ_PERFECT_SCORE',
-                    points=POINTS_CONFIG['QUIZ_PERFECT_SCORE'],
-                    source_type='QuizResult',
-                    source_id=instance.id,
-                    description='Perfect quiz score!'
-                )
+            # Check for perfect score badge (badge only, points already in hybrid total)
+            if quiz_score == 100:
                 check_and_award_badge(
                     employee=employee,
                     badge_type='PERFECT_QUIZ_SCORE',
@@ -86,7 +88,7 @@ def handle_quiz_result(sender, instance, created, **kwargs):
                     source_id=instance.id
                 )
 
-        logger.info(f'Gamification: Processed QuizResult for {employee.email}')
+        logger.info(f'Gamification: Processed QuizResult for {employee.email} — {quiz_score}% → {breakdown["total"]} pts')
 
     except Exception as e:
         logger.error(f'Error in gamification quiz signal: {e}')

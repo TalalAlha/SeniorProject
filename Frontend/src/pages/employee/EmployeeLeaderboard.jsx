@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trophy, Medal, Award, RefreshCw, AlertCircle, TrendingUp, Users } from 'lucide-react';
+import { Trophy, Medal, Award, RefreshCw, AlertCircle, TrendingUp, Users, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { gamificationAPI } from '../../api';
@@ -264,6 +264,29 @@ function EmployeeLeaderboard() {
           </div>
         </div>
       )}
+
+      {/* Points Scoring Formula */}
+      <div className="card bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
+        <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Info className="h-4 w-4 text-blue-500" />
+          {t('leaderboard.howQuizPointsWork')}
+        </h2>
+        <div className="grid grid-cols-3 gap-3 text-center text-sm">
+          <div className="bg-white rounded-lg p-3 border border-blue-100">
+            <p className="text-lg font-bold text-green-600">30</p>
+            <p className="text-xs text-gray-500">{t('leaderboard.basePoints')}</p>
+          </div>
+          <div className="bg-white rounded-lg p-3 border border-blue-100">
+            <p className="text-lg font-bold text-blue-600">+{t('leaderboard.scoreMultiplied')}</p>
+            <p className="text-xs text-gray-500">{t('leaderboard.performanceBonus')}</p>
+          </div>
+          <div className="bg-white rounded-lg p-3 border border-blue-100">
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {t('leaderboard.example')}: 80% = 30 + 56 = <span className="font-bold text-purple-600">86</span> {t('leaderboard.points')}
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Full Leaderboard */}
       <div className="card">

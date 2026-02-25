@@ -424,8 +424,12 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         # Store red flags only when the answer is PHISHING
         if question.answer == 'PHISHING':
             question.selected_flags = serializer.validated_data.get('selected_flags', [])
+            question.flag_score = serializer.validated_data.get('flag_score', 0)
+            question.flag_max_score = serializer.validated_data.get('flag_max_score', 0)
         else:
             question.selected_flags = []
+            question.flag_score = 0
+            question.flag_max_score = 0
         question.check_answer()  # Check if answer is correct
         question.save()
 
@@ -490,32 +494,58 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         }, status=status.HTTP_201_CREATED)
 
     def _calculate_quiz_result(self, quiz):
-        """Calculate and create quiz result."""
-        questions = quiz.questions.all()
-        total_questions = questions.count()
-        correct_answers = questions.filter(is_correct=True).count()
+        """Calculate and create quiz result using the hybrid scoring model.
+
+        Scoring per question (0-100):
+        - Phishing question, correct answer: 50 base + up to 50 from red flags accuracy
+        - Phishing question, wrong answer: 0
+        - Legitimate question, correct answer: 100 (50 base + 50, no flags needed)
+        - Legitimate question, wrong answer: 0
+        """
+        questions = list(quiz.questions.select_related('email_template').all())
+        total_questions = len(questions)
+
+        correct_answers = sum(1 for q in questions if q.is_correct)
         incorrect_answers = total_questions - correct_answers
 
-        # Calculate score
-        score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
+        # Hybrid score calculation
+        total_hybrid_score = 0.0
+        for q in questions:
+            base = 50 if q.is_correct else 0
 
-        # Calculate phishing detection metrics
-        phishing_questions = questions.filter(email_template__email_type='PHISHING')
-        phishing_identified = phishing_questions.filter(answer='PHISHING', is_correct=True).count()
-        phishing_missed = phishing_questions.filter(answer='LEGITIMATE', is_correct=False).count()
+            if q.email_template.email_type == 'PHISHING':
+                if q.answer == 'PHISHING' and q.flag_max_score > 0:
+                    # Score red flags contribution (0-50)
+                    rf_ratio = min(1.0, max(0.0, q.flag_score / q.flag_max_score))
+                    bonus = rf_ratio * 50
+                elif q.answer == 'PHISHING':
+                    # No detectable flags in this email — give full bonus
+                    bonus = 50
+                else:
+                    # Answered LEGITIMATE (wrong) — no red flag bonus
+                    bonus = 0
+            else:
+                # Legitimate question: full bonus if answered correctly, else 0
+                bonus = 50 if q.is_correct else 0
 
-        # Calculate false positives (legitimate emails marked as phishing)
-        legitimate_questions = questions.filter(email_template__email_type='LEGITIMATE')
-        false_positives = legitimate_questions.filter(answer='PHISHING', is_correct=False).count()
+            total_hybrid_score += base + bonus
 
-        # Calculate time metrics
+        score = total_hybrid_score / total_questions if total_questions > 0 else 0
+
+        # Phishing detection metrics (unchanged)
+        phishing_questions = [q for q in questions if q.email_template.email_type == 'PHISHING']
+        phishing_identified = sum(1 for q in phishing_questions if q.answer == 'PHISHING' and q.is_correct)
+        phishing_missed = sum(1 for q in phishing_questions if q.answer == 'LEGITIMATE' and not q.is_correct)
+
+        legitimate_questions = [q for q in questions if q.email_template.email_type == 'LEGITIMATE']
+        false_positives = sum(1 for q in legitimate_questions if q.answer == 'PHISHING' and not q.is_correct)
+
+        # Time metrics
         total_time = sum(q.time_spent_seconds or 0 for q in questions)
         avg_time = total_time / total_questions if total_questions > 0 else 0
 
-        # Determine risk level
         risk_level = self._determine_risk_level(score, phishing_missed, false_positives)
 
-        # Create result
         result = QuizResult.objects.create(
             quiz=quiz,
             employee=quiz.employee,
@@ -523,7 +553,7 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
             total_questions=total_questions,
             correct_answers=correct_answers,
             incorrect_answers=incorrect_answers,
-            score=score,
+            score=round(score, 2),
             phishing_emails_identified=phishing_identified,
             phishing_emails_missed=phishing_missed,
             false_positives=false_positives,

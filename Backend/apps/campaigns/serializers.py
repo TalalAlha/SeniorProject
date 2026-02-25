@@ -217,3 +217,15 @@ class AnswerQuestionSerializer(serializers.Serializer):
         default=list,
         help_text='List of red flag IDs selected by the employee (only for PHISHING answers)'
     )
+    flag_score = serializers.IntegerField(
+        min_value=0,
+        required=False,
+        default=0,
+        help_text='Points earned from red flag selections (frontend-computed)'
+    )
+    flag_max_score = serializers.IntegerField(
+        min_value=0,
+        required=False,
+        default=0,
+        help_text='Maximum possible red flag points for this question (frontend-computed)'
+    )

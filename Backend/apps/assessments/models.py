@@ -233,6 +233,18 @@ class QuizQuestion(models.Model):
         help_text=_('List of red flag IDs the employee selected when answering PHISHING')
     )
 
+    # Red flag scoring (set by frontend when employee submits a PHISHING answer)
+    flag_score = models.IntegerField(
+        _('flag score'),
+        default=0,
+        help_text=_('Points earned from red flag selections (correct flags minus penalties)')
+    )
+    flag_max_score = models.IntegerField(
+        _('flag max score'),
+        default=0,
+        help_text=_('Maximum possible points from red flags for this question')
+    )
+
     # Timestamps
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)

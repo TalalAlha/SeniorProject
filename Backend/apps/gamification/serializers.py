@@ -109,7 +109,7 @@ class PointsTransactionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'employee', 'employee_name', 'transaction_type', 'transaction_type_display',
             'points', 'balance_after', 'description', 'description_ar',
-            'source_type', 'source_id', 'created_at'
+            'source_type', 'source_id', 'metadata', 'created_at'
         ]
 
 

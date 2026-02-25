@@ -288,7 +288,26 @@
     "keyTakeaways": "Key Takeaways",
     "takeaway1": "Always verify the sender domain for misspellings or lookalike characters",
     "takeaway2": "Be alert to urgency, threats, and pressure tactics — they're designed to make you act without thinking",
-    "takeaway3": "Hover over links before clicking to check whether the real URL matches the displayed text"
+    "takeaway3": "Hover over links before clicking to check whether the real URL matches the displayed text",
+    "answerRecorded": "Answer recorded",
+    "continueToNext": "Continue to next question →",
+    "readyToSubmit": "Ready to submit quiz",
+    "assessmentTitle": "Assessment Instructions",
+    "resultsAfterCompletion": "Results will not be shown until all questions are completed",
+    "cannotGoBack": "You cannot go back to previous questions",
+    "passThresholdMsg": "Pass threshold: 70%",
+    "assessmentPassed": "Passed!",
+    "assessmentNotPassed": "Not Passed",
+    "needToPassMsg": "You need {{threshold}}% to pass. You can retake the quiz.",
+    "leaderboardImpact": "Leaderboard Impact",
+    "basePoints": "Base Points",
+    "performanceBonus": "Performance Bonus",
+    "forCompletion": "for completion",
+    "totalEarned": "Total Earned",
+    "leaderboardPoints": "leaderboard points",
+    "excellentPerformance": "Excellent performance! You earned maximum points!",
+    "goodPerformance": "Good job! Keep up the great work!",
+    "keepImproving": "Keep practicing to earn more points!"
   },
   "training": {
     "title": "Training",
@@ -619,6 +638,14 @@
       "firstNamePlaceholder": "First name",
       "lastNamePlaceholder": "Last name"
     }
+  },
+  "leaderboard": {
+    "howQuizPointsWork": "How Quiz Points Work",
+    "basePoints": "Base Points",
+    "performanceBonus": "Performance Bonus",
+    "scoreMultiplied": "Score × 0.7",
+    "example": "Example",
+    "points": "points"
   },
   "errors": {
     "required": "This field is required",

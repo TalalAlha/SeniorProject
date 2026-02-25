@@ -20,13 +20,41 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 POINTS_CONFIG = {
-    'QUIZ_COMPLETED': 10,
-    'QUIZ_PERFECT_SCORE': 50,
     'PHISHING_REPORTED': 25,
     'TRAINING_COMPLETED': 15,
     'TRAINING_PASSED': 30,
     'FIRST_ATTEMPT_PASS': 20,
 }
+
+# Hybrid quiz scoring constants
+QUIZ_BASE_POINTS = 30
+QUIZ_PERFORMANCE_MULTIPLIER = 0.7
+
+
+def calculate_quiz_points(quiz_score):
+    """
+    Calculate leaderboard points using the Hybrid Model (30/70 split).
+
+    Formula: base_points + int(quiz_score * multiplier)
+    Examples:
+      100% -> 30 + 70 = 100 points
+       80% -> 30 + 56 =  86 points
+       60% -> 30 + 42 =  72 points
+
+    Args:
+        quiz_score: Percentage score (0–100)
+
+    Returns:
+        dict with keys: total, base_points, performance_bonus
+    """
+    base_points = QUIZ_BASE_POINTS
+    performance_bonus = int(quiz_score * QUIZ_PERFORMANCE_MULTIPLIER)
+    return {
+        'total': base_points + performance_bonus,
+        'base_points': base_points,
+        'performance_bonus': performance_bonus,
+        'quiz_score': quiz_score,
+    }
 
 
 # ============================================================================
@@ -136,7 +164,7 @@ def update_streak(emp_points):
 
 
 @transaction.atomic
-def award_points(employee, transaction_type, points, source_type='', source_id=None, description=''):
+def award_points(employee, transaction_type, points, source_type='', source_id=None, description='', metadata=None):
     """
     Award points to an employee and update aggregates.
 
@@ -147,6 +175,7 @@ def award_points(employee, transaction_type, points, source_type='', source_id=N
         source_type: Model name that triggered this
         source_id: ID of the source object
         description: Human-readable description
+        metadata: Optional dict for additional context (e.g. quiz score breakdown)
 
     Returns:
         PointsTransaction instance or None
@@ -173,7 +202,8 @@ def award_points(employee, transaction_type, points, source_type='', source_id=N
         balance_after=new_balance,
         source_type=source_type,
         source_id=source_id,
-        description=description
+        description=description,
+        metadata=metadata or {}
     )
 
     # Update aggregates using F() for atomicity

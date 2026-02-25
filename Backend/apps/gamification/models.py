@@ -278,6 +278,14 @@ class PointsTransaction(models.Model):
         blank=True
     )
 
+    # Breakdown metadata (e.g. quiz score, base_points, performance_bonus)
+    metadata = models.JSONField(
+        _('metadata'),
+        default=dict,
+        blank=True,
+        help_text=_('Stores breakdown details, e.g. {"quiz_score": 80, "base_points": 50, "performance_bonus": 40}')
+    )
+
     # Source tracking
     source_type = models.CharField(
         _('source type'),
