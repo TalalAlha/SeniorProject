@@ -36,7 +36,7 @@ import {
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
-import { companiesAPI } from '../../api';
+import { companiesAPI, employeesAPI } from '../../api';
 import { useAuth } from '../../contexts';
 
 // Role configuration
@@ -207,43 +207,38 @@ function StatCard({ icon: Icon, label, value, color = 'primary', trend, subtext 
   );
 }
 
-// Invite Employees Modal
-function InviteEmployeesModal({ isOpen, onClose, companyId, onSuccess }) {
+// Invite Employee Modal — sends a token-based invitation email
+function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
-  const [emailText, setEmailText] = useState('');
+  const [formData, setFormData] = useState({ email: '', first_name: '', last_name: '', department: '' });
+  const [errors, setErrors] = useState({});
 
-  const emails = useMemo(() => {
-    return emailText
-      .split(/[\n,;]/)
-      .map(e => e.trim().toLowerCase())
-      .filter(e => e.length > 0);
-  }, [emailText]);
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ email: '', first_name: '', last_name: '', department: '' });
+      setErrors({});
+    }
+  }, [isOpen]);
 
-  const validEmails = useMemo(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emails.filter(e => emailRegex.test(e));
-  }, [emails]);
-
-  const invalidEmails = useMemo(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emails.filter(e => !emailRegex.test(e));
-  }, [emails]);
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async () => {
-    if (validEmails.length === 0) {
-      toast.error('Please enter at least one valid email');
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
-      await companiesAPI.inviteUsers(companyId, validEmails);
-      toast.success(`Invited ${validEmails.length} employee(s)`);
-      setEmailText('');
+      await employeesAPI.invite(formData);
+      toast.success(`Invitation sent to ${formData.email}`);
       onSuccess();
       onClose();
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to send invitations';
+      const message = err.response?.data?.error || 'Failed to send invitation';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -251,49 +246,60 @@ function InviteEmployeesModal({ isOpen, onClose, companyId, onSuccess }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Invite Employees" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Invite Employee" size="md">
       <div className="space-y-4">
         <div>
-          <label className="label">Email Addresses</label>
-          <textarea
-            value={emailText}
-            onChange={(e) => setEmailText(e.target.value)}
-            className="input min-h-[150px] font-mono text-sm"
-            placeholder="Enter email addresses (one per line)&#10;employee1@company.com&#10;employee2@company.com"
+          <label className="label">Email Address *</label>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className={clsx('input', errors.email && 'border-danger-500')}
+            placeholder="employee@company.com"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Separate emails with new lines, commas, or semicolons
-          </p>
+          {errors.email && <p className="text-xs text-danger-600 mt-1">{errors.email}</p>}
         </div>
 
-        {/* Email Validation Summary */}
-        {emails.length > 0 && (
-          <div className="p-3 bg-gray-50 rounded-lg space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Check className="h-4 w-4 text-success-600" />
-              <span className="text-success-700">{validEmails.length} valid email(s)</span>
-            </div>
-            {invalidEmails.length > 0 && (
-              <div className="flex items-start gap-2 text-sm">
-                <AlertCircle className="h-4 w-4 text-danger-600 mt-0.5" />
-                <div>
-                  <span className="text-danger-700">{invalidEmails.length} invalid email(s):</span>
-                  <div className="text-xs text-danger-600 mt-1">
-                    {invalidEmails.slice(0, 3).join(', ')}
-                    {invalidEmails.length > 3 && ` +${invalidEmails.length - 3} more`}
-                  </div>
-                </div>
-              </div>
-            )}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="label">First Name</label>
+            <input
+              type="text"
+              value={formData.first_name}
+              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+              className="input"
+              placeholder="John"
+            />
           </div>
-        )}
+          <div>
+            <label className="label">Last Name</label>
+            <input
+              type="text"
+              value={formData.last_name}
+              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+              className="input"
+              placeholder="Doe"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="label">Department</label>
+          <input
+            type="text"
+            value={formData.department}
+            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+            className="input"
+            placeholder="e.g. Engineering, Marketing"
+          />
+        </div>
 
         <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
           <h4 className="text-sm font-medium text-primary-800 mb-2">What happens next?</h4>
           <ul className="text-sm text-primary-700 space-y-1 list-disc list-inside">
-            <li>Employees receive invitation emails</li>
-            <li>They create accounts with the provided links</li>
-            <li>They're automatically added to your company</li>
+            <li>Employee receives an invitation email</li>
+            <li>They click the link to set their password</li>
+            <li>Their account is automatically activated</li>
           </ul>
         </div>
 
@@ -301,11 +307,11 @@ function InviteEmployeesModal({ isOpen, onClose, companyId, onSuccess }) {
           <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
           <button
             onClick={handleSubmit}
-            disabled={loading || validEmails.length === 0}
+            disabled={loading}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Send {validEmails.length} Invitation{validEmails.length !== 1 ? 's' : ''}
+            Send Invitation
           </button>
         </div>
       </div>
@@ -1368,7 +1374,6 @@ function CompanyEmployees() {
       <InviteEmployeesModal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
-        companyId={companyId}
         onSuccess={fetchEmployees}
       />
 

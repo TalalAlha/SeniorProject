@@ -13,6 +13,8 @@ import TopicTraining from '../pages/public/TopicTraining';
 import PublicQuiz from '../pages/public/PublicQuiz';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
+import AcceptInvitation from '../pages/auth/AcceptInvitation';
 import CommunityPortal from '../pages/public/CommunityPortal';
 import UnauthorizedPage from '../pages/public/UnauthorizedPage';
 import NotFoundPage from '../pages/public/NotFoundPage';
@@ -80,6 +82,14 @@ const router = createBrowserRouter([
         <RegisterPage />
       </PublicRoute>
     ),
+  },
+  {
+    path: '/verify-email/:token',
+    element: <VerifyEmailPage />,
+  },
+  {
+    path: '/accept-invitation/:token',
+    element: <AcceptInvitation />,
   },
 
   // Employee routes

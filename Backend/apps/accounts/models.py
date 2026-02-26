@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -23,6 +24,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('role', 'SUPER_ADMIN')
+        extra_fields.setdefault('is_verified', True)  # superusers skip email verification
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Superuser must have is_staff=True.'))
@@ -80,10 +82,31 @@ class User(AbstractBaseUser, PermissionsMixin):
         default='en'
     )
 
+    INVITATION_STATUS_CHOICES = [
+        ('PENDING', _('Pending')),
+        ('ACCEPTED', _('Accepted')),
+        ('EXPIRED', _('Expired')),
+    ]
+
     # Status fields
     is_active = models.BooleanField(_('active'), default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_verified = models.BooleanField(_('verified'), default=False)
+
+    # Email verification token
+    verification_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    verification_token_created = models.DateTimeField(default=timezone.now)
+
+    # Invitation fields (set when admin invites an employee by email)
+    invitation_token = models.UUIDField(null=True, blank=True, unique=True)
+    invitation_sent_at = models.DateTimeField(null=True, blank=True)
+    invitation_accepted_at = models.DateTimeField(null=True, blank=True)
+    invitation_status = models.CharField(
+        max_length=20,
+        choices=INVITATION_STATUS_CHOICES,
+        null=True,
+        blank=True,
+    )
 
     # Timestamps
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)

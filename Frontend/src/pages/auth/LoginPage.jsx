@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Eye, EyeOff, Globe, Loader2 } from 'lucide-react';
+import { Shield, Eye, EyeOff, Globe, Loader2, Mail, RefreshCw } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../../contexts';
+import { authAPI } from '../../api';
 import { changeLanguage } from '../../i18n';
 
 function LoginPage() {
@@ -19,6 +21,8 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -50,6 +54,7 @@ function LoginPage() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setEmailNotVerified(false);
     setLoading(true);
     const result = await login(formData.email, formData.password);
     setLoading(false);
@@ -57,6 +62,25 @@ function LoginPage() {
     if (result.success) {
       const from = location.state?.from?.pathname || getDashboardPath();
       navigate(from, { replace: true });
+    } else {
+      // Check if the error is specifically "email not verified"
+      const errorData = result.error?.response?.data ?? {};
+      if (errorData.email_not_verified || (result.error && String(result.error).includes('verify'))) {
+        setEmailNotVerified(true);
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!formData.email) return;
+    setResendLoading(true);
+    try {
+      await authAPI.resendVerification(formData.email);
+      toast.success('Verification email sent! Check your inbox.');
+    } catch {
+      toast.error('Failed to send. Please try again.');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -175,6 +199,32 @@ function LoginPage() {
                 </a>
               </div>
             </div>
+
+            {/* Email-not-verified banner */}
+            {emailNotVerified && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+                <div className="flex gap-3">
+                  <Mail className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">
+                      Email not verified
+                    </p>
+                    <p className="text-sm text-amber-700 mt-1">
+                      Please verify your email before logging in.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                      className="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-800 hover:text-amber-900 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${resendLoading ? 'animate-spin' : ''}`} />
+                      {resendLoading ? 'Sending…' : 'Resend verification email'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Submit Button */}
             <button

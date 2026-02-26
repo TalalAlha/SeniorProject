@@ -36,6 +36,7 @@ urlpatterns = [
 
     # API Endpoints
     path('api/v1/auth/', include('apps.accounts.urls')),
+    path('api/v1/employees/', include('apps.accounts.urls_employees')),
     path('api/v1/companies/', include('apps.companies.urls')),
     path('api/v1/campaigns/', include('apps.campaigns.urls')),
     path('api/v1/assessments/', include('apps.assessments.urls')),

@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import { Shield, Eye, EyeOff } from 'lucide-react';
+import { Shield, Eye, EyeOff, Mail, RefreshCw, CheckCircle } from 'lucide-react';
+import { authAPI } from '../../api';
 import axios from 'axios';
 
 const RegisterPage = () => {
@@ -26,6 +27,11 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Post-registration verification state
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -72,11 +78,66 @@ const RegisterPage = () => {
     const result = await register(registerData);
     setLoading(false);
 
-    // Only navigate on success - AuthContext already shows the toast
     if (result.success) {
-      navigate('/login');
+      setRegisteredEmail(result.email || formData.email);
+      setVerificationSent(true);
     }
   };
+
+  const handleResend = async () => {
+    setResendLoading(true);
+    try {
+      await authAPI.resendVerification(registeredEmail);
+      toast.success('Verification email resent! Check your inbox.');
+    } catch {
+      toast.error('Failed to resend. Please try again.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  // ── Verification success screen ──────────────────────────────────────────
+  if (verificationSent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
+          {/* Icon */}
+          <div className="mx-auto w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
+            <CheckCircle className="w-10 h-10 text-green-500" />
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox!</h2>
+          <p className="text-gray-500 mb-4">We sent a verification link to:</p>
+          <p className="font-semibold text-blue-600 text-lg mb-6">{registeredEmail}</p>
+
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 text-sm text-blue-800 text-left">
+            <p>
+              Click the link in the email to activate your account. The link expires in
+              <strong> 24 hours</strong>.
+            </p>
+            <p className="mt-2 text-blue-600">
+              Can't find it? Check your <strong>spam / junk</strong> folder.
+            </p>
+          </div>
+
+          <button
+            onClick={handleResend}
+            disabled={resendLoading}
+            className="flex items-center justify-center gap-2 mx-auto text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${resendLoading ? 'animate-spin' : ''}`} />
+            {resendLoading ? 'Sending…' : 'Resend verification email'}
+          </button>
+
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <Link to="/login" className="text-sm text-gray-500 hover:text-gray-700">
+              Back to sign in
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

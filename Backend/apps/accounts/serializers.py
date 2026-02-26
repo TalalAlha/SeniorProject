@@ -86,12 +86,21 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        """Validate and return user data along with tokens."""
+        """Validate credentials, check email verification, and return tokens."""
         data = super().validate(attrs)
 
-        # Add user information to response
-        data['user'] = UserSerializer(self.user).data
+        # Block login for users who have not verified their email.
+        # Staff/superusers bypass this check.
+        if not self.user.is_verified and not self.user.is_staff:
+            raise serializers.ValidationError({
+                'detail': (
+                    'Please verify your email before logging in. '
+                    'Check your inbox for the verification link.'
+                ),
+                'email_not_verified': True,
+            })
 
+        data['user'] = UserSerializer(self.user).data
         return data
 
 

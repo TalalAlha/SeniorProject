@@ -9,6 +9,8 @@ export const authAPI = {
   getProfile: () => api.get('/auth/profile/'),
   updateProfile: (data) => api.patch('/auth/profile/', data),
   changePassword: (data) => api.post('/auth/change-password/', data),
+  verifyEmail: (token) => api.post(`/auth/verify-email/${token}/`),
+  resendVerification: (email) => api.post('/auth/resend-verification/', { email }),
 };
 
 // ============== Companies ==============
@@ -39,6 +41,8 @@ export const employeesAPI = {
   update: (id, data) => api.patch(`/employees/${id}/`, data),
   delete: (id) => api.delete(`/employees/${id}/`),
   invite: (data) => api.post('/employees/invite/', data),
+  getInvitationDetails: (token) => api.get(`/employees/invite/${token}/`),
+  acceptInvitation: (token, data) => api.post(`/employees/invite/${token}/accept/`, data),
   getRiskScore: (id) => api.get(`/employees/${id}/risk-score/`),
   bulkImport: (formData) => api.post('/employees/bulk-import/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }

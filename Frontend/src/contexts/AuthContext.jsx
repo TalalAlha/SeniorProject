@@ -85,21 +85,19 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { access, refresh, user: newUser } = response.data;
+      const { access, refresh, user: newUser, verification_sent, email } = response.data;
 
-      // Store tokens if auto-login after registration
       if (access) {
+        // Legacy path: auto-login if backend ever returns tokens
         setTokens(access, refresh);
         localStorage.setItem('user', JSON.stringify(newUser));
         setUser(newUser);
         setIsAuthenticated(true);
       }
 
-      toast.success(t('auth.registerSuccess'));
-
-      return { success: true, user: newUser };
+      // RegisterPage renders its own success UI — no toast here
+      return { success: true, user: newUser, verification_sent, email };
     } catch (error) {
-      // Parse error message from various response formats
       let message = t('errors.serverError');
       const errorData = error.response?.data;
 
@@ -109,7 +107,6 @@ export function AuthProvider({ children }) {
         } else if (errorData.message) {
           message = errorData.message;
         } else if (typeof errorData === 'object') {
-          // Handle field validation errors like { "email": ["This field is required"] }
           const fieldErrors = Object.entries(errorData)
             .filter(([key, value]) => Array.isArray(value) && value.length > 0)
             .map(([key, value]) => `${key}: ${value.join(', ')}`)
