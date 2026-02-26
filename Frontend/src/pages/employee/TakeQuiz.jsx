@@ -779,6 +779,18 @@ function TakeQuiz() {
       const res = await campaignsAPI.submitQuiz(id);
       setCompleted(true);
       setResult(res.data.result);
+
+      // Fetch question details so getQuestionBreakdown has is_correct + email_type
+      // from the backend rather than relying on local state (which lacks email_type).
+      try {
+        const resultRes = await campaignsAPI.getQuizResult(id);
+        if (resultRes.data.question_details) {
+          setQuestionDetails(resultRes.data.question_details);
+        }
+      } catch {
+        // Non-fatal: results panel will fall back to local answer comparison
+      }
+
       toast.success(t('quiz.quizComplete'));
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to submit quiz');
