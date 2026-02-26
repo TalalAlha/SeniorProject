@@ -15,6 +15,8 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 import AcceptInvitation from '../pages/auth/AcceptInvitation';
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
 import CommunityPortal from '../pages/public/CommunityPortal';
 import UnauthorizedPage from '../pages/public/UnauthorizedPage';
 import NotFoundPage from '../pages/public/NotFoundPage';
@@ -90,6 +92,18 @@ const router = createBrowserRouter([
   {
     path: '/accept-invitation/:token',
     element: <AcceptInvitation />,
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <PublicRoute>
+        <ForgotPassword />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/reset-password/:token',
+    element: <ResetPassword />,
   },
 
   // Employee routes

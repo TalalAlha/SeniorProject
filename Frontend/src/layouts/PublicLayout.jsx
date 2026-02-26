@@ -254,7 +254,7 @@ function PublicLayout() {
               <ul className="space-y-2">
                 <li className="text-gray-400 text-sm flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  info@phishaware.sa
+                  phishaware.team@gmail.com
                 </li>
               </ul>
               <div className="mt-4">

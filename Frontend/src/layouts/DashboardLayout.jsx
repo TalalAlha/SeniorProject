@@ -82,7 +82,7 @@ function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:start-0 bg-white border-e border-gray-200">
         {/* Logo */}
@@ -207,7 +207,7 @@ function DashboardLayout() {
       )}
 
       {/* Main Content */}
-      <div className="lg:ps-64 flex flex-col flex-1">
+      <div className="lg:ps-64 flex flex-col flex-1 min-w-0">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
           {/* Mobile menu button */}

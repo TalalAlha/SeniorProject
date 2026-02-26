@@ -9,6 +9,8 @@ from .views import (
     ChangePasswordView,
     VerifyEmailView,
     ResendVerificationView,
+    request_password_reset,
+    reset_password,
 )
 
 app_name = 'accounts'
@@ -23,6 +25,10 @@ urlpatterns = [
     # Email Verification
     path('verify-email/<uuid:token>/', VerifyEmailView.as_view(), name='verify_email'),
     path('resend-verification/', ResendVerificationView.as_view(), name='resend_verification'),
+
+    # Password Reset
+    path('password-reset/', request_password_reset, name='request_password_reset'),
+    path('password-reset/<uuid:token>/', reset_password, name='reset_password'),
 
     # User Profile
     path('profile/', UserProfileView.as_view(), name='profile'),

@@ -11,6 +11,8 @@ export const authAPI = {
   changePassword: (data) => api.post('/auth/change-password/', data),
   verifyEmail: (token) => api.post(`/auth/verify-email/${token}/`),
   resendVerification: (email) => api.post('/auth/resend-verification/', { email }),
+  requestPasswordReset: (email) => api.post('/auth/password-reset/', { email }),
+  resetPassword: (token, password) => api.post(`/auth/password-reset/${token}/`, { password }),
 };
 
 // ============== Companies ==============

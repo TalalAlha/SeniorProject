@@ -21,6 +21,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [authError, setAuthError] = useState(null);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
@@ -30,10 +31,11 @@ function LoginPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    // Clear error when field changes
+    // Clear errors when field changes
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
+    if (authError) setAuthError(null);
   };
 
   const validateForm = () => {
@@ -55,6 +57,7 @@ function LoginPage() {
     if (!validateForm()) return;
 
     setEmailNotVerified(false);
+    setAuthError(null);
     setLoading(true);
     const result = await login(formData.email, formData.password);
     setLoading(false);
@@ -67,6 +70,8 @@ function LoginPage() {
       const errorData = result.error?.response?.data ?? {};
       if (errorData.email_not_verified || (result.error && String(result.error).includes('verify'))) {
         setEmailNotVerified(true);
+      } else {
+        setAuthError('Invalid email or password. Please try again.');
       }
     }
   };
@@ -194,11 +199,18 @@ function LoginPage() {
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+                <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
                   {t('auth.forgotPassword')}
-                </a>
+                </Link>
               </div>
             </div>
+
+            {/* Invalid credentials error */}
+            {authError && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                <p className="text-sm font-medium text-red-800">{authError}</p>
+              </div>
+            )}
 
             {/* Email-not-verified banner */}
             {emailNotVerified && (

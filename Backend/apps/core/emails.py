@@ -175,7 +175,7 @@ def send_password_reset_email(user, reset_token):
         bool: True if the email was accepted by SendGrid.
     """
     frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-    reset_url = f'{frontend_url}/reset-password?token={reset_token}'
+    reset_url = f'{frontend_url}/reset-password/{reset_token}'
 
     return _send_html_email(
         subject='Reset your PhishAware password',

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Plus,
   Search,
   Users,
   Mail,
@@ -11,7 +10,6 @@ import {
   Edit2,
   Trash2,
   Eye,
-  Upload,
   Download,
   Filter,
   ChevronDown,
@@ -20,13 +18,11 @@ import {
   ChevronRight,
   Loader2,
   X,
-  Check,
   AlertCircle,
   RefreshCw,
   Shield,
   Award,
   BookOpen,
-  FileText,
   UserCheck,
   UserX,
   Clock,
@@ -319,136 +315,6 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
   );
 }
 
-// Add Employee Modal
-function AddEmployeeModal({ isOpen, onClose, companyId, onSuccess }) {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    first_name: '',
-    last_name: '',
-    role: 'EMPLOYEE',
-  });
-  const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (isOpen) {
-      setFormData({ email: '', first_name: '', last_name: '', role: 'EMPLOYEE' });
-      setErrors({});
-    }
-  }, [isOpen]);
-
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
-    if (!formData.first_name.trim()) newErrors.first_name = 'First name is required';
-    if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-
-    setLoading(true);
-    try {
-      await companiesAPI.addUser(companyId, formData);
-      toast.success('Employee added successfully');
-      onSuccess();
-      onClose();
-    } catch (err) {
-      const message = err.response?.data?.detail || err.response?.data?.email?.[0] || 'Failed to add employee';
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Employee" size="md">
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="label">First Name *</label>
-            <input
-              type="text"
-              value={formData.first_name}
-              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-              className={clsx('input', errors.first_name && 'border-danger-500')}
-              placeholder="John"
-            />
-            {errors.first_name && <p className="text-xs text-danger-600 mt-1">{errors.first_name}</p>}
-          </div>
-          <div>
-            <label className="label">Last Name *</label>
-            <input
-              type="text"
-              value={formData.last_name}
-              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-              className={clsx('input', errors.last_name && 'border-danger-500')}
-              placeholder="Doe"
-            />
-            {errors.last_name && <p className="text-xs text-danger-600 mt-1">{errors.last_name}</p>}
-          </div>
-        </div>
-
-        <div>
-          <label className="label">Email *</label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className={clsx('input', errors.email && 'border-danger-500')}
-            placeholder="john.doe@company.com"
-          />
-          {errors.email && <p className="text-xs text-danger-600 mt-1">{errors.email}</p>}
-        </div>
-
-        <div>
-          <label className="label">Role</label>
-          <div className="flex gap-4">
-            {Object.entries(ROLE_CONFIG).map(([key, config]) => (
-              <label
-                key={key}
-                className={clsx(
-                  'flex-1 flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors',
-                  formData.role === key
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                )}
-              >
-                <input
-                  type="radio"
-                  name="role"
-                  value={key}
-                  checked={formData.role === key}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="sr-only"
-                />
-                <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', config.color)}>
-                  {config.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="btn-primary flex-1 flex items-center justify-center gap-2"
-          >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Add Employee
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
 // Edit Employee Modal
 function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -565,175 +431,6 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             Save Changes
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// Import CSV Modal
-function ImportCSVModal({ isOpen, onClose, companyId, onSuccess }) {
-  const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setFile(null);
-    }
-  }, [isOpen]);
-
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === 'text/csv' || droppedFile.name.endsWith('.csv')) {
-        setFile(droppedFile);
-      } else {
-        toast.error('Please upload a CSV file');
-      }
-    }
-  };
-
-  const handleFileSelect = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      toast.error('Please select a file');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      await companiesAPI.importCSV(companyId, formData);
-      toast.success('Employees imported successfully');
-      onSuccess();
-      onClose();
-    } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to import employees';
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const downloadTemplate = () => {
-    const template = 'email,first_name,last_name,role\njohn@example.com,John,Doe,EMPLOYEE\njane@example.com,Jane,Smith,COMPANY_ADMIN';
-    const blob = new Blob([template], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'employee_import_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  };
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Import Employees from CSV" size="md">
-      <div className="space-y-4">
-        {/* Download Template */}
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <FileText className="h-4 w-4" />
-            <span>Need a template?</span>
-          </div>
-          <button onClick={downloadTemplate} className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-            Download CSV Template
-          </button>
-        </div>
-
-        {/* File Upload */}
-        <div
-          className={clsx(
-            'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
-            dragActive ? 'border-primary-500 bg-primary-50' : 'border-gray-300',
-            file && 'border-success-500 bg-success-50'
-          )}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          {file ? (
-            <div className="flex items-center justify-center gap-3">
-              <Check className="h-8 w-8 text-success-600" />
-              <div className="text-left">
-                <p className="font-medium text-gray-900">{file.name}</p>
-                <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
-              </div>
-              <button
-                onClick={() => setFile(null)}
-                className="p-1 hover:bg-gray-200 rounded"
-              >
-                <X className="h-4 w-4 text-gray-500" />
-              </button>
-            </div>
-          ) : (
-            <>
-              <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600 mb-2">
-                Drag and drop your CSV file here, or
-              </p>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                browse to upload
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </>
-          )}
-        </div>
-
-        {/* CSV Format Info */}
-        <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <h4 className="text-sm font-medium text-primary-800 mb-2">CSV Format</h4>
-          <p className="text-sm text-primary-700 mb-2">Your CSV should have these columns:</p>
-          <code className="text-xs bg-white px-2 py-1 rounded border">
-            email, first_name, last_name, role
-          </code>
-          <p className="text-xs text-primary-600 mt-2">
-            Role can be: EMPLOYEE or COMPANY_ADMIN
-          </p>
-        </div>
-
-        <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-          <button
-            onClick={handleUpload}
-            disabled={loading || !file}
-            className="btn-primary flex-1 flex items-center justify-center gap-2"
-          >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Import Employees
           </button>
         </div>
       </div>
@@ -878,8 +575,6 @@ function CompanyEmployees() {
 
   // Modal states
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [viewingEmployee, setViewingEmployee] = useState(null);
   const [deactivatingEmployee, setDeactivatingEmployee] = useState(null);
@@ -1089,22 +784,17 @@ function CompanyEmployees() {
           <p className="text-gray-600 mt-1">Manage your organization's employees</p>
         </div>
         <div className="flex gap-3">
-          <DropdownMenu
-            trigger={
-              <div className="btn-secondary flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add
-                <ChevronDown className="h-4 w-4" />
-              </div>
-            }
-            items={[
-              { icon: UserPlus, label: 'Invite Employees', onClick: () => setShowInviteModal(true) },
-              { icon: Plus, label: 'Add Single Employee', onClick: () => setShowAddModal(true) },
-              { icon: Upload, label: 'Import from CSV', onClick: () => setShowImportModal(true) },
-              { divider: true },
-              { icon: Download, label: 'Export to CSV', onClick: handleExport },
-            ]}
-          />
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="btn-primary flex items-center gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Invite Employee
+          </button>
+          <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </button>
           <button onClick={fetchEmployees} className="btn-secondary flex items-center gap-2">
             <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
             Refresh
@@ -1377,24 +1067,10 @@ function CompanyEmployees() {
         onSuccess={fetchEmployees}
       />
 
-      <AddEmployeeModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        companyId={companyId}
-        onSuccess={fetchEmployees}
-      />
-
       <EditEmployeeModal
         isOpen={!!editingEmployee}
         onClose={() => setEditingEmployee(null)}
         employee={editingEmployee}
-        companyId={companyId}
-        onSuccess={fetchEmployees}
-      />
-
-      <ImportCSVModal
-        isOpen={showImportModal}
-        onClose={() => setShowImportModal(false)}
         companyId={companyId}
         onSuccess={fetchEmployees}
       />

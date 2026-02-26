@@ -10,7 +10,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.core.emails import send_verification_email, send_employee_invitation
+from rest_framework.decorators import api_view, permission_classes as fn_permission_classes
+
+from apps.core.emails import send_verification_email, send_employee_invitation, send_password_reset_email
 
 from .serializers import (
     UserSerializer,
@@ -385,3 +387,72 @@ class AcceptInvitationView(views.APIView):
             'message': 'Invitation accepted! You can now log in.',
             'email': user.email,
         }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@fn_permission_classes([AllowAny])
+def request_password_reset(request):
+    """Send a password reset email (always returns 200 to avoid email enumeration)."""
+    email = request.data.get('email', '').strip().lower()
+
+    if not email:
+        return Response(
+            {'error': 'Email is required.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        user = User.objects.get(email=email)
+        user.verification_token = uuid.uuid4()
+        user.verification_token_created = timezone.now()
+        user.save(update_fields=['verification_token', 'verification_token_created'])
+
+        try:
+            send_password_reset_email(user, str(user.verification_token))
+        except Exception as exc:
+            logger.error('Failed to send password reset email to %s: %s', email, exc)
+
+    except User.DoesNotExist:
+        pass  # Don't reveal whether the address is registered
+
+    return Response(
+        {'message': 'If this email is registered, a password reset link has been sent.'},
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(['POST'])
+@fn_permission_classes([AllowAny])
+def reset_password(request, token):
+    """Reset user password using a previously issued token."""
+    try:
+        user = User.objects.get(verification_token=token)
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Invalid reset token.'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if user.verification_token_created:
+        expiry = user.verification_token_created + timedelta(hours=24)
+        if timezone.now() > expiry:
+            return Response(
+                {'error': 'Reset link has expired. Please request a new one.', 'expired': True},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    new_password = request.data.get('password', '')
+    if not new_password:
+        return Response(
+            {'error': 'Password is required.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user.set_password(new_password)
+    user.verification_token = uuid.uuid4()  # Invalidate the used token
+    user.save(update_fields=['password', 'verification_token'])
+
+    return Response(
+        {'message': 'Password reset successfully! You can now log in.'},
+        status=status.HTTP_200_OK,
+    )
