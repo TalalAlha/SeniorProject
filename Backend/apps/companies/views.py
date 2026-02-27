@@ -308,7 +308,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        users = User.objects.filter(company=company)
+        users = User.objects.filter(company=company).exclude(invitation_status='PENDING')
 
         # Apply filters
         role = request.query_params.get('role')

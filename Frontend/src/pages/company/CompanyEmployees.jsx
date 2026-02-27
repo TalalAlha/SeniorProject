@@ -26,6 +26,7 @@ import {
   UserCheck,
   UserX,
   Clock,
+  Send,
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
@@ -573,11 +574,19 @@ function CompanyEmployees() {
   const [selectedEmployees, setSelectedEmployees] = useState(new Set());
   const itemsPerPage = 10;
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState('employees');
+
+  // Pending invitations state
+  const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
+
   // Modal states
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [viewingEmployee, setViewingEmployee] = useState(null);
   const [deactivatingEmployee, setDeactivatingEmployee] = useState(null);
+  const [cancellingInvitation, setCancellingInvitation] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchEmployees = useCallback(async () => {
@@ -602,9 +611,46 @@ function CompanyEmployees() {
     }
   }, [companyId, statusFilter, searchQuery]);
 
+  const fetchPendingInvitations = useCallback(async () => {
+    setPendingLoading(true);
+    try {
+      const response = await employeesAPI.getPendingInvitations();
+      setPendingInvitations(response.data?.results || []);
+    } catch (err) {
+      console.error('Failed to load pending invitations:', err);
+    } finally {
+      setPendingLoading(false);
+    }
+  }, []);
+
+  const handleResendInvitation = async (userId, email) => {
+    try {
+      await employeesAPI.resendInvitation(userId);
+      toast.success(`Invitation resent to ${email}`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to resend invitation');
+    }
+  };
+
+  const handleCancelInvitation = async () => {
+    if (!cancellingInvitation) return;
+    setActionLoading(true);
+    try {
+      await employeesAPI.cancelInvitation(cancellingInvitation.id);
+      toast.success('Invitation cancelled');
+      setCancellingInvitation(null);
+      fetchPendingInvitations();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to cancel invitation');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
-  }, [fetchEmployees]);
+    fetchPendingInvitations();
+  }, [fetchEmployees, fetchPendingInvitations]);
 
   // Stats calculations
   const stats = useMemo(() => {
@@ -802,6 +848,42 @@ function CompanyEmployees() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('employees')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
+            activeTab === 'employees'
+              ? 'border-primary-600 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          )}
+        >
+          <Users className="h-4 w-4" />
+          Active Employees
+          <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+            {employees.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('pending')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
+            activeTab === 'pending'
+              ? 'border-warning-500 text-warning-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          )}
+        >
+          <Clock className="h-4 w-4" />
+          Pending Invitations
+          {pendingInvitations.length > 0 && (
+            <span className="bg-warning-100 text-warning-700 text-xs font-medium px-2 py-0.5 rounded-full">
+              {pendingInvitations.length}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -831,7 +913,8 @@ function CompanyEmployees() {
         />
       </div>
 
-      {/* Filters */}
+      {/* ── Active Employees Tab ── */}
+      {activeTab === 'employees' && <>
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -1059,12 +1142,85 @@ function CompanyEmployees() {
           </div>
         )}
       </div>
+      </>}
+
+      {/* ── Pending Invitations Tab ── */}
+      {activeTab === 'pending' && (
+        <div className="card overflow-hidden">
+          {pendingLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+            </div>
+          ) : pendingInvitations.length === 0 ? (
+            <div className="p-12 text-center">
+              <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No pending invitations</h3>
+              <p className="text-gray-500">All invitations have been accepted or cancelled.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Invited</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {pendingInvitations.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center text-warning-600 font-medium text-sm">
+                            {(inv.first_name?.[0] || inv.email[0]).toUpperCase()}
+                          </div>
+                          <span className="font-medium text-gray-900">
+                            {(inv.first_name || inv.last_name)
+                              ? `${inv.first_name} ${inv.last_name}`.trim()
+                              : '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{inv.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {inv.invitation_sent_at
+                          ? formatDistanceToNow(new Date(inv.invitation_sent_at), { addSuffix: true })
+                          : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleResendInvitation(inv.id, inv.email)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            Resend
+                          </button>
+                          <button
+                            onClick={() => setCancellingInvitation(inv)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-danger-600 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                            Cancel
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Modals */}
       <InviteEmployeesModal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
-        onSuccess={fetchEmployees}
+        onSuccess={() => { fetchEmployees(); fetchPendingInvitations(); }}
       />
 
       <EditEmployeeModal
@@ -1093,6 +1249,17 @@ function CompanyEmployees() {
         }
         confirmText={deactivatingEmployee?.is_active ? 'Deactivate' : 'Activate'}
         danger={deactivatingEmployee?.is_active}
+        loading={actionLoading}
+      />
+
+      <ConfirmDialog
+        isOpen={!!cancellingInvitation}
+        onClose={() => setCancellingInvitation(null)}
+        onConfirm={handleCancelInvitation}
+        title="Cancel Invitation"
+        message={`Cancel the invitation for ${cancellingInvitation?.email}? The invitation link will stop working and this cannot be undone.`}
+        confirmText="Cancel Invitation"
+        danger
         loading={actionLoading}
       />
     </div>

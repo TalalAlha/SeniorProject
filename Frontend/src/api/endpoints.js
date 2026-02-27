@@ -49,6 +49,9 @@ export const employeesAPI = {
   bulkImport: (formData) => api.post('/employees/bulk-import/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
+  getPendingInvitations: () => api.get('/employees/pending/'),
+  resendInvitation: (userId) => api.post(`/employees/${userId}/resend/`),
+  cancelInvitation: (userId) => api.delete(`/employees/${userId}/cancel/`),
 };
 
 // ============== Campaigns ==============

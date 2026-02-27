@@ -389,6 +389,116 @@ class AcceptInvitationView(views.APIView):
         }, status=status.HTTP_200_OK)
 
 
+class ListPendingInvitationsView(views.APIView):
+    """Return all PENDING invitations for the admin's company."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_company_admin:
+            return Response(
+                {'error': 'Only company admins can view pending invitations.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        company = request.user.company
+        if not company:
+            return Response(
+                {'error': 'You are not associated with any company.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        pending = User.objects.filter(
+            company=company,
+            invitation_status='PENDING',
+        ).order_by('-invitation_sent_at')
+
+        data = [
+            {
+                'id': u.id,
+                'email': u.email,
+                'first_name': u.first_name,
+                'last_name': u.last_name,
+                'invitation_sent_at': u.invitation_sent_at,
+            }
+            for u in pending
+        ]
+        return Response({'results': data})
+
+
+class ResendInvitationView(views.APIView):
+    """Regenerate the invitation token and resend the invitation email."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        if not request.user.is_company_admin:
+            return Response(
+                {'error': 'Only company admins can resend invitations.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            user = User.objects.get(
+                id=user_id,
+                company=request.user.company,
+                invitation_status='PENDING',
+            )
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Pending invitation not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user.invitation_token = uuid.uuid4()
+        user.invitation_sent_at = timezone.now()
+        user.save(update_fields=['invitation_token', 'invitation_sent_at'])
+
+        try:
+            send_employee_invitation(
+                inviting_admin=request.user,
+                employee_email=user.email,
+                employee_name=f'{user.first_name} {user.last_name}'.strip() or user.email,
+                company=request.user.company,
+                invitation_token=str(user.invitation_token),
+            )
+        except Exception as exc:
+            logger.error('Failed to resend invitation to %s: %s', user.email, exc)
+            return Response(
+                {'error': 'Failed to send email. Please try again.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response({'message': 'Invitation resent successfully.'})
+
+
+class CancelInvitationView(views.APIView):
+    """Cancel a pending invitation and delete the placeholder user account."""
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, user_id):
+        if not request.user.is_company_admin:
+            return Response(
+                {'error': 'Only company admins can cancel invitations.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            user = User.objects.get(
+                id=user_id,
+                company=request.user.company,
+                invitation_status='PENDING',
+            )
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Pending invitation not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(['POST'])
 @fn_permission_classes([AllowAny])
 def request_password_reset(request):
