@@ -783,7 +783,6 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
   const StatusIcon = status.icon;
 
   const clickRate = simulation.click_rate != null ? simulation.click_rate / 100 : (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
-  const openRate = simulation.open_rate != null ? simulation.open_rate / 100 : (simulation.total_sent > 0 ? simulation.total_opened / simulation.total_sent : 0);
 
   const canMarkSent = ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status);
   const canDownload = ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status);
@@ -834,19 +833,12 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <StatCard
               icon={Send}
               label="Total Sent"
               value={simulation.total_sent || 0}
               color="primary"
-            />
-            <StatCard
-              icon={Eye}
-              label="Opened"
-              value={simulation.total_opened || 0}
-              color="primary"
-              subtext={`${(openRate * 100).toFixed(1)}% rate`}
             />
             <StatCard
               icon={MousePointer}
@@ -903,9 +895,6 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                           Status
                         </th>
                         <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Opened
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Clicked
                         </th>
                         <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -918,7 +907,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {employeeResults.map((result) => {
-                        const lastActivity = result.clicked_at || result.first_opened_at || result.sent_at;
+                        const lastActivity = result.clicked_at || result.sent_at;
                         const riskColors = {
                           LOW: 'bg-success-50 text-success-700',
                           MEDIUM: 'bg-warning-50 text-warning-700',
@@ -948,13 +937,6 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                               )}>
                                 {result.email_status}
                               </span>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {result.was_opened ? (
-                                <CheckCircle className="h-5 w-5 text-success-600 mx-auto" />
-                              ) : (
-                                <span className="text-gray-300">-</span>
-                              )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {result.was_clicked ? (
@@ -1049,14 +1031,10 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="flex items-center gap-2 text-sm">
           <Send className="h-4 w-4 text-gray-400" />
           <span className="text-gray-600">{simulation.total_sent || 0} sent</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Eye className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">{simulation.total_opened || 0} opened</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <MousePointer className={clsx(

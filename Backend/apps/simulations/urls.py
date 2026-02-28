@@ -4,7 +4,6 @@ from .views import (
     SimulationTemplateViewSet,
     SimulationCampaignViewSet,
     EmailSimulationViewSet,
-    track_pixel_view,
     track_link_click_view,
     landing_page_view,
     report_phishing_view,
@@ -29,14 +28,6 @@ urlpatterns = [
 
     # Tracking endpoints (no authentication - public access via unique tokens)
     # These are embedded in simulation emails and must be publicly accessible
-
-    # Tracking pixel - embedded as <img> in emails to detect opens
-    # GET /api/v1/simulations/track/<tracking_token>/
-    path(
-        'track/<uuid:tracking_token>/',
-        track_pixel_view,
-        name='tracking-pixel'
-    ),
 
     # Phishing link - the lure link that employees might click
     # GET /api/v1/simulations/link/<link_token>/

@@ -38,18 +38,6 @@ from apps.core.permissions import (
     IsSameCompany
 )
 
-# 1x1 transparent PNG pixel (68 bytes)
-TRACKING_PIXEL = bytes([
-    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-    0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-    0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
-    0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-    0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
-    0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-    0x42, 0x60, 0x82
-])
 
 
 # =============================================================================
@@ -352,15 +340,11 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
 
         # Build tracking URLs using the backend's public URL
         base_url = getattr(settings, 'SITE_URL', getattr(settings, 'BACKEND_URL', 'http://localhost:8000'))
-        tracking_pixel_url = f"{base_url}/api/v1/simulations/track/{email_simulation.tracking_token}/"
         phishing_link_url = f"{base_url}/api/v1/simulations/link/{email_simulation.link_token}/"
-
-        # Create tracking pixel HTML
-        tracking_pixel_html = f'<img src="{tracking_pixel_url}" width="1" height="1" alt="" style="display:none;" />'
 
         # Replace placeholders in email body
         body_html = template.body_html
-        body_html = body_html.replace('{TRACKING_PIXEL}', tracking_pixel_html)
+        body_html = body_html.replace('{TRACKING_PIXEL}', '')  # Pixel removed – strip placeholder
         body_html = body_html.replace('{LURE_LINK}', phishing_link_url)
         body_html = body_html.replace('{EMPLOYEE_NAME}', email_simulation.employee.get_full_name())
         body_html = body_html.replace('{EMPLOYEE_EMAIL}', email_simulation.employee.email)
@@ -431,15 +415,8 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         else:
             total_targeted = campaign.target_employees.count()
 
-        # Calculate timing metrics
+        # All email simulations for this campaign
         simulations = campaign.email_simulations.all()
-
-        # Average time to open (for those who opened)
-        opened_sims = simulations.filter(was_opened=True, sent_at__isnull=False, first_opened_at__isnull=False)
-        avg_time_to_open = None
-        if opened_sims.exists():
-            time_diffs = [(s.first_opened_at - s.sent_at).total_seconds() for s in opened_sims]
-            avg_time_to_open = sum(time_diffs) / len(time_diffs)
 
         # Average time to click (for those who clicked)
         clicked_sims = simulations.filter(was_clicked=True, sent_at__isnull=False, clicked_at__isnull=False)
@@ -448,10 +425,15 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
             time_diffs = [(s.clicked_at - s.sent_at).total_seconds() for s in clicked_sims]
             avg_time_to_click = sum(time_diffs) / len(time_diffs)
 
-        # Calculate delivery rate
-        delivery_rate = 0
-        if campaign.total_sent > 0:
-            delivery_rate = (campaign.total_delivered / campaign.total_sent) * 100
+        effective_sent = campaign._effective_sent_count
+
+        # No-action = received but never clicked and never reported (cautious — positive)
+        no_action_count = simulations.exclude(
+            status__in=['PENDING', 'FAILED']
+        ).filter(was_clicked=False, was_reported=False).count()
+        no_action_rate = (no_action_count / effective_sent * 100) if effective_sent > 0 else 0
+        # Success = reported + no-action (both represent good security awareness)
+        success_rate = ((campaign.total_reported + no_action_count) / effective_sent * 100) if effective_sent > 0 else 0
 
         analytics_data = {
             'campaign_id': campaign.id,
@@ -464,21 +446,17 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
             # Counts
             'total_targeted': total_targeted,
             'total_sent': campaign.total_sent,
-            'total_delivered': campaign.total_delivered,
-            'total_opened': campaign.total_opened,
             'total_clicked': campaign.total_clicked,
             'total_reported': campaign.total_reported,
-            'total_credentials_entered': campaign.total_credentials_entered,
+            'no_action_count': no_action_count,
 
             # Rates
-            'delivery_rate': round(delivery_rate, 2),
-            'open_rate': round(campaign.open_rate, 2),
             'click_rate': round(campaign.click_rate, 2),
             'report_rate': round(campaign.report_rate, 2),
-            'compromise_rate': round(campaign.compromise_rate, 2),
+            'no_action_rate': round(no_action_rate, 2),
+            'success_rate': round(success_rate, 2),
 
             # Timing
-            'avg_time_to_open': avg_time_to_open,
             'avg_time_to_click': avg_time_to_click,
 
             # Dates
@@ -508,16 +486,11 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
                 risk_level = 'CRITICAL'
             elif sim.was_clicked:
                 risk_level = 'HIGH'
-            elif sim.was_opened and not sim.was_reported:
-                risk_level = 'MEDIUM'
             elif sim.was_reported:
                 risk_level = 'LOW'
 
-            # Calculate time metrics
-            time_to_open = None
+            # Calculate time to click
             time_to_click = None
-            if sim.sent_at and sim.first_opened_at:
-                time_to_open = (sim.first_opened_at - sim.sent_at).total_seconds()
             if sim.sent_at and sim.clicked_at:
                 time_to_click = (sim.clicked_at - sim.sent_at).total_seconds()
 
@@ -526,16 +499,13 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
                 'employee_name': sim.employee.get_full_name(),
                 'employee_email': sim.employee.email,
                 'email_status': sim.status,
-                'was_opened': sim.was_opened,
                 'was_clicked': sim.was_clicked,
                 'was_reported': sim.was_reported,
                 'credentials_entered': sim.credentials_entered,
                 'is_compromised': sim.is_compromised,
                 'sent_at': sim.sent_at,
-                'first_opened_at': sim.first_opened_at,
                 'clicked_at': sim.clicked_at,
                 'reported_at': sim.reported_at,
-                'time_to_open_seconds': time_to_open,
                 'time_to_click_seconds': time_to_click,
                 'risk_level': risk_level
             })
@@ -840,50 +810,6 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def track_pixel_view(request, tracking_token):
-    """
-    Serve 1x1 transparent tracking pixel and log EMAIL_OPENED event.
-
-    This endpoint is embedded in simulation emails as an image.
-    When the email is opened, the image loads and triggers this view.
-    """
-    try:
-        email_sim = EmailSimulation.objects.select_related(
-            'campaign', 'employee'
-        ).get(tracking_token=tracking_token)
-    except EmailSimulation.DoesNotExist:
-        # Return pixel anyway to avoid revealing that the token is invalid
-        return HttpResponse(TRACKING_PIXEL, content_type='image/png')
-
-    # Only skip if campaign was explicitly cancelled; always track otherwise
-    # (covers DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED, PAUSED)
-    if email_sim.campaign.status == 'CANCELLED':
-        return HttpResponse(TRACKING_PIXEL, content_type='image/png')
-
-    # Check if tracking is enabled
-    if not email_sim.campaign.track_email_opens:
-        return HttpResponse(TRACKING_PIXEL, content_type='image/png')
-
-    # Avoid duplicate open events (idempotent)
-    if not email_sim.was_opened:
-        TrackingEvent.objects.create(
-            email_simulation=email_sim,
-            campaign=email_sim.campaign,
-            employee=email_sim.employee,
-            event_type='EMAIL_OPENED',
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
-        )
-
-    # Set cache headers to prevent caching
-    response = HttpResponse(TRACKING_PIXEL, content_type='image/png')
-    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
-    return response
 
 
 @api_view(['GET'])

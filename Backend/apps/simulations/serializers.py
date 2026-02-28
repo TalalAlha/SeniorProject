@@ -440,21 +440,17 @@ class CampaignAnalyticsSerializer(serializers.Serializer):
     # Counts
     total_targeted = serializers.IntegerField()
     total_sent = serializers.IntegerField()
-    total_delivered = serializers.IntegerField()
-    total_opened = serializers.IntegerField()
     total_clicked = serializers.IntegerField()
     total_reported = serializers.IntegerField()
-    total_credentials_entered = serializers.IntegerField()
+    no_action_count = serializers.IntegerField()
 
     # Rates
-    delivery_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
-    open_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
     click_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
     report_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
-    compromise_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
+    no_action_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
+    success_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
 
     # Timing
-    avg_time_to_open = serializers.FloatField(allow_null=True)
     avg_time_to_click = serializers.FloatField(allow_null=True)
 
     # Dates
@@ -472,7 +468,6 @@ class EmployeeSimulationResultSerializer(serializers.Serializer):
 
     # Status
     email_status = serializers.CharField()
-    was_opened = serializers.BooleanField()
     was_clicked = serializers.BooleanField()
     was_reported = serializers.BooleanField()
     credentials_entered = serializers.BooleanField()
@@ -480,10 +475,8 @@ class EmployeeSimulationResultSerializer(serializers.Serializer):
 
     # Timing
     sent_at = serializers.DateTimeField(allow_null=True)
-    first_opened_at = serializers.DateTimeField(allow_null=True)
     clicked_at = serializers.DateTimeField(allow_null=True)
     reported_at = serializers.DateTimeField(allow_null=True)
-    time_to_open_seconds = serializers.FloatField(allow_null=True)
     time_to_click_seconds = serializers.FloatField(allow_null=True)
 
     # Risk assessment

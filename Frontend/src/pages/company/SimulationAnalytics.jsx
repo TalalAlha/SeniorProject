@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Mail,
-  Eye,
   MousePointer,
   Flag,
   Clock,
@@ -49,19 +48,16 @@ function StatCard({ icon: Icon, label, value, sub, iconBg = 'bg-blue-100', iconC
 }
 
 const STATUS_CONFIG = {
-  PENDING:  { label: 'Pending',  color: 'bg-gray-100 text-gray-600',   Icon: Clock },
-  SENT:     { label: 'Sent',     color: 'bg-blue-100 text-blue-700',   Icon: Mail },
-  DELIVERED:{ label: 'Delivered',color: 'bg-blue-100 text-blue-700',   Icon: Mail },
-  was_opened_only:  { label: 'Opened',   color: 'bg-yellow-100 text-yellow-700', Icon: Eye },
-  was_clicked:  { label: 'Clicked',  color: 'bg-red-100 text-red-700',    Icon: MousePointer },
-  was_reported: { label: 'Reported', color: 'bg-green-100 text-green-700', Icon: Flag },
+  PENDING:      { label: 'Pending',           color: 'bg-gray-100 text-gray-600',   Icon: Clock },
+  SENT:         { label: 'No Action (Safe)',  color: 'bg-blue-100 text-blue-700',   Icon: ShieldCheck },
+  was_clicked:  { label: 'Clicked',           color: 'bg-red-100 text-red-700',     Icon: MousePointer },
+  was_reported: { label: 'Reported',          color: 'bg-green-100 text-green-700', Icon: Flag },
 };
 
 function employeeStatusKey(r) {
   if (r.was_reported) return 'was_reported';
   if (r.was_clicked)  return 'was_clicked';
-  if (r.was_opened)   return 'was_opened_only';
-  return r.email_status || 'SENT';
+  return 'SENT'; // received but took no action — positive
 }
 
 function RiskBadge({ level }) {
@@ -208,7 +204,7 @@ export default function SimulationAnalytics() {
       )}
 
       {/* ── Stat Cards ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={Mail}
           label="Emails Sent"
@@ -223,6 +219,14 @@ export default function SimulationAnalytics() {
           sub={`${a.click_rate ?? 0}% click rate`}
           iconBg="bg-red-100" iconColor="text-red-600"
           barValue={a.click_rate} barColor="bg-red-400"
+        />
+        <StatCard
+          icon={ShieldCheck}
+          label="No Action (Safe)"
+          value={a.no_action_count ?? 0}
+          sub={`${a.no_action_rate ?? 0}% cautious rate`}
+          iconBg="bg-blue-100" iconColor="text-blue-600"
+          barValue={a.no_action_rate} barColor="bg-blue-400"
         />
       </div>
 
@@ -341,8 +345,8 @@ export default function SimulationAnalytics() {
           </h3>
           <div className="space-y-4">
             {[
-              { label: 'Click Rate',  value: a.click_rate,      color: 'bg-red-400',    note: 'Clicked the phishing link' },
-              { label: 'Compromise',  value: a.compromise_rate, color: 'bg-orange-400', note: 'Clicked or entered credentials' },
+              { label: 'Click Rate',     value: a.click_rate,     color: 'bg-red-400',  note: 'Clicked the phishing link – lower is better' },
+              { label: 'No Action Rate', value: a.no_action_rate, color: 'bg-blue-400', note: 'Took no action – higher is better' },
             ].map(({ label, value, color, note }) => (
               <div key={label}>
                 <div className="flex justify-between text-sm text-gray-600 mb-1">
