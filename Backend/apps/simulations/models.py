@@ -632,4 +632,16 @@ class TrackingEvent(models.Model):
             if not campaign.sent_at:
                 campaign.sent_at = self.created_at
 
+        # Auto-complete: mark COMPLETED when every sent email has a final action
+        # (employee clicked the link or actively reported it as phishing).
+        if campaign.status == 'IN_PROGRESS' and campaign.total_sent > 0:
+            sent_sims = campaign.email_simulations.exclude(status__in=['PENDING', 'FAILED'])
+            total = sent_sims.count()
+            resolved = sent_sims.filter(
+                models.Q(was_clicked=True) | models.Q(was_reported=True)
+            ).count()
+            if total > 0 and resolved >= total:
+                campaign.status = 'COMPLETED'
+                campaign.completed_at = self.created_at
+
         campaign.save()

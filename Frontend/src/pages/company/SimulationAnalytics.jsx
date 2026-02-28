@@ -149,11 +149,9 @@ export default function SimulationAnalytics() {
 
   // ── Filter rows ──────────────────────────────────────────────────────────
   const filtered = r.filter((row) => {
-    if (filter === 'ALL')      return true;
-    if (filter === 'CLICKED')  return row.was_clicked;
-    if (filter === 'OPENED')   return row.was_opened && !row.was_clicked;
-    if (filter === 'REPORTED') return row.was_reported;
-    if (filter === 'SAFE')     return !row.was_opened && !row.was_clicked;
+    if (filter === 'ALL')     return true;
+    if (filter === 'CLICKED') return row.was_clicked;
+    if (filter === 'SAFE')    return !row.was_clicked;
     return true;
   });
 
@@ -210,7 +208,7 @@ export default function SimulationAnalytics() {
       )}
 
       {/* ── Stat Cards ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           icon={Mail}
           label="Emails Sent"
@@ -219,28 +217,12 @@ export default function SimulationAnalytics() {
           iconBg="bg-blue-100" iconColor="text-blue-600"
         />
         <StatCard
-          icon={Eye}
-          label="Opened"
-          value={a.total_opened ?? 0}
-          sub={`${a.open_rate ?? 0}% open rate`}
-          iconBg="bg-yellow-100" iconColor="text-yellow-600"
-          barValue={a.open_rate} barColor="bg-yellow-400"
-        />
-        <StatCard
           icon={MousePointer}
           label="Clicked (Failed)"
           value={a.total_clicked ?? 0}
           sub={`${a.click_rate ?? 0}% click rate`}
           iconBg="bg-red-100" iconColor="text-red-600"
           barValue={a.click_rate} barColor="bg-red-400"
-        />
-        <StatCard
-          icon={Flag}
-          label="Reported (Passed)"
-          value={a.total_reported ?? 0}
-          sub={`${a.report_rate ?? 0}% report rate`}
-          iconBg="bg-green-100" iconColor="text-green-600"
-          barValue={a.report_rate} barColor="bg-green-400"
         />
       </div>
 
@@ -255,7 +237,7 @@ export default function SimulationAnalytics() {
 
           {/* Filter tabs */}
           <div className="flex gap-2 flex-wrap text-sm">
-            {['ALL', 'CLICKED', 'OPENED', 'REPORTED', 'SAFE'].map((f) => (
+            {['ALL', 'CLICKED', 'SAFE'].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -359,10 +341,8 @@ export default function SimulationAnalytics() {
           </h3>
           <div className="space-y-4">
             {[
-              { label: 'Open Rate',    value: a.open_rate,    color: 'bg-yellow-400', note: 'Opened the email' },
-              { label: 'Click Rate',   value: a.click_rate,   color: 'bg-red-400',    note: 'Clicked the phishing link' },
-              { label: 'Report Rate',  value: a.report_rate,  color: 'bg-green-400',  note: 'Reported as phishing' },
-              { label: 'Compromise',   value: a.compromise_rate, color: 'bg-orange-400', note: 'Clicked or entered credentials' },
+              { label: 'Click Rate',  value: a.click_rate,      color: 'bg-red-400',    note: 'Clicked the phishing link' },
+              { label: 'Compromise',  value: a.compromise_rate, color: 'bg-orange-400', note: 'Clicked or entered credentials' },
             ].map(({ label, value, color, note }) => (
               <div key={label}>
                 <div className="flex justify-between text-sm text-gray-600 mb-1">

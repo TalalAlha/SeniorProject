@@ -858,23 +858,25 @@ def track_pixel_view(request, tracking_token):
         # Return pixel anyway to avoid revealing that the token is invalid
         return HttpResponse(TRACKING_PIXEL, content_type='image/png')
 
-    # Check if campaign is still active
-    if email_sim.campaign.status not in ['IN_PROGRESS', 'SCHEDULED']:
+    # Only skip if campaign was explicitly cancelled; always track otherwise
+    # (covers DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED, PAUSED)
+    if email_sim.campaign.status == 'CANCELLED':
         return HttpResponse(TRACKING_PIXEL, content_type='image/png')
 
     # Check if tracking is enabled
     if not email_sim.campaign.track_email_opens:
         return HttpResponse(TRACKING_PIXEL, content_type='image/png')
 
-    # Log the tracking event
-    TrackingEvent.objects.create(
-        email_simulation=email_sim,
-        campaign=email_sim.campaign,
-        employee=email_sim.employee,
-        event_type='EMAIL_OPENED',
-        ip_address=get_client_ip(request),
-        user_agent=request.META.get('HTTP_USER_AGENT', '')
-    )
+    # Avoid duplicate open events (idempotent)
+    if not email_sim.was_opened:
+        TrackingEvent.objects.create(
+            email_simulation=email_sim,
+            campaign=email_sim.campaign,
+            employee=email_sim.employee,
+            event_type='EMAIL_OPENED',
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
 
     # Set cache headers to prevent caching
     response = HttpResponse(TRACKING_PIXEL, content_type='image/png')

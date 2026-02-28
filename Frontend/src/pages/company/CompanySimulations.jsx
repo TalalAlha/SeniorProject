@@ -997,14 +997,17 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
 }
 
 // Simulation Card Component
-function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }) {
+function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, onAnalytics }) {
   const status = STATUS_CONFIG[simulation.status] || STATUS_CONFIG.DRAFT;
   const StatusIcon = status.icon;
 
   const clickRate = simulation.click_rate != null ? simulation.click_rate / 100 : (simulation.total_sent > 0 ? simulation.total_clicked / simulation.total_sent : 0);
 
+  const canViewAnalytics = ['IN_PROGRESS', 'COMPLETED', 'PAUSED'].includes(simulation.status);
+
   const menuItems = [
     { icon: Eye, label: 'View Details', onClick: () => onView(simulation) },
+    canViewAnalytics && { icon: BarChart3, label: 'View Analytics', onClick: () => onAnalytics(simulation.id) },
     { icon: Download, label: 'Download Package', onClick: () => onDownload(simulation.id) },
     ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status) && {
       icon: Send,
@@ -1083,8 +1086,24 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
         </div>
       )}
 
-      {simulation.created_at && (
+      {/* View Analytics CTA for active/completed simulations */}
+      {canViewAnalytics && (
+        <button
+          onClick={() => onAnalytics(simulation.id)}
+          className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-sm py-2"
+        >
+          <BarChart3 className="h-4 w-4" />
+          View Analytics
+        </button>
+      )}
+
+      {simulation.created_at && !canViewAnalytics && (
         <p className="text-xs text-gray-400 mt-4">
+          Created {formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
+        </p>
+      )}
+      {simulation.created_at && canViewAnalytics && (
+        <p className="text-xs text-gray-400 mt-2">
           Created {formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
         </p>
       )}
@@ -1094,6 +1113,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent }
 
 // Main Component
 function CompanySimulations() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [simulations, setSimulations] = useState([]);
@@ -1294,6 +1314,7 @@ function CompanySimulations() {
               onDelete={(id) => setDeletingSimulation(simulations.find(s => s.id === id))}
               onDownload={handleDownload}
               onMarkSent={handleMarkSent}
+              onAnalytics={(id) => navigate(`/company/simulations/${id}/analytics`)}
             />
           ))}
         </div>
