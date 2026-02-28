@@ -383,7 +383,13 @@
     "review": "مراجعة",
     "retry": "إعادة المحاولة",
     "continue": "متابعة",
-    "start": "ابدأ"
+    "start": "ابدأ",
+    "viewDetails": "عرض التفاصيل",
+    "description": "الوصف",
+    "learningObjectives": "أهداف التعلم",
+    "topicsCovered": "المواضيع المغطاة",
+    "assignedEmployees": "الموظفون المعينون",
+    "noEmployeesAssigned": "لم يتم تعيين موظفين بعد"
   },
   "community": {
     "title": "بوابة المجتمع",

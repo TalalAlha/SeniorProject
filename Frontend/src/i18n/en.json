@@ -383,7 +383,13 @@
     "review": "Review",
     "retry": "Retry",
     "continue": "Continue",
-    "start": "Start"
+    "start": "Start",
+    "viewDetails": "View Details",
+    "description": "Description",
+    "learningObjectives": "Learning Objectives",
+    "topicsCovered": "Topics Covered",
+    "assignedEmployees": "Assigned Employees",
+    "noEmployeesAssigned": "No employees assigned yet"
   },
   "community": {
     "title": "Community Portal",

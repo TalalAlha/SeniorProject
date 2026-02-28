@@ -17,11 +17,16 @@ import {
   Eye,
   X,
   Loader2,
+  Mail,
+  Smartphone,
+  Phone,
+  Check,
+  UserPlus,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format } from 'date-fns';
-import { analyticsAPI, campaignsAPI, simulationsAPI } from '../../api';
+import { analyticsAPI, campaignsAPI, simulationsAPI, trainingAPI } from '../../api';
 import {
   LineChart,
   Line,
@@ -217,41 +222,193 @@ function Pagination({ page, totalPages, onPageChange }) {
   );
 }
 
-// Modal for assigning training
-function AssignTrainingModal({ isOpen, onClose, employee }) {
+// Category config for module icons
+const MODULE_CATEGORY_CONFIG = {
+  EMAIL_SECURITY: { icon: Mail, iconColor: 'text-blue-600', bgColor: 'bg-blue-50', label: 'Email Security' },
+  MOBILE_SECURITY: { icon: Smartphone, iconColor: 'text-green-600', bgColor: 'bg-green-50', label: 'Mobile Security' },
+  SOCIAL_ENGINEERING: { icon: Phone, iconColor: 'text-purple-600', bgColor: 'bg-purple-50', label: 'Social Engineering' },
+};
+
+// Modal for assigning training — fetches real modules, multi-select, calls bulkAssign
+function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
+  const [modules, setModules] = useState([]);
+  const [modulesLoading, setModulesLoading] = useState(false);
+  const [selectedModules, setSelectedModules] = useState(new Set());
+  const [assigning, setAssigning] = useState(false);
+
+  // Load modules whenever modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    setSelectedModules(new Set());
+    setModulesLoading(true);
+    trainingAPI.getModules()
+      .then((res) => setModules(res.data?.results || res.data || []))
+      .catch(() => toast.error('Failed to load training modules'))
+      .finally(() => setModulesLoading(false));
+  }, [isOpen]);
+
+  const toggleModule = (id) => {
+    setSelectedModules((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleAssign = async () => {
+    if (selectedModules.size === 0) {
+      toast.error('Please select at least one training module');
+      return;
+    }
+    setAssigning(true);
+    let totalAssigned = 0;
+    let totalSkipped = 0;
+    try {
+      await Promise.all(
+        Array.from(selectedModules).map(async (moduleId) => {
+          const res = await trainingAPI.bulkAssign({
+            training_module_id: moduleId,
+            employee_ids: [employee.id],
+            assignment_reason: 'REMEDIATION',
+          });
+          totalAssigned += res.data?.assigned || 0;
+          totalSkipped += res.data?.skipped || 0;
+        })
+      );
+      if (totalAssigned > 0) {
+        toast.success(
+          `Assigned ${totalAssigned} module${totalAssigned !== 1 ? 's' : ''} to ${employee.first_name} ${employee.last_name}`
+        );
+      }
+      if (totalSkipped > 0) {
+        toast(`${totalSkipped} module${totalSkipped !== 1 ? 's' : ''} already assigned — skipped`, { icon: 'ℹ️' });
+      }
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || err.response?.data?.error || 'Failed to assign training');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   if (!isOpen || !employee) return null;
+
+  const employeeName = `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || employee.employee_name || 'Employee';
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Assign Training</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg">
+
+          {/* Header */}
+          <div className="flex items-start justify-between p-6 border-b">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Assign Training</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Select modules for{' '}
+                <span className="font-medium text-gray-900">{employeeName}</span>
+                {' '}·{' '}
+                <span className={clsx('font-semibold', getRiskColor(employee.risk_score))}>
+                  Risk Score: {employee.risk_score}
+                </span>
+              </p>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg ms-4 shrink-0">
               <X className="h-5 w-5 text-gray-500" />
             </button>
           </div>
-          <div className="p-6">
-            <p className="text-gray-600 mb-4">
-              Assign remediation training to <span className="font-medium text-gray-900">{employee.first_name} {employee.last_name}</span> (Risk Score: <span className="font-semibold text-danger-600">{employee.risk_score}</span>)
-            </p>
-            <p className="text-sm text-gray-500 mb-6">
-              This feature will assign all pending remediation training modules to the employee and notify them via email.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button onClick={onClose} className="btn-secondary">Cancel</button>
-              <button
-                onClick={() => {
-                  toast.success(`Training assigned to ${employee.first_name} ${employee.last_name}`);
-                  onClose();
-                }}
-                className="btn-primary"
-              >
-                Assign Training
-              </button>
-            </div>
+
+          {/* Module List */}
+          <div className="p-6 space-y-3">
+            {modulesLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+              </div>
+            ) : modules.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-6">No training modules available</p>
+            ) : (
+              modules.map((module) => {
+                const cat = MODULE_CATEGORY_CONFIG[module.category] || {
+                  icon: BookOpen,
+                  iconColor: 'text-primary-600',
+                  bgColor: 'bg-primary-50',
+                  label: module.category || 'Training',
+                };
+                const CatIcon = cat.icon;
+                const isSelected = selectedModules.has(module.id);
+
+                return (
+                  <div
+                    key={module.id}
+                    onClick={() => toggleModule(module.id)}
+                    className={clsx(
+                      'border-2 rounded-lg p-4 cursor-pointer transition-all',
+                      isSelected
+                        ? 'border-primary-500 bg-primary-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Custom checkbox */}
+                      <div className={clsx(
+                        'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors',
+                        isSelected ? 'bg-primary-600 border-primary-600' : 'border-gray-300 bg-white'
+                      )}>
+                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                      </div>
+
+                      {/* Icon */}
+                      <div className={clsx('p-2 rounded-lg shrink-0', cat.bgColor)}>
+                        <CatIcon className={clsx('h-5 w-5', cat.iconColor)} />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 leading-tight">{module.title}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <span>{cat.label}</span>
+                          <span>·</span>
+                          <span>{module.duration_minutes} min</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 p-6 border-t bg-gray-50 rounded-b-xl">
+            <button onClick={onClose} className="btn-secondary flex-1">
+              Cancel
+            </button>
+            <button
+              onClick={handleAssign}
+              disabled={assigning || selectedModules.size === 0 || modulesLoading}
+              className={clsx(
+                'btn-primary flex-1 flex items-center justify-center gap-2',
+                (assigning || selectedModules.size === 0 || modulesLoading) && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              {assigning ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  {selectedModules.size === 0
+                    ? 'Select Modules'
+                    : `Assign ${selectedModules.size} Module${selectedModules.size !== 1 ? 's' : ''}`}
+                </>
+              )}
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1011,6 +1168,7 @@ function CompanyAnalytics() {
         isOpen={assignModal.open}
         onClose={() => setAssignModal({ open: false, employee: null })}
         employee={assignModal.employee}
+        onSuccess={fetchAnalytics}
       />
     </div>
   );

@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import {
   BookOpen, Users, Clock, CheckCircle, X, Calendar,
   RefreshCw, AlertCircle, Mail, Smartphone, Phone,
-  UserPlus, Award,
+  UserPlus, TrendingUp, Eye, Search, Filter, ChevronDown,
+  Award,
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
+import { formatDistanceToNow } from 'date-fns';
 import { trainingAPI, companiesAPI } from '../../api';
 import { useAuth } from '../../contexts';
 
@@ -19,6 +21,134 @@ const STATUS_COLORS = {
   EXPIRED: 'bg-gray-100 text-gray-500',
 };
 
+const CATEGORY_CONFIG = {
+  EMAIL_SECURITY: {
+    label: 'Email Security',
+    icon: Mail,
+    iconColor: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+  },
+  MOBILE_SECURITY: {
+    label: 'Mobile Security',
+    icon: Smartphone,
+    iconColor: 'text-green-600',
+    bgColor: 'bg-green-50',
+  },
+  SOCIAL_ENGINEERING: {
+    label: 'Social Engineering',
+    icon: Phone,
+    iconColor: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+  },
+};
+
+// ─── Training Card (mirrors SimulationCard design) ───────────────────────────
+function TrainingCard({ module, onViewDetails, onAssign, isAr }) {
+  const { t } = useTranslation();
+
+  const assigned = module.times_assigned || 0;
+  const completed = module.times_completed || 0;
+  const passed = module.times_passed || 0;
+  const completionRate = assigned > 0 ? Math.round((completed / assigned) * 100) : 0;
+  const passRate = completed > 0 ? Math.round((passed / completed) * 100) : 0;
+
+  const cat = CATEGORY_CONFIG[module.category] || {
+    label: module.category || 'Training',
+    icon: BookOpen,
+    iconColor: 'text-primary-600',
+    bgColor: 'bg-primary-50',
+  };
+  const CategoryIcon = cat.icon;
+  const title = isAr && module.title_ar ? module.title_ar : module.title;
+
+  return (
+    <div className="card group">
+      {/* Header: icon + status badge */}
+      <div className="flex items-start justify-between mb-4">
+        <div className={clsx('p-3 rounded-lg', cat.bgColor)}>
+          <CategoryIcon className={clsx('h-6 w-6', cat.iconColor)} />
+        </div>
+        <span className={clsx(
+          'inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full',
+          module.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-700'
+        )}>
+          {module.is_active ? t('common.active') : t('common.inactive')}
+        </span>
+      </div>
+
+      {/* Title — clickable, opens details */}
+      <button
+        onClick={() => onViewDetails(module)}
+        className="block text-left w-full"
+      >
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">
+          {title}
+        </h3>
+      </button>
+
+      {/* Category subtitle */}
+      <p className="text-sm text-gray-500 mb-4">{cat.label}</p>
+
+      {/* Stats — 2-column grid (mirrors sent/clicked) */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="flex items-center gap-2 text-sm">
+          <Users className="h-4 w-4 text-gray-400" />
+          <span className="text-gray-600">{assigned} {t('training.assigned')}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className={clsx(
+            'h-4 w-4',
+            completionRate >= 70 ? 'text-success-500' : completionRate >= 40 ? 'text-warning-500' : 'text-gray-400'
+          )} />
+          <span className={clsx(
+            completionRate >= 70 ? 'text-success-600' : completionRate >= 40 ? 'text-warning-600' : 'text-gray-600'
+          )}>
+            {completed} {t('training.completed')}
+          </span>
+        </div>
+      </div>
+
+      {/* Rates row — mirrors "Click Rate:" line */}
+      <div className="flex gap-4 text-xs pt-3 border-t">
+        <div>
+          <span className="text-gray-400">{t('training.completionRate')}: </span>
+          <span className={clsx(
+            'font-medium',
+            completionRate >= 70 ? 'text-success-600' : completionRate >= 40 ? 'text-warning-600' : 'text-gray-600'
+          )}>
+            {completionRate}%
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-400">{t('training.passRate')}: </span>
+          <span className={clsx(
+            'font-medium',
+            passRate >= 70 ? 'text-success-600' : passRate >= 40 ? 'text-warning-600' : 'text-gray-600'
+          )}>
+            {passRate}%
+          </span>
+        </div>
+      </div>
+
+      {/* CTA button — mirrors "View Analytics" */}
+      <button
+        onClick={() => onViewDetails(module)}
+        className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-sm py-2"
+      >
+        <Eye className="h-4 w-4" />
+        {t('training.viewDetails')}
+      </button>
+
+      {/* Duration footnote — mirrors created timestamp */}
+      <p className="text-xs text-gray-400 mt-2">
+        <Clock className="h-3 w-3 inline me-1" />
+        {module.duration_minutes} {t('training.duration')}
+      </p>
+    </div>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
 function TrainingManagement() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
@@ -30,6 +160,11 @@ function TrainingManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Search / filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+
   // Assign modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedModule, setSelectedModule] = useState(null);
@@ -39,6 +174,10 @@ function TrainingManagement() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [employeesLoading, setEmployeesLoading] = useState(false);
   const [alreadyAssignedIds, setAlreadyAssignedIds] = useState(new Set());
+
+  // Details modal state
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsModule, setDetailsModule] = useState(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -59,30 +198,18 @@ function TrainingManagement() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'EMAIL_SECURITY':
-        return <Mail className="h-6 w-6 text-blue-600" />;
-      case 'MOBILE_SECURITY':
-        return <Smartphone className="h-6 w-6 text-green-600" />;
-      case 'SOCIAL_ENGINEERING':
-        return <Phone className="h-6 w-6 text-purple-600" />;
-      default:
-        return <BookOpen className="h-6 w-6 text-primary-600" />;
-    }
-  };
+  const filteredModules = modules.filter((m) => {
+    const title = isAr && m.title_ar ? m.title_ar : m.title;
+    const matchesSearch = title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === 'ALL' || m.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
-  const getCategoryBg = (category) => {
-    switch (category) {
-      case 'EMAIL_SECURITY': return 'bg-blue-50';
-      case 'MOBILE_SECURITY': return 'bg-green-50';
-      case 'SOCIAL_ENGINEERING': return 'bg-purple-50';
-      default: return 'bg-primary-50';
-    }
+  const handleViewDetails = (module) => {
+    setDetailsModule(module);
+    setShowDetailsModal(true);
   };
 
   const openAssignModal = async (module = null) => {
@@ -91,7 +218,6 @@ function TrainingManagement() {
     setDueDate('');
     setShowModal(true);
 
-    // Compute already-assigned employee IDs for this module
     if (module) {
       const moduleAssignments = assignments.filter(
         (a) => a.training_module === module.id || a.module === module.id
@@ -118,8 +244,7 @@ function TrainingManagement() {
   const toggleEmployee = (id) => {
     setSelectedEmployees((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
@@ -136,14 +261,8 @@ function TrainingManagement() {
   };
 
   const handleAssign = async () => {
-    if (!selectedModule) {
-      toast.error(t('training.selectModule'));
-      return;
-    }
-    if (selectedEmployees.size === 0) {
-      toast.error(t('training.selectEmployees'));
-      return;
-    }
+    if (!selectedModule) { toast.error(t('training.selectModule')); return; }
+    if (selectedEmployees.size === 0) { toast.error(t('training.selectEmployees')); return; }
 
     setAssignLoading(true);
     try {
@@ -152,19 +271,12 @@ function TrainingManagement() {
         employee_ids: Array.from(selectedEmployees),
         assignment_reason: 'MANUAL_ADMIN',
       };
-      if (dueDate) {
-        payload.due_date = `${dueDate}T23:59:59Z`;
-      }
+      if (dueDate) payload.due_date = `${dueDate}T23:59:59Z`;
 
       const res = await trainingAPI.bulkAssign(payload);
       const { assigned, skipped } = res.data;
-
-      if (assigned > 0) {
-        toast.success(t('training.assignSuccess', { count: assigned }));
-      }
-      if (skipped > 0) {
-        toast(t('training.assignSkipped', { count: skipped }), { icon: 'ℹ️' });
-      }
+      if (assigned > 0) toast.success(t('training.assignSuccess', { count: assigned }));
+      if (skipped > 0) toast(t('training.assignSkipped', { count: skipped }), { icon: 'ℹ️' });
 
       setShowModal(false);
       fetchData();
@@ -178,7 +290,7 @@ function TrainingManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
       </div>
     );
   }
@@ -198,15 +310,17 @@ function TrainingManagement() {
 
   return (
     <div className="fade-in space-y-6">
-      {/* Header */}
+
+      {/* ── Header ─────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('training.management')}</h1>
           <p className="text-gray-600 mt-1">{t('training.managementDesc')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button onClick={fetchData} className="btn-secondary flex items-center gap-2">
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
+            {t('common.view') === 'View' ? 'Refresh' : t('admin.common.refresh')}
           </button>
           <button onClick={() => openAssignModal()} className="btn-primary flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
@@ -215,93 +329,99 @@ function TrainingManagement() {
         </div>
       </div>
 
-      {/* Module Cards */}
-      {modules.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => {
-            const assigned = module.times_assigned || 0;
-            const completed = module.times_completed || 0;
-            const passed = module.times_passed || 0;
-            const completionRate = assigned > 0
-              ? Math.round((completed / assigned) * 100)
-              : 0;
-            const passRate = completed > 0
-              ? Math.round((passed / completed) * 100)
-              : 0;
+      {/* ── Search + Category Filter (mirrors simulations) ──────── */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder={t('training.noModules') ? 'Search modules...' : 'Search modules...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input ps-10 w-full"
+          />
+        </div>
 
-            return (
-              <div key={module.id} className="card-hover">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={clsx('p-3 rounded-lg', getCategoryBg(module.category))}>
-                    {getCategoryIcon(module.category)}
-                  </div>
-                  <span className={clsx(
-                    'text-xs font-medium px-2 py-1 rounded-full',
-                    module.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-700'
-                  )}>
-                    {module.is_active ? t('common.active') || 'Active' : 'Inactive'}
-                  </span>
-                </div>
-
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {isAr && module.title_ar ? module.title_ar : module.title}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                  {isAr && module.description_ar ? module.description_ar : module.description}
-                </p>
-
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {module.duration_minutes} {t('training.duration') || 'min'}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    {module.times_assigned} {t('training.assigned')}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Award className="h-4 w-4" />
-                    {passRate}% {t('training.passRate')}
-                  </span>
-                </div>
-
-                {/* Completion progress */}
-                <div className="space-y-1 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{t('training.completionRate')}</span>
-                    <span className="font-medium">{completionRate}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className="bg-success-500 h-1.5 rounded-full transition-all"
-                      style={{ width: `${completionRate}%` }}
-                    />
-                  </div>
-                </div>
-
+        {/* Category dropdown filter */}
+        <div className="relative">
+          <button
+            onClick={() => setShowFilterMenu(!showFilterMenu)}
+            className="btn-secondary flex items-center gap-2 min-w-[160px] justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              {categoryFilter === 'ALL'
+                ? 'All Categories'
+                : CATEGORY_CONFIG[categoryFilter]?.label || categoryFilter}
+            </div>
+            <ChevronDown className="h-4 w-4" />
+          </button>
+          {showFilterMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
+              <div className="absolute end-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                 <button
-                  onClick={() => openAssignModal(module)}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
+                  onClick={() => { setCategoryFilter('ALL'); setShowFilterMenu(false); }}
+                  className={clsx(
+                    'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
+                    categoryFilter === 'ALL' && 'bg-primary-50 text-primary-700'
+                  )}
                 >
-                  <UserPlus className="h-4 w-4" />
-                  {t('training.assign')}
+                  All Categories
                 </button>
+                {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => { setCategoryFilter(key); setShowFilterMenu(false); }}
+                      className={clsx(
+                        'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 flex items-center gap-2',
+                        categoryFilter === key && 'bg-primary-50 text-primary-700'
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {config.label}
+                    </button>
+                  );
+                })}
               </div>
-            );
-          })}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Module Cards Grid ───────────────────────────────────── */}
+      {filteredModules.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredModules.map((module) => (
+            <TrainingCard
+              key={module.id}
+              module={module}
+              onViewDetails={handleViewDetails}
+              onAssign={openAssignModal}
+              isAr={isAr}
+            />
+          ))}
         </div>
       ) : (
-        <div className="text-center py-12 card">
+        <div className="text-center py-12">
           <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('training.noModules')}</h3>
-          <p className="text-gray-500">Run the seed command to create training modules.</p>
+          <p className="text-gray-500">
+            {searchQuery || categoryFilter !== 'ALL'
+              ? 'Try adjusting your filters'
+              : 'Run the seed command to create training modules.'}
+          </p>
         </div>
       )}
 
-      {/* Assignments Table */}
+      {/* ── Assignments Table ───────────────────────────────────── */}
       {assignments.length > 0 && (
         <div className="card overflow-hidden">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('training.assigned')} {t('training.title')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('training.assigned')} {t('training.title')}
+          </h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -319,9 +439,7 @@ function TrainingManagement() {
                   <tr key={a.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm">
                       <div className="font-medium text-gray-900">{a.employee_name || a.employee_email}</div>
-                      {a.employee_name && (
-                        <div className="text-gray-500 text-xs">{a.employee_email}</div>
-                      )}
+                      {a.employee_name && <div className="text-gray-500 text-xs">{a.employee_email}</div>}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700">
                       {isAr ? a.training_title_ar || a.training_title : a.training_title}
@@ -336,10 +454,7 @@ function TrainingManagement() {
                     </td>
                     <td className="px-4 py-3 text-sm">
                       {a.quiz_score !== null && a.quiz_score !== undefined ? (
-                        <span className={clsx(
-                          'font-medium',
-                          a.passed ? 'text-success-600' : 'text-danger-600'
-                        )}>
+                        <span className={clsx('font-medium', a.passed ? 'text-success-600' : 'text-danger-600')}>
                           {Math.round(a.quiz_score)}%
                         </span>
                       ) : (
@@ -360,7 +475,190 @@ function TrainingManagement() {
         </div>
       )}
 
-      {/* Assign Modal */}
+      {/* ── Module Details Modal ─────────────────────────────────── */}
+      {showDetailsModal && detailsModule && (() => {
+        const assigned = detailsModule.times_assigned || 0;
+        const completed = detailsModule.times_completed || 0;
+        const passed = detailsModule.times_passed || 0;
+        const completionRate = assigned > 0 ? Math.round((completed / assigned) * 100) : 0;
+        const passRate = completed > 0 ? Math.round((passed / completed) * 100) : 0;
+        const moduleAssignments = assignments.filter(
+          (a) => a.training_module === detailsModule.id || a.module === detailsModule.id
+        );
+        const cat = CATEGORY_CONFIG[detailsModule.category] || {
+          label: detailsModule.category || 'Training',
+          icon: BookOpen,
+          iconColor: 'text-primary-600',
+          bgColor: 'bg-primary-50',
+        };
+        const CatIcon = cat.icon;
+
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b p-6 flex items-start justify-between z-10">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={clsx('p-3 rounded-lg shrink-0', cat.bgColor)}>
+                    <CatIcon className={clsx('h-6 w-6', cat.iconColor)} />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                      {isAr && detailsModule.title_ar ? detailsModule.title_ar : detailsModule.title}
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-0.5">{cat.label}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg ms-4 shrink-0"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-1">{t('training.duration')}</p>
+                    <p className="text-2xl font-bold text-gray-900">{detailsModule.duration_minutes}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">min</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-1">{t('training.assigned')}</p>
+                    <p className="text-2xl font-bold text-gray-900">{assigned}</p>
+                  </div>
+                  <div className="bg-success-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-1">{t('training.completed')}</p>
+                    <p className="text-2xl font-bold text-success-700">{completed}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{completionRate}%</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-1">{t('training.passRate')}</p>
+                    <p className="text-2xl font-bold text-gray-900">{passRate}%</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {(detailsModule.description || detailsModule.description_ar) && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">{t('training.description')}</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {isAr && detailsModule.description_ar
+                        ? detailsModule.description_ar
+                        : detailsModule.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Learning Objectives */}
+                {detailsModule.objectives?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">{t('training.learningObjectives')}</h3>
+                    <ul className="space-y-2">
+                      {detailsModule.objectives.map((obj, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <CheckCircle className="h-5 w-5 text-success-600 mt-0.5 shrink-0" />
+                          <span className="text-sm text-gray-700">{obj}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Topics */}
+                {detailsModule.topics?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">{t('training.topicsCovered')}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {detailsModule.topics.map((topic, i) => (
+                        <span key={i} className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Assigned Employees */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">{t('training.assignedEmployees')}</h3>
+                  {moduleAssignments.length > 0 ? (
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('training.employee')}</th>
+                            <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('training.status')}</th>
+                            <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('training.score')}</th>
+                            <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('training.completed')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {moduleAssignments.map((a) => (
+                            <tr key={a.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-sm">
+                                <div className="font-medium text-gray-900">{a.employee_name || a.employee_email}</div>
+                                {a.employee_name && <div className="text-xs text-gray-500">{a.employee_email}</div>}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={clsx(
+                                  'text-xs font-medium px-2 py-1 rounded-full',
+                                  STATUS_COLORS[a.status] || STATUS_COLORS.ASSIGNED
+                                )}>
+                                  {a.status?.replace('_', ' ')}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                {a.quiz_score !== null && a.quiz_score !== undefined ? (
+                                  <span className={clsx('font-medium', a.passed ? 'text-success-600' : 'text-danger-600')}>
+                                    {Math.round(a.quiz_score)}%
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-500">
+                                {a.completed_at ? new Date(a.completed_at).toLocaleDateString() : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-8 border rounded-lg">
+                      {t('training.noEmployeesAssigned')}
+                    </p>
+                  )}
+                </div>
+
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-gray-50 border-t p-6 flex gap-3">
+                <button
+                  onClick={() => { setShowDetailsModal(false); openAssignModal(detailsModule); }}
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  {t('training.assignTraining')}
+                </button>
+                <button onClick={() => setShowDetailsModal(false)} className="btn-secondary px-6">
+                  {t('common.close') || 'Close'}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Assign Modal ─────────────────────────────────────────── */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -410,13 +708,15 @@ function TrainingManagement() {
                     onClick={toggleAllEmployees}
                     className="text-sm text-primary-600 hover:text-primary-700"
                   >
-                    {selectedEmployees.size === employees.length ? t('common.deselectAll') || 'Deselect All' : t('training.selectAll')}
+                    {selectedEmployees.size === employees.filter(e => !alreadyAssignedIds.has(e.id)).length
+                      ? t('common.deselectAll') || 'Deselect All'
+                      : t('training.selectAll')}
                   </button>
                 </div>
 
                 {employeesLoading ? (
                   <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
                   </div>
                 ) : (
                   <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
@@ -477,10 +777,7 @@ function TrainingManagement() {
             </div>
 
             <div className="flex gap-3 p-6 border-t">
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn-secondary flex-1"
-              >
+              <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
@@ -493,7 +790,7 @@ function TrainingManagement() {
               >
                 {assignLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                     {t('training.assigning')}
                   </>
                 ) : (
@@ -507,6 +804,7 @@ function TrainingManagement() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
