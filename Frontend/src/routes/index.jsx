@@ -20,6 +20,7 @@ import ResetPassword from '../pages/auth/ResetPassword';
 import CommunityPortal from '../pages/public/CommunityPortal';
 import UnauthorizedPage from '../pages/public/UnauthorizedPage';
 import NotFoundPage from '../pages/public/NotFoundPage';
+import SimulationCaught from '../pages/public/SimulationCaught';
 
 // Employee Pages
 import EmployeeDashboard from '../pages/employee/EmployeeDashboard';
@@ -41,6 +42,7 @@ import CompanyEmployees from '../pages/company/CompanyEmployees';
 import CompanyAnalytics from '../pages/company/CompanyAnalytics';
 import CompanyProfile from '../pages/company/CompanyProfile';
 import TrainingManagement from '../pages/company/TrainingManagement';
+import SimulationAnalytics from '../pages/company/SimulationAnalytics';
 
 // Super Admin Pages
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -106,6 +108,20 @@ const router = createBrowserRouter([
     element: <ResetPassword />,
   },
 
+  // Public simulation landing page (no auth required – opened from phishing email link)
+  {
+    path: '/simulation/caught/:token',
+    element: <SimulationCaught />,
+  },
+  {
+    path: '/simulation/error',
+    element: <NotFoundPage />,
+  },
+  {
+    path: '/simulation/expired',
+    element: <NotFoundPage />,
+  },
+
   // Employee routes
   {
     path: '/employee',
@@ -142,6 +158,7 @@ const router = createBrowserRouter([
       { path: 'campaigns/create', element: <CampaignCreate /> },
       { path: 'campaigns/:id', element: <CampaignDetails /> },
       { path: 'simulations', element: <CompanySimulations /> },
+      { path: 'simulations/:id/analytics', element: <SimulationAnalytics /> },
       { path: 'employees', element: <CompanyEmployees /> },
       { path: 'training', element: <TrainingManagement /> },
       { path: 'analytics', element: <CompanyAnalytics /> },

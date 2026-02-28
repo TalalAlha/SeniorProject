@@ -93,13 +93,21 @@ export const simulationsAPI = {
   getTemplates: (params) => api.get('/simulations/templates/', { params }),
   getTemplate: (id) => api.get(`/simulations/templates/${id}/`),
   // Simulation actions
+  send: (id, data = {}) => api.post(`/simulations/campaigns/${id}/send/`, data),
   generatePackage: (id) => api.post(`/simulations/campaigns/${id}/generate_package/`, {}, { responseType: 'blob' }),
   markSent: (id) => api.post(`/simulations/campaigns/${id}/mark_sent/`),
+  complete: (id) => api.post(`/simulations/campaigns/${id}/complete/`),
+  pause: (id) => api.post(`/simulations/campaigns/${id}/pause/`),
+  resume: (id) => api.post(`/simulations/campaigns/${id}/resume/`),
   getAnalytics: (id) => api.get(`/simulations/campaigns/${id}/analytics/`),
   getResults: (id) => api.get(`/simulations/campaigns/${id}/results/`),
+  getSummary: (id) => api.get(`/simulations/campaigns/${id}/summary/`),
   // Tracking (for phishing link clicks)
   recordClick: (trackingId) => api.post(`/simulations/track/${trackingId}/click/`),
   recordReport: (trackingId) => api.post(`/simulations/track/${trackingId}/report/`),
+  // Landing page feedback (public – no auth required)
+  getSimulationFeedback: (linkToken, lang) =>
+    api.get(`/simulations/feedback/${linkToken}/`, { params: lang ? { lang } : {} }),
 };
 
 // ============== Quizzes ==============

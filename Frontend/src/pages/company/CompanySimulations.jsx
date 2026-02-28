@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -172,10 +173,14 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
 // Create Simulation Modal - Multi-step
 function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const companyId = user?.company_id || user?.company;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [templates, setTemplates] = useState([]);
@@ -188,6 +193,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
     target_employee_ids: [],
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [includeAdmins, setIncludeAdmins] = useState(false);
   const [createdSimulation, setCreatedSimulation] = useState(null);
 
   useEffect(() => {
@@ -201,6 +207,11 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
         target_employee_ids: [],
       });
       setCreatedSimulation(null);
+      setSending(false);
+      setSendSuccess(false);
+      setSentCount(0);
+      setErrorMessage('');
+      setIncludeAdmins(false);
       fetchTemplates();
       fetchEmployees();
     }
@@ -231,10 +242,12 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
   };
 
   const handleSelectAllEmployees = () => {
+    // Only select from the currently visible (filtered-by-role) list
+    const visibleIds = (includeAdmins ? employees : employees.filter(e => e.role === 'EMPLOYEE')).map(e => e.id);
     setFormData({
       ...formData,
-      target_all_employees: true,
-      target_employee_ids: employees.map(e => e.id),
+      target_all_employees: !includeAdmins,
+      target_employee_ids: visibleIds,
     });
   };
 
@@ -250,14 +263,19 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
     const newIds = formData.target_employee_ids.includes(id)
       ? formData.target_employee_ids.filter(i => i !== id)
       : [...formData.target_employee_ids, id];
+    const employeeOnlyIds = employees.filter(e => e.role === 'EMPLOYEE').map(e => e.id);
     setFormData({
       ...formData,
-      target_all_employees: newIds.length === employees.length,
+      target_all_employees: !includeAdmins && employeeOnlyIds.every(id => newIds.includes(id)) && newIds.every(id => employeeOnlyIds.includes(id)),
       target_employee_ids: newIds,
     });
   };
 
-  const filteredEmployees = employees.filter(e =>
+  const visibleEmployees = includeAdmins
+    ? employees
+    : employees.filter(e => e.role === 'EMPLOYEE');
+
+  const filteredEmployees = visibleEmployees.filter(e =>
     `${e.first_name} ${e.last_name} ${e.email}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -275,37 +293,30 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
         target_employee_ids: formData.target_all_employees ? [] : formData.target_employee_ids,
       };
       const response = await simulationsAPI.create(payload);
-      setCreatedSimulation(response.data);
-      toast.success('Simulation created successfully');
-      setStep(4); // Move to download step
+      const newSimulation = response.data;
+      setCreatedSimulation(newSimulation);
+      setStep(4);
+      setSending(true);
+
+      // Automatically send emails
+      try {
+        const sendResponse = await simulationsAPI.send(newSimulation.id);
+        const count = sendResponse.data?.emails_sent ?? sendResponse.data?.simulations_created ?? 0;
+        setSentCount(count);
+        setSendSuccess(true);
+        onSuccess();
+      } catch (sendErr) {
+        const msg = sendErr.response?.data?.error || sendErr.response?.data?.detail || 'Failed to send emails';
+        setErrorMessage(msg);
+        setSendSuccess(false);
+      } finally {
+        setSending(false);
+      }
     } catch (err) {
       const message = err.response?.data?.detail || err.response?.data?.name?.[0] || 'Failed to create simulation';
       toast.error(message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDownloadPackage = async () => {
-    if (!createdSimulation) return;
-    setDownloading(true);
-    try {
-      const response = await simulationsAPI.generatePackage(createdSimulation.id);
-      // Create blob and download
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `simulation-${createdSimulation.id}-package.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success('Email package downloaded');
-    } catch (err) {
-      toast.error('Failed to download package');
-    } finally {
-      setDownloading(false);
     }
   };
 
@@ -341,7 +352,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
         {step === 1 && 'Step 1: Basic Info'}
         {step === 2 && 'Step 2: Select Employees'}
         {step === 3 && 'Step 3: Review & Create'}
-        {step === 4 && 'Step 4: Download Package'}
+        {step === 4 && 'Step 4: Send Emails'}
       </div>
 
       {/* Step 1: Basic Info */}
@@ -456,10 +467,39 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
             </button>
           </div>
 
+          {/* Include admins toggle */}
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={includeAdmins}
+              onChange={(e) => {
+                setIncludeAdmins(e.target.checked);
+                // Deselect any previously selected admins when hiding them
+                if (!e.target.checked) {
+                  const employeeIds = employees.filter(emp => emp.role === 'EMPLOYEE').map(emp => emp.id);
+                  setFormData(prev => ({
+                    ...prev,
+                    target_employee_ids: prev.target_employee_ids.filter(id => employeeIds.includes(id)),
+                  }));
+                }
+              }}
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            Include admin users (for testing)
+          </label>
+
+          {/* Warning when admins are selected */}
+          {includeAdmins && formData.target_employee_ids.some(id => employees.find(e => e.id === id)?.role !== 'EMPLOYEE') && (
+            <div className="flex gap-2 p-3 bg-warning-50 border border-warning-200 rounded-lg text-sm text-warning-800">
+              <AlertTriangle className="h-4 w-4 text-warning-600 flex-shrink-0 mt-0.5" />
+              <span>Admin users are selected. Note: admins selected here will receive simulation emails only if they are targeted directly — they are excluded from "all employees" sends.</span>
+            </div>
+          )}
+
           {/* Selected Count */}
           <div className="flex items-center justify-between px-4 py-2 bg-primary-50 rounded-lg">
             <span className="text-sm text-primary-700">
-              <strong>{formData.target_employee_ids.length}</strong> of {employees.length} employees selected
+              <strong>{formData.target_employee_ids.length}</strong> of {visibleEmployees.length} {includeAdmins ? 'users' : 'employees'} selected
             </span>
           </div>
 
@@ -564,15 +604,14 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
-          <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex gap-3">
-              <AlertTriangle className="h-5 w-5 text-warning-600 flex-shrink-0" />
-              <div className="text-sm text-warning-800">
-                <p className="font-medium">Important Notes</p>
+              <Send className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium">Emails will be sent automatically</p>
                 <ul className="mt-1 space-y-1 list-disc list-inside">
-                  <li>A CSV package will be generated after creation</li>
-                  <li>You'll need to send emails manually using your email system</li>
-                  <li>Mark as "Sent" once emails are delivered</li>
+                  <li>Phishing emails will be delivered to selected employees</li>
+                  <li>You can monitor results in real-time from the analytics page</li>
                 </ul>
               </div>
             </div>
@@ -595,40 +634,77 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
         </div>
       )}
 
-      {/* Step 4: Download Package */}
+      {/* Step 4: Auto Send */}
       {step === 4 && (
-        <div className="space-y-6 text-center">
-          <div className="p-4 bg-success-50 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-            <CheckCircle className="h-8 w-8 text-success-600" />
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Simulation Created!</h3>
-            <p className="text-gray-500 mt-1">Download the email package to send to employees</p>
-          </div>
-
-          <button
-            onClick={handleDownloadPackage}
-            disabled={downloading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {downloading ? 'Downloading...' : 'Download Email Package (CSV)'}
-          </button>
-
-          <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg text-left">
-            <h4 className="text-sm font-medium text-primary-800 mb-2">Next Steps:</h4>
-            <ol className="text-sm text-primary-700 space-y-1 list-decimal list-inside">
-              <li>Import the CSV into your email sending system</li>
-              <li>Send emails to the listed recipients</li>
-              <li>Return here and mark the simulation as "Sent"</li>
-              <li>Monitor results as employees interact with the emails</li>
-            </ol>
-          </div>
-
-          <button onClick={handleFinish} className="btn-secondary w-full">
-            Done
-          </button>
+        <div className="text-center py-8">
+          {sending ? (
+            <div>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary-600 mx-auto mb-4"></div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sending Emails...</h3>
+              <p className="text-gray-500">Please wait while we send phishing emails to employees</p>
+            </div>
+          ) : sendSuccess ? (
+            <div className="space-y-6">
+              <div className="w-20 h-20 bg-success-50 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-10 h-10 text-success-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-success-700 mb-2">Simulation Launched!</h3>
+                <p className="text-gray-600">
+                  {sentCount > 0 ? `Emails sent to ${sentCount} employee${sentCount !== 1 ? 's' : ''}` : 'Emails are being delivered to employees'}
+                </p>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => { onClose(); navigate(`/company/simulations/${createdSimulation?.id}/analytics`); }}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  View Analytics
+                </button>
+                <button onClick={handleFinish} className="btn-secondary">
+                  Back to List
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="w-20 h-20 bg-danger-50 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="w-10 h-10 text-danger-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-danger-700 mb-2">Launch Failed</h3>
+                <p className="text-gray-600">{errorMessage || 'Failed to send emails. Please try again.'}</p>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={async () => {
+                    if (!createdSimulation) return;
+                    setSending(true);
+                    setErrorMessage('');
+                    try {
+                      const sendResponse = await simulationsAPI.send(createdSimulation.id);
+                      const count = sendResponse.data?.emails_sent ?? sendResponse.data?.simulations_created ?? 0;
+                      setSentCount(count);
+                      setSendSuccess(true);
+                      onSuccess();
+                    } catch (sendErr) {
+                      const msg = sendErr.response?.data?.error || sendErr.response?.data?.detail || 'Failed to send emails';
+                      setErrorMessage(msg);
+                    } finally {
+                      setSending(false);
+                    }
+                  }}
+                  className="btn-primary"
+                >
+                  Retry
+                </button>
+                <button onClick={handleFinish} className="btn-secondary">
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Modal>

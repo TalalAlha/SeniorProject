@@ -235,12 +235,18 @@ class SimulationCampaignCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_target_employee_ids(self, value):
-        """Validate that all employee IDs exist and are employees."""
+        """Validate that all IDs belong to active users in the same company."""
         if value:
-            employees = User.objects.filter(id__in=value, role='EMPLOYEE', is_active=True)
-            if employees.count() != len(value):
+            # Accept both EMPLOYEE and COMPANY_ADMIN roles so admins can be
+            # targeted directly (e.g. for testing).
+            valid_users = User.objects.filter(
+                id__in=value,
+                role__in=['EMPLOYEE', 'COMPANY_ADMIN'],
+                is_active=True
+            )
+            if valid_users.count() != len(value):
                 raise serializers.ValidationError(
-                    "Some employee IDs are invalid or not active employees."
+                    "Some user IDs are invalid or inactive."
                 )
         return value
 

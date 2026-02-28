@@ -234,7 +234,31 @@
     "results": "Results",
     "clicked": "Clicked",
     "reported": "Reported",
-    "noAction": "No Action"
+    "noAction": "No Action",
+    "sendingEmails": "Sending Emails...",
+    "pleaseWait": "Please wait while we send phishing emails to employees",
+    "emailsSent": "emails sent",
+    "launchSuccess": "Simulation Launched Successfully!",
+    "emailsSentTo": "Emails sent to {{count}} employees",
+    "viewAnalytics": "View Analytics",
+    "backToList": "Back to Simulations",
+    "launchFailed": "Launch Failed",
+    "retry": "Retry",
+    "includeAdmins": "Include admin users (for testing)",
+    "adminWarning": "Admin users are selected. They will receive simulation emails only if targeted directly — they are excluded from sends to all employees.",
+    "caught": {
+      "title": "You've Been Caught!",
+      "subtitle": "This was a phishing simulation exercise",
+      "whatHappened": "What Happened?",
+      "redFlags": "Red Flags You Should Have Noticed",
+      "whatNext": "What Should You Do Next Time?",
+      "tip1": "Always verify the sender's email address and domain carefully",
+      "tip2": "Be suspicious of urgency, threats, and deadlines — these are classic pressure tactics",
+      "tip3": "Hover over links to see the real destination before clicking",
+      "tip4": "When in doubt, report the email to IT security — never click first!",
+      "takeTraining": "Take Security Training",
+      "backToDashboard": "Back to Dashboard"
+    }
   },
   "quiz": {
     "title": "Quizzes",

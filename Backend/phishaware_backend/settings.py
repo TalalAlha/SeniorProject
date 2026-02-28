@@ -250,6 +250,9 @@ SENDGRID_VERIFIED_SENDER = config('SENDGRID_VERIFIED_SENDER', default='')
 # Frontend URL (used in email links)
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 
+# Backend public URL (used for simulation tracking pixel and link URLs in emails)
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
 # Security Settings (Development)
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True  # Only for development

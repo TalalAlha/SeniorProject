@@ -8,7 +8,8 @@ from .views import (
     track_link_click_view,
     landing_page_view,
     report_phishing_view,
-    credentials_submitted_view
+    credentials_submitted_view,
+    simulation_feedback_view,
 )
 
 app_name = 'simulations'
@@ -67,5 +68,13 @@ urlpatterns = [
         'credentials/<str:link_token>/',
         credentials_submitted_view,
         name='credentials-submitted'
+    ),
+
+    # Feedback endpoint for React "caught" landing page
+    # GET /api/v1/simulations/feedback/<link_token>/
+    path(
+        'feedback/<str:link_token>/',
+        simulation_feedback_view,
+        name='simulation-feedback'
     ),
 ]

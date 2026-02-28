@@ -342,15 +342,16 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         Send a single simulation email to an employee.
 
         Replaces placeholders with unique tracking URLs and sends the email.
+        The envelope From address uses the verified SendGrid sender so delivery
+        succeeds, while the display name still matches the phishing template.
         """
         from django.core.mail import EmailMultiAlternatives
-        from django.template import Template, Context
 
         campaign = email_simulation.campaign
         template = campaign.template
 
-        # Build tracking URLs
-        base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000')
+        # Build tracking URLs using the backend's public URL
+        base_url = getattr(settings, 'SITE_URL', getattr(settings, 'BACKEND_URL', 'http://localhost:8000'))
         tracking_pixel_url = f"{base_url}/api/v1/simulations/track/{email_simulation.tracking_token}/"
         phishing_link_url = f"{base_url}/api/v1/simulations/link/{email_simulation.link_token}/"
 
@@ -370,11 +371,26 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         body_plain = body_plain.replace('{EMPLOYEE_NAME}', email_simulation.employee.get_full_name())
         body_plain = body_plain.replace('{EMPLOYEE_EMAIL}', email_simulation.employee.email)
 
+        # Use the verified SendGrid sender as the envelope From so the email is
+        # actually delivered. We keep the phishing template's sender_name as the
+        # display name so recipients still see the realistic From field.
+        verified_sender = (
+            getattr(settings, 'SENDGRID_VERIFIED_SENDER', '') or
+            getattr(settings, 'DEFAULT_FROM_EMAIL', '')
+        )
+        # Extract bare email address if it contains a display name (e.g. "Name <email>")
+        if '<' in verified_sender:
+            verified_email = verified_sender.split('<')[1].strip('> ')
+        else:
+            verified_email = verified_sender
+
+        from_email = f"{template.sender_name} <{verified_email}>" if verified_email else f"{template.sender_name} <{template.sender_email}>"
+
         # Create and send email
         email = EmailMultiAlternatives(
             subject=template.subject,
             body=body_plain,
-            from_email=f"{template.sender_name} <{template.sender_email}>",
+            from_email=from_email,
             to=[email_simulation.recipient_email],
             reply_to=[template.reply_to_email] if template.reply_to_email else None
         )
@@ -872,22 +888,23 @@ def track_pixel_view(request, tracking_token):
 @permission_classes([AllowAny])
 def track_link_click_view(request, link_token):
     """
-    Log LINK_CLICKED event and redirect to landing page.
+    Log LINK_CLICKED event and redirect to React frontend landing page.
 
     This endpoint is the phishing link embedded in simulation emails.
-    When clicked, it logs the event and redirects to educational content.
+    When clicked, it logs the event and redirects to the React "caught" page.
     """
     try:
         email_sim = EmailSimulation.objects.select_related(
             'campaign', 'campaign__template', 'employee'
         ).get(link_token=link_token)
     except EmailSimulation.DoesNotExist:
-        # Redirect to a generic error page
-        return HttpResponseRedirect('/simulation-error/')
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        return HttpResponseRedirect(f'{frontend_url}/simulation/error')
 
     # Check if campaign is still active
     if email_sim.campaign.status not in ['IN_PROGRESS', 'SCHEDULED']:
-        return HttpResponseRedirect('/simulation-expired/')
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        return HttpResponseRedirect(f'{frontend_url}/simulation/expired')
 
     # Check if tracking is enabled
     if email_sim.campaign.track_link_clicks:
@@ -901,9 +918,9 @@ def track_link_click_view(request, link_token):
             user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
 
-    # Redirect to landing page
-    landing_url = reverse('simulations:landing-page', kwargs={'link_token': link_token})
-    return HttpResponseRedirect(landing_url)
+    # Redirect to React frontend landing page
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    return HttpResponseRedirect(f'{frontend_url}/simulation/caught/{link_token}')
 
 
 @api_view(['GET'])
@@ -1025,6 +1042,46 @@ def report_phishing_view(request, link_token):
                    'This was a security awareness simulation. '
                    'Your vigilance helps keep our organization safe.',
         'was_simulation': True
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def simulation_feedback_view(request, link_token):
+    """
+    Return template feedback data for the React "caught" landing page.
+
+    Called by SimulationCaught.jsx after an employee clicks a phishing link.
+    Returns red flags, explanation, and template metadata.
+    """
+    try:
+        email_sim = EmailSimulation.objects.select_related(
+            'campaign__template', 'employee'
+        ).get(link_token=link_token)
+    except EmailSimulation.DoesNotExist:
+        return Response({'error': 'Invalid simulation link.'}, status=status.HTTP_404_NOT_FOUND)
+
+    template = email_sim.campaign.template
+
+    # Determine language: query param > template language > 'en'
+    lang = request.GET.get('lang', template.language or 'en').lower()
+
+    # Pick localised message
+    if lang == 'ar' and template.landing_page_message_ar:
+        explanation = template.landing_page_message_ar
+    else:
+        explanation = template.landing_page_message or ''
+
+    return Response({
+        'template_name': template.name_ar if lang == 'ar' and template.name_ar else template.name,
+        'attack_vector': template.get_attack_vector_display(),
+        'difficulty': template.get_difficulty_display(),
+        'red_flags': template.red_flags or [],
+        'explanation': explanation,
+        'language': lang,
+        'employee_name': email_sim.employee.get_full_name() or email_sim.employee.email.split('@')[0].title(),
+        'was_clicked': email_sim.was_clicked,
+        'status': email_sim.status,
     }, status=status.HTTP_200_OK)
 
 
