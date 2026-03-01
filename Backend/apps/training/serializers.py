@@ -427,15 +427,27 @@ class TrainingQuizAnswerSerializer(serializers.ModelSerializer):
 # =============================================================================
 
 class BulkAssignTrainingSerializer(serializers.Serializer):
-    """Serializer for bulk assigning training to multiple employees."""
+    """Serializer for bulk assigning training to multiple employees.
+
+    Accepts either a single training_module_id OR a list training_module_ids.
+    """
 
     employee_ids = serializers.ListField(
         child=serializers.IntegerField(),
         min_length=1,
         help_text="List of employee IDs to assign training to"
     )
+    # Single-module form (used by TrainingManagement)
     training_module_id = serializers.IntegerField(
-        help_text="ID of training module to assign"
+        required=False,
+        help_text="ID of a single training module to assign"
+    )
+    # Multi-module form (used by CompanyAnalytics)
+    training_module_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        min_length=1,
+        help_text="IDs of multiple training modules to assign in one request"
     )
     assignment_reason = serializers.ChoiceField(
         choices=RemediationTraining.ASSIGNMENT_REASON_CHOICES,
@@ -443,9 +455,27 @@ class BulkAssignTrainingSerializer(serializers.Serializer):
     )
     due_date = serializers.DateTimeField(required=False)
 
+    def validate(self, attrs):
+        has_single = attrs.get('training_module_id') is not None
+        has_multi = bool(attrs.get('training_module_ids'))
+        if not has_single and not has_multi:
+            raise serializers.ValidationError(
+                "Provide either training_module_id or training_module_ids."
+            )
+        return attrs
+
     def validate_training_module_id(self, value):
-        if not TrainingModule.objects.filter(id=value, is_active=True).exists():
+        if value is not None and not TrainingModule.objects.filter(id=value, is_active=True).exists():
             raise serializers.ValidationError("Training module not found or inactive")
+        return value
+
+    def validate_training_module_ids(self, value):
+        if value:
+            found = TrainingModule.objects.filter(id__in=value, is_active=True).count()
+            if found != len(value):
+                raise serializers.ValidationError(
+                    "One or more training modules were not found or are inactive"
+                )
         return value
 
 

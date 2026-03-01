@@ -756,65 +756,74 @@ class RemediationTrainingViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated, IsSuperAdminOrCompanyAdmin])
     @transaction.atomic
     def bulk_assign(self, request):
-        """Assign training to multiple employees at once."""
+        """Assign training to multiple employees at once.
+
+        Accepts either a single training_module_id or a list training_module_ids.
+        """
         serializer = BulkAssignTrainingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
         employee_ids = data['employee_ids']
-        module = TrainingModule.objects.get(id=data['training_module_id'])
         reason = data['assignment_reason']
         due_date = data.get('due_date') or (timezone.now() + timedelta(days=7))
+
+        # Resolve module list from whichever field was supplied
+        if data.get('training_module_ids'):
+            modules = list(TrainingModule.objects.filter(id__in=data['training_module_ids']))
+        else:
+            modules = [TrainingModule.objects.get(id=data['training_module_id'])]
 
         from apps.accounts.models import User
 
         # Filter to only employees in admin's company (unless super admin)
         if not request.user.is_super_admin:
-            employees = User.objects.filter(
+            employees = list(User.objects.filter(
                 id__in=employee_ids,
                 role='EMPLOYEE',
                 company=request.user.company
-            )
+            ))
         else:
-            employees = User.objects.filter(id__in=employee_ids, role='EMPLOYEE')
+            employees = list(User.objects.filter(id__in=employee_ids, role='EMPLOYEE'))
 
         created = []
         skipped = []
 
-        for employee in employees:
-            # Check if already assigned
-            exists = RemediationTraining.objects.filter(
-                employee=employee,
-                training_module=module,
-                status__in=['ASSIGNED', 'IN_PROGRESS']
-            ).exists()
+        for module in modules:
+            for employee in employees:
+                # Check if already assigned
+                exists = RemediationTraining.objects.filter(
+                    employee=employee,
+                    training_module=module,
+                    status__in=['ASSIGNED', 'IN_PROGRESS']
+                ).exists()
 
-            if exists:
-                skipped.append(employee.email)
-                continue
+                if exists:
+                    skipped.append(employee.email)
+                    continue
 
-            training = RemediationTraining.objects.create(
-                employee=employee,
-                company=employee.company,
-                training_module=module,
-                assignment_reason=reason,
-                assigned_by=request.user,
-                due_date=due_date
-            )
+                RemediationTraining.objects.create(
+                    employee=employee,
+                    company=employee.company,
+                    training_module=module,
+                    assignment_reason=reason,
+                    assigned_by=request.user,
+                    due_date=due_date
+                )
 
-            # Update module stats
-            module.times_assigned = F('times_assigned') + 1
-            module.save(update_fields=['times_assigned'])
+                # Update module stats
+                module.times_assigned = F('times_assigned') + 1
+                module.save(update_fields=['times_assigned'])
 
-            # Update risk score
-            try:
-                risk_score = RiskScore.objects.get(employee=employee)
-                risk_score.trainings_assigned = F('trainings_assigned') + 1
-                risk_score.save(update_fields=['trainings_assigned'])
-            except RiskScore.DoesNotExist:
-                pass
+                # Update risk score
+                try:
+                    risk_score = RiskScore.objects.get(employee=employee)
+                    risk_score.trainings_assigned = F('trainings_assigned') + 1
+                    risk_score.save(update_fields=['trainings_assigned'])
+                except RiskScore.DoesNotExist:
+                    pass
 
-            created.append(employee.email)
+                created.append(employee.email)
 
         return Response({
             'assigned': len(created),

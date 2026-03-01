@@ -229,28 +229,70 @@ const MODULE_CATEGORY_CONFIG = {
   SOCIAL_ENGINEERING: { icon: Phone, iconColor: 'text-purple-600', bgColor: 'bg-purple-50', label: 'Social Engineering' },
 };
 
-// Modal for assigning training — fetches real modules, multi-select, calls bulkAssign
+// Status badge config for existing assignments shown inside the modal
+const ASSIGNMENT_STATUS_UI = {
+  ASSIGNED:    { label: 'In queue',    badge: 'bg-blue-100 text-blue-700',    blocked: true  },
+  IN_PROGRESS: { label: 'In progress', badge: 'bg-warning-100 text-warning-700', blocked: true  },
+  COMPLETED:   { label: 'Completed',   badge: 'bg-success-50 text-success-700', blocked: false },
+  PASSED:      { label: 'Passed',      badge: 'bg-success-50 text-success-700', blocked: false },
+  FAILED:      { label: 'Failed',      badge: 'bg-danger-50 text-danger-700',  blocked: false },
+  EXPIRED:     { label: 'Expired',     badge: 'bg-gray-100 text-gray-600',     blocked: false },
+};
+
+// Modal for assigning training — fetches real modules + employee's existing assignments
 function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
   const [modules, setModules] = useState([]);
-  const [modulesLoading, setModulesLoading] = useState(false);
+  const [existingAssignments, setExistingAssignments] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const [selectedModules, setSelectedModules] = useState(new Set());
   const [assigning, setAssigning] = useState(false);
 
-  // Load modules whenever modal opens
+  // Load modules + this employee's assignments whenever the modal opens
+  const loadData = useCallback(() => {
+    if (!employee?.employee_id) return;
+    setSelectedModules(new Set());
+    setExistingAssignments([]);
+    setLoadError(null);
+    setDataLoading(true);
+    Promise.all([
+      trainingAPI.getModules(),
+      trainingAPI.getAssignments({ employee: employee.employee_id }),
+    ])
+      .then(([modulesRes, assignmentsRes]) => {
+        setModules(modulesRes.data?.results || modulesRes.data || []);
+        setExistingAssignments(assignmentsRes.data?.results || assignmentsRes.data || []);
+      })
+      .catch((err) => {
+        const msg = err.response?.data?.detail || 'Failed to load training data';
+        setLoadError(msg);
+      })
+      .finally(() => setDataLoading(false));
+  }, [employee?.employee_id]);
+
   useEffect(() => {
     if (!isOpen) return;
-    setSelectedModules(new Set());
-    setModulesLoading(true);
-    trainingAPI.getModules()
-      .then((res) => setModules(res.data?.results || res.data || []))
-      .catch(() => toast.error('Failed to load training modules'))
-      .finally(() => setModulesLoading(false));
-  }, [isOpen]);
+    loadData();
+  }, [isOpen, loadData]);
 
-  const toggleModule = (id) => {
+  // Return the most-relevant existing assignment for a module
+  // Priority: active (blocked) first, then any finished one
+  const getAssignmentFor = (moduleId) => {
+    const active = existingAssignments.find(
+      (a) => a.training_module === moduleId && ['ASSIGNED', 'IN_PROGRESS'].includes(a.status)
+    );
+    if (active) return active;
+    // Return last finished assignment (COMPLETED/PASSED/FAILED/EXPIRED)
+    return existingAssignments
+      .filter((a) => a.training_module === moduleId)
+      .sort((a, b) => new Date(b.assigned_at) - new Date(a.assigned_at))[0] || null;
+  };
+
+  const toggleModule = (moduleId, blocked) => {
+    if (blocked) return;
     setSelectedModules((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(moduleId)) next.delete(moduleId); else next.add(moduleId);
       return next;
     });
   };
@@ -261,27 +303,20 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
       return;
     }
     setAssigning(true);
-    let totalAssigned = 0;
-    let totalSkipped = 0;
     try {
-      await Promise.all(
-        Array.from(selectedModules).map(async (moduleId) => {
-          const res = await trainingAPI.bulkAssign({
-            training_module_id: moduleId,
-            employee_ids: [employee.id],
-            assignment_reason: 'REMEDIATION',
-          });
-          totalAssigned += res.data?.assigned || 0;
-          totalSkipped += res.data?.skipped || 0;
-        })
-      );
+      const res = await trainingAPI.bulkAssign({
+        training_module_ids: Array.from(selectedModules),
+        employee_ids: [employee.employee_id],
+        assignment_reason: 'MANUAL_ADMIN',
+      });
+      const totalAssigned = res.data?.assigned || 0;
+      const totalSkipped = res.data?.skipped || 0;
+      const employeeName = `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || employee.employee_name || 'Employee';
       if (totalAssigned > 0) {
-        toast.success(
-          `Assigned ${totalAssigned} module${totalAssigned !== 1 ? 's' : ''} to ${employee.first_name} ${employee.last_name}`
-        );
+        toast.success(`Assigned ${totalAssigned} module${totalAssigned !== 1 ? 's' : ''} to ${employeeName}`);
       }
       if (totalSkipped > 0) {
-        toast(`${totalSkipped} module${totalSkipped !== 1 ? 's' : ''} already assigned — skipped`, { icon: 'ℹ️' });
+        toast(`${totalSkipped} module${totalSkipped !== 1 ? 's' : ''} already active — skipped`, { icon: 'ℹ️' });
       }
       onClose();
       if (onSuccess) onSuccess();
@@ -295,6 +330,11 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
   if (!isOpen || !employee) return null;
 
   const employeeName = `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || employee.employee_name || 'Employee';
+  // Selectables = modules that are not currently blocked
+  const selectableCount = modules.filter((m) => {
+    const a = getAssignmentFor(m.id);
+    return !a || !ASSIGNMENT_STATUS_UI[a.status]?.blocked;
+  }).length;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -307,9 +347,8 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Assign Training</h2>
               <p className="text-sm text-gray-500 mt-1">
-                Select modules for{' '}
                 <span className="font-medium text-gray-900">{employeeName}</span>
-                {' '}·{' '}
+                {' · '}
                 <span className={clsx('font-semibold', getRiskColor(employee.risk_score))}>
                   Risk Score: {employee.risk_score}
                 </span>
@@ -321,13 +360,35 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
           </div>
 
           {/* Module List */}
-          <div className="p-6 space-y-3">
-            {modulesLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+          <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+            {dataLoading ? (
+              <div className="flex items-center justify-center py-10 gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+                <span className="text-sm text-gray-500">Loading modules...</span>
+              </div>
+            ) : loadError ? (
+              <div className="text-center py-8">
+                <AlertCircle className="h-10 w-10 text-danger-500 mx-auto mb-3" />
+                <p className="font-medium text-gray-900 mb-1">Failed to load modules</p>
+                <p className="text-sm text-gray-500 mb-4">{loadError}</p>
+                <button onClick={loadData} className="btn-secondary text-sm">
+                  Try Again
+                </button>
               </div>
             ) : modules.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-6">No training modules available</p>
+              <div className="text-center py-8">
+                <AlertTriangle className="h-10 w-10 text-warning-500 mx-auto mb-3" />
+                <p className="font-medium text-gray-900 mb-1">No training modules found</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  Seed the database first, then come back to assign training.
+                </p>
+                <button
+                  onClick={() => { onClose(); window.location.href = '/company/training'; }}
+                  className="btn-primary text-sm"
+                >
+                  Go to Training Management
+                </button>
+              </div>
             ) : (
               modules.map((module) => {
                 const cat = MODULE_CATEGORY_CONFIG[module.category] || {
@@ -337,41 +398,68 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                   label: module.category || 'Training',
                 };
                 const CatIcon = cat.icon;
+                const assignment = getAssignmentFor(module.id);
+                const statusUi = assignment ? ASSIGNMENT_STATUS_UI[assignment.status] : null;
+                const blocked = statusUi?.blocked ?? false;
                 const isSelected = selectedModules.has(module.id);
 
                 return (
                   <div
                     key={module.id}
-                    onClick={() => toggleModule(module.id)}
+                    onClick={() => toggleModule(module.id, blocked)}
                     className={clsx(
-                      'border-2 rounded-lg p-4 cursor-pointer transition-all',
-                      isSelected
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      'border-2 rounded-lg p-4 transition-all',
+                      blocked
+                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-70'
+                        : isSelected
+                          ? 'border-primary-500 bg-primary-50 cursor-pointer'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
                     )}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Custom checkbox */}
+                      {/* Checkbox (greyed out when blocked) */}
                       <div className={clsx(
                         'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors',
-                        isSelected ? 'bg-primary-600 border-primary-600' : 'border-gray-300 bg-white'
+                        blocked
+                          ? 'border-gray-300 bg-gray-100'
+                          : isSelected
+                            ? 'bg-primary-600 border-primary-600'
+                            : 'border-gray-300 bg-white'
                       )}>
-                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                        {isSelected && !blocked && <Check className="h-3 w-3 text-white" />}
                       </div>
 
-                      {/* Icon */}
+                      {/* Category icon */}
                       <div className={clsx('p-2 rounded-lg shrink-0', cat.bgColor)}>
                         <CatIcon className={clsx('h-5 w-5', cat.iconColor)} />
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 leading-tight">{module.title}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-gray-900 leading-tight">{module.title}</p>
+                          {statusUi && (
+                            <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', statusUi.badge)}>
+                              {statusUi.label}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                           <span>{cat.label}</span>
                           <span>·</span>
                           <span>{module.duration_minutes} min</span>
                         </div>
+                        {/* Contextual hint */}
+                        {blocked && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            Cannot assign — already active for this employee
+                          </p>
+                        )}
+                        {!blocked && assignment && (
+                          <p className="text-xs text-primary-600 mt-1">
+                            Previously {statusUi?.label?.toLowerCase() || 'assigned'} — can re-assign
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -387,10 +475,10 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
             </button>
             <button
               onClick={handleAssign}
-              disabled={assigning || selectedModules.size === 0 || modulesLoading}
+              disabled={assigning || selectedModules.size === 0 || dataLoading}
               className={clsx(
                 'btn-primary flex-1 flex items-center justify-center gap-2',
-                (assigning || selectedModules.size === 0 || modulesLoading) && 'opacity-50 cursor-not-allowed'
+                (assigning || selectedModules.size === 0 || dataLoading) && 'opacity-50 cursor-not-allowed'
               )}
             >
               {assigning ? (
@@ -402,7 +490,7 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                 <>
                   <UserPlus className="h-4 w-4" />
                   {selectedModules.size === 0
-                    ? 'Select Modules'
+                    ? selectableCount === 0 ? 'All Active' : 'Select Modules'
                     : `Assign ${selectedModules.size} Module${selectedModules.size !== 1 ? 's' : ''}`}
                 </>
               )}

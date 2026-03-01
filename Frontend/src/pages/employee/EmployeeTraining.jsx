@@ -44,6 +44,9 @@ function EmployeeTraining() {
 
   const filteredTrainings = trainings.filter((training) => {
     if (filter === 'all') return true;
+    if (filter === TRAINING_STATUS.COMPLETED) {
+      return [TRAINING_STATUS.COMPLETED, TRAINING_STATUS.PASSED, TRAINING_STATUS.FAILED].includes(training.status);
+    }
     return training.status === filter;
   });
 
