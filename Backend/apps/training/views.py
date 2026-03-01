@@ -741,6 +741,50 @@ class RemediationTrainingViewSet(viewsets.ModelViewSet):
                 description=f'Failed training: {module.title} (Score: {result["score"]:.1f}%)'
             )
 
+        # Send notifications for quiz result
+        try:
+            from apps.notifications.services import NotificationService
+            score_val = result['score']
+            admin = training.assigned_by
+
+            if result['passed']:
+                # Employee: quiz passed
+                NotificationService.notify_quiz_passed(
+                    employee=request.user,
+                    training_module=module,
+                    score=score_val,
+                )
+                # Employee: training completed
+                NotificationService.notify_training_completed_employee(
+                    employee=request.user,
+                    training_module=module,
+                    score=score_val,
+                )
+                # Admin: training completed
+                if admin:
+                    NotificationService.notify_training_completed(
+                        admin=admin,
+                        employee=request.user,
+                        training_module=module,
+                    )
+            else:
+                # Employee: quiz failed
+                NotificationService.notify_quiz_failed(
+                    employee=request.user,
+                    training_module=module,
+                    score=score_val,
+                )
+                # Admin: employee failed quiz
+                if admin:
+                    NotificationService.notify_employee_failed_quiz(
+                        admin=admin,
+                        employee=request.user,
+                        training_module=module,
+                        score=score_val,
+                    )
+        except Exception:
+            pass
+
         return Response({
             'training_id': training.id,
             'score': result['score'],
@@ -810,6 +854,20 @@ class RemediationTrainingViewSet(viewsets.ModelViewSet):
                     assigned_by=request.user,
                     due_date=due_date
                 )
+
+                # Notify employee of assignment
+                try:
+                    from apps.notifications.services import NotificationService
+                    NotificationService.notify_training_assigned(
+                        employee=employee,
+                        training_module=module,
+                    )
+                except Exception as exc:
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        'Failed to create training-assigned notification for %s: %s',
+                        employee.email, exc
+                    )
 
                 # Update module stats
                 module.times_assigned = F('times_assigned') + 1

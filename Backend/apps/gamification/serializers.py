@@ -147,20 +147,32 @@ class EmployeePointsSummarySerializer(serializers.Serializer):
 # Leaderboard Serializers
 # ============================================================================
 
+class EmployeeShortSerializer(serializers.ModelSerializer):
+    """Minimal employee info embedded in leaderboard entries."""
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email']
+
+
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
     """Serializer for leaderboard entries."""
 
-    rank = serializers.IntegerField(read_only=True)
-    employee_name = serializers.CharField(source='employee.get_full_name', read_only=True)
-    employee_first_name = serializers.CharField(source='employee.first_name', read_only=True)
-    employee_last_name = serializers.CharField(source='employee.last_name', read_only=True)
+    # Nested employee object — frontend reads entry.employee.first_name / .email
+    employee = EmployeeShortSerializer(read_only=True)
+
+    # Generic `points` field populated by the view based on the requested period
+    points = serializers.IntegerField(default=0)
+
+    # Whether this entry belongs to the requesting user (set by the view)
+    is_current_user = serializers.BooleanField(default=False)
 
     class Meta:
         model = EmployeePoints
         fields = [
-            'rank', 'employee', 'employee_name', 'employee_first_name',
-            'employee_last_name', 'total_points', 'weekly_points',
-            'monthly_points', 'badge_count'
+            'points', 'is_current_user',
+            'employee', 'total_points', 'weekly_points',
+            'monthly_points', 'badge_count',
         ]
 
 

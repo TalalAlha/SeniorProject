@@ -328,11 +328,23 @@ class LeaderboardViewSet(viewsets.ViewSet):
             offset=offset
         )
 
-        # Add rank to each entry
+        # Add rank, period-correct points, and is_current_user to each entry
         entries_with_rank = []
         for idx, entry in enumerate(entries):
             entry_data = LeaderboardEntrySerializer(entry).data
             entry_data['rank'] = offset + idx + 1
+
+            # Resolve points for the requested period
+            if period == 'weekly':
+                entry_data['points'] = entry.weekly_points
+            elif period == 'monthly':
+                entry_data['points'] = entry.monthly_points
+            else:
+                entry_data['points'] = entry.total_points
+
+            # Flag the requesting user's own row
+            entry_data['is_current_user'] = (entry.employee_id == user.id)
+
             entries_with_rank.append(entry_data)
 
         # Get current user's rank and points
@@ -383,17 +395,24 @@ class LeaderboardViewSet(viewsets.ViewSet):
 
         emp_points = EmployeePoints.objects.filter(employee=user).first()
 
+        total_participants = EmployeePoints.objects.filter(
+            company=user.company
+        ).count() if user.company else 0
+
         return Response({
             'all_time': {
                 'rank': get_employee_rank(user, 'all_time'),
-                'points': emp_points.total_points if emp_points else 0
+                'points': emp_points.total_points if emp_points else 0,
+                'total': total_participants,
             },
             'monthly': {
                 'rank': get_employee_rank(user, 'monthly'),
-                'points': emp_points.monthly_points if emp_points else 0
+                'points': emp_points.monthly_points if emp_points else 0,
+                'total': total_participants,
             },
             'weekly': {
                 'rank': get_employee_rank(user, 'weekly'),
-                'points': emp_points.weekly_points if emp_points else 0
+                'points': emp_points.weekly_points if emp_points else 0,
+                'total': total_participants,
             },
         })

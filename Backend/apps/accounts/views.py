@@ -107,6 +107,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
+        try:
+            from apps.notifications.services import NotificationService
+            NotificationService.notify_profile_updated(user=instance)
+        except Exception as exc:
+            logger.warning('Failed to create profile-updated notification: %s', exc)
+
         return Response(
             UserSerializer(instance).data,
             status=status.HTTP_200_OK
@@ -213,6 +219,13 @@ class ChangePasswordView(views.APIView):
         user = request.user
         user.set_password(serializer.validated_data['new_password'])
         user.save()
+
+        # Notify user of password change
+        try:
+            from apps.notifications.services import NotificationService
+            NotificationService.notify_password_changed(user=user)
+        except Exception as exc:
+            logger.warning('Failed to create password-changed notification: %s', exc)
 
         return Response(
             {'message': 'Password changed successfully.'},
@@ -382,6 +395,20 @@ class AcceptInvitationView(views.APIView):
             'password', 'is_active', 'is_verified',
             'invitation_status', 'invitation_accepted_at',
         ])
+
+        # Welcome notification for new employee + alert admin
+        try:
+            from apps.notifications.services import NotificationService
+            NotificationService.notify_welcome(employee=user)
+
+            if user.company:
+                admin = User.objects.filter(
+                    company=user.company, role='COMPANY_ADMIN', is_active=True
+                ).first()
+                if admin:
+                    NotificationService.notify_employee_joined(admin=admin, employee=user)
+        except Exception as exc:
+            logger.warning('Failed to create invitation-accepted notifications: %s', exc)
 
         return Response({
             'message': 'Invitation accepted! You can now log in.',

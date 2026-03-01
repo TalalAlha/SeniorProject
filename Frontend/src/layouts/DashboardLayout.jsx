@@ -18,9 +18,9 @@ import {
   Globe,
   ChevronDown,
   Shield,
-  Bell,
   User,
 } from 'lucide-react';
+import NotificationDropdown from '../components/NotificationDropdown';
 import { useAuth, USER_ROLES } from '../contexts';
 import { changeLanguage } from '../i18n';
 import clsx from 'clsx';
@@ -237,10 +237,7 @@ function DashboardLayout() {
             </button>
 
             {/* Notifications */}
-            <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 end-1 h-2 w-2 bg-danger-500 rounded-full"></span>
-            </button>
+            <NotificationDropdown />
 
             {/* User Menu */}
             <div className="relative">

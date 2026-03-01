@@ -312,6 +312,20 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
 
                 campaign.status = 'IN_PROGRESS'
                 campaign.sent_at = timezone.now()
+
+                # Notify admin that simulation emails were sent
+                try:
+                    from apps.notifications.services import NotificationService
+                    admin = campaign.created_by
+                    if admin and sent_count > 0:
+                        NotificationService.notify_simulation_sent(
+                            admin=admin,
+                            simulation=campaign,
+                            count=sent_count,
+                        )
+                except Exception as exc:
+                    import logging
+                    logging.getLogger(__name__).warning('Failed to create simulation-sent notification: %s', exc)
             else:
                 campaign.status = 'SCHEDULED'
 
@@ -846,6 +860,49 @@ def track_link_click_view(request, link_token):
             user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
 
+        # Notify company admin
+        try:
+            from apps.notifications.services import NotificationService
+            admin = email_sim.campaign.created_by
+            if admin:
+                NotificationService.notify_employee_clicked_phishing(
+                    admin=admin,
+                    employee=email_sim.employee,
+                    simulation=email_sim.campaign,
+                )
+
+                # Notify employee they clicked (educational)
+                NotificationService.notify_simulation_clicked(
+                    employee=email_sim.employee,
+                    simulation=email_sim.campaign,
+                )
+
+                # Check if click rate crossed 50% threshold or a multiple-of-5 milestone
+                campaign = email_sim.campaign
+                prev_clicked = campaign.total_clicked  # before this new click was saved
+                total_sent = campaign.total_sent
+                if total_sent >= 5:
+                    campaign.refresh_from_db()
+                    curr_rate = campaign.click_rate
+                    curr_clicked = campaign.total_clicked
+                    prev_rate = (prev_clicked / total_sent * 100) if total_sent > 0 else 0
+                    if prev_rate <= 50 and curr_rate > 50:
+                        NotificationService.notify_high_click_rate(
+                            admin=admin,
+                            simulation=campaign,
+                            click_rate=round(curr_rate, 1),
+                        )
+                    # Alert admin at every 5-employee milestone (5, 10, 15, …)
+                    if curr_clicked >= 5 and curr_clicked % 5 == 0 and prev_clicked < curr_clicked:
+                        NotificationService.notify_multiple_failures(
+                            admin=admin,
+                            employee_count=curr_clicked,
+                            simulation=campaign,
+                        )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning('Failed to create click notification: %s', exc)
+
     # Redirect to React frontend landing page
     frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
     return HttpResponseRedirect(f'{frontend_url}/simulation/caught/{link_token}')
@@ -964,6 +1021,43 @@ def report_phishing_view(request, link_token):
         user_agent=request.META.get('HTTP_USER_AGENT', ''),
         event_data={'reason': reason} if reason else {}
     )
+
+    # Notify company admin of the positive report + notify employee
+    try:
+        from apps.notifications.services import NotificationService
+        admin = email_sim.campaign.created_by
+        campaign = email_sim.campaign
+
+        # Notify admin
+        if admin:
+            NotificationService.notify_employee_reported_phishing(
+                admin=admin,
+                employee=email_sim.employee,
+                simulation=campaign,
+            )
+
+        # Notify employee they reported correctly
+        NotificationService.notify_simulation_reported(
+            employee=email_sim.employee,
+            simulation=campaign,
+        )
+
+        # Check for low report rate (< 10% when >= 10 emails sent)
+        if admin:
+            campaign.refresh_from_db()
+            total_sent = campaign.total_sent
+            total_reported = campaign.total_reported
+            if total_sent >= 10:
+                report_rate = (total_reported / total_sent * 100)
+                if report_rate < 10:
+                    NotificationService.notify_low_report_rate(
+                        admin=admin,
+                        simulation=campaign,
+                        report_rate=round(report_rate, 1),
+                    )
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning('Failed to create report notification: %s', exc)
 
     return Response({
         'message': 'Thank you for reporting this suspicious email! '

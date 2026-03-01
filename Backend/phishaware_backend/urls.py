@@ -47,6 +47,9 @@ urlpatterns = [
 
     # Public Community Portal (no authentication required)
     path('api/v1/community/', include('apps.community.urls')),
+
+    # Notifications
+    path('api/v1/notifications/', include('apps.notifications.urls')),
 ]
 
 # Serve media files in development

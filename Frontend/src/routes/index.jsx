@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { USER_ROLES } from '../contexts';
 import { ProtectedRoute, PublicRoute, GuestRoute } from './ProtectedRoute';
+import NotificationTest from '../pages/test/NotificationTest';
 
 // Layouts
 import PublicLayout from '../layouts/PublicLayout';
@@ -184,6 +185,9 @@ const router = createBrowserRouter([
       { path: 'profile', element: <EmployeeProfile /> },
     ],
   },
+
+  // Dev / test pages
+  { path: '/test/notifications', element: <NotificationTest /> },
 
   // Error pages
   { path: '/unauthorized', element: <UnauthorizedPage /> },
