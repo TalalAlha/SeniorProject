@@ -756,3 +756,84 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
         serializer = CompanyDetailSerializer(user.company)
         return Response(serializer.data)
+
+
+from rest_framework.decorators import api_view, permission_classes as fn_permission_classes
+from django.conf import settings
+import logging as _logging
+
+_logger = _logging.getLogger(__name__)
+
+
+@api_view(['POST'])
+@fn_permission_classes([AllowAny])
+def register_company(request):
+    """
+    Self-service company registration.
+
+    Creates a new Company and an unverified COMPANY_ADMIN account inside a
+    single atomic transaction, then sends an email-verification link.
+    The admin can only log in after clicking that link.
+    """
+
+    company_name = request.data.get('company_name', '').strip()
+    company_website = request.data.get('company_website', '').strip()
+    admin_email = request.data.get('admin_email', '').strip()
+    admin_password = request.data.get('admin_password', '')
+    admin_first_name = request.data.get('admin_first_name', '').strip()
+    admin_last_name = request.data.get('admin_last_name', '').strip()
+
+    # Basic validation
+    if not all([company_name, admin_email, admin_password, admin_first_name, admin_last_name]):
+        return Response(
+            {'error': 'company_name, admin_email, admin_password, admin_first_name and admin_last_name are all required.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if Company.objects.filter(name__iexact=company_name).exists():
+        return Response(
+            {'error': 'A company with that name already exists.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if User.objects.filter(email=admin_email).exists():
+        return Response(
+            {'error': 'A user with that email already exists.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        company = Company.objects.create(
+            name=company_name,
+            email=admin_email,
+            website=company_website,
+            is_active=True,
+        )
+
+        # Create as inactive + unverified; verification email will activate the account.
+        admin_user = User.objects.create_user(
+            email=admin_email,
+            password=admin_password,
+            first_name=admin_first_name,
+            last_name=admin_last_name,
+            role='COMPANY_ADMIN',
+            company=company,
+            is_active=False,
+            is_verified=False,
+        )
+
+    # Send verification email (non-critical — log but don't roll back on failure)
+    try:
+        from apps.core.emails import send_verification_email
+        send_verification_email(admin_user, str(admin_user.verification_token))
+    except Exception as exc:
+        _logger.error('Failed to send verification email to %s: %s', admin_email, exc)
+
+    return Response(
+        {
+            'message': 'Registration successful! Please check your email to verify your account.',
+            'email': admin_email,
+            'requires_verification': True,
+        },
+        status=status.HTTP_201_CREATED,
+    )

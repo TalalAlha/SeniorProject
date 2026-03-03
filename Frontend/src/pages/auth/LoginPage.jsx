@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Eye, EyeOff, Globe, Loader2, Mail, RefreshCw } from 'lucide-react';
+import { Shield, Eye, EyeOff, Globe, Loader2, Mail, RefreshCw, Building2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../contexts';
 import { authAPI } from '../../api';
@@ -119,12 +119,18 @@ function LoginPage() {
         <h2 className="text-center text-2xl font-bold text-gray-900">
           {t('auth.signIn')}
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.noAccount')}{' '}
-          <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-            {t('auth.signUp')}
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <Link
+            to="/register/company"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm transition-colors"
+          >
+            <Building2 className="w-4 h-4" />
+            Register Your Company
           </Link>
-        </p>
+          <p className="text-xs text-gray-400">
+            Employee? Use the invitation link sent to your email.
+          </p>
+        </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

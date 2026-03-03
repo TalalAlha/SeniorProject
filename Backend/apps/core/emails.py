@@ -163,6 +163,32 @@ def send_simulation_email(recipient_email, recipient_name, subject, html_body, s
         return False
 
 
+def send_company_welcome_email(user, company):
+    """
+    Send a branded welcome email to a newly verified company admin.
+
+    Args:
+        user: User model instance (company admin).
+        company: Company model instance.
+
+    Returns:
+        bool: True if the email was accepted.
+    """
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+
+    return _send_html_email(
+        subject=f'Welcome to PhishAware — {company.name}',
+        template_name='company_welcome.html',
+        context={
+            'admin_name': user.first_name or user.get_full_name() or user.email,
+            'admin_email': user.email,
+            'company_name': company.name,
+            'login_url': f'{frontend_url}/login',
+        },
+        recipient_email=user.email,
+    )
+
+
 def send_password_reset_email(user, reset_token):
     """
     Send a password-reset link to the user.

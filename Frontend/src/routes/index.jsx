@@ -14,6 +14,7 @@ import TopicTraining from '../pages/public/TopicTraining';
 import PublicQuiz from '../pages/public/PublicQuiz';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import RegisterCompany from '../pages/auth/RegisterCompany';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 import AcceptInvitation from '../pages/auth/AcceptInvitation';
 import ForgotPassword from '../pages/auth/ForgotPassword';
@@ -82,9 +83,13 @@ const router = createBrowserRouter([
   },
   {
     path: '/register',
+    element: <Navigate to="/register/company" replace />,
+  },
+  {
+    path: '/register/company',
     element: (
       <PublicRoute>
-        <RegisterPage />
+        <RegisterCompany />
       </PublicRoute>
     ),
   },

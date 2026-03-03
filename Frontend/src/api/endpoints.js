@@ -17,6 +17,7 @@ export const authAPI = {
 
 // ============== Companies ==============
 export const companiesAPI = {
+  registerCompany: (data) => api.post('/companies/register/', data),
   list: (params) => api.get('/companies/', { params }),
   create: (data) => api.post('/companies/', data),
   get: (id) => api.get(`/companies/${id}/`),

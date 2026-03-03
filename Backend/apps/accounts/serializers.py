@@ -23,7 +23,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    """Serializer for user registration."""
+    """Serializer for public user registration (PUBLIC_USER only).
+
+    Company admins register via /companies/register/.
+    Employees are onboarded via invitation links.
+    """
 
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True, required=False)
@@ -32,7 +36,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'password', 'password_confirm', 'first_name', 'last_name',
-            'phone_number', 'role', 'company', 'preferred_language'
+            'phone_number', 'preferred_language'
         ]
 
     def validate(self, attrs):
@@ -40,30 +44,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         password_confirm = attrs.get('password_confirm')
         if password_confirm and attrs['password'] != password_confirm:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
-
-        # Validate role-specific requirements
-        role = attrs.get('role', 'PUBLIC_USER')
-        company = attrs.get('company')
-
-        if role in ['COMPANY_ADMIN', 'EMPLOYEE'] and not company:
-            raise serializers.ValidationError({
-                "company": "Company is required for Company Admin and Employee roles."
-            })
-
-        if role == 'PUBLIC_USER' and company:
-            raise serializers.ValidationError({
-                "company": "Public users cannot be associated with a company."
-            })
-
         return attrs
 
     def create(self, validated_data):
-        """Create and return a new user."""
+        """Create and return a new PUBLIC_USER."""
         validated_data.pop('password_confirm', None)
         password = validated_data.pop('password')
 
         user = User.objects.create_user(
             password=password,
+            role='PUBLIC_USER',
             **validated_data
         )
 

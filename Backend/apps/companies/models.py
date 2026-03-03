@@ -40,18 +40,18 @@ class Company(models.Model):
     description_ar = models.TextField(_('description (Arabic)'), blank=True)
 
     # Contact Information
-    email = models.EmailField(_('company email'))
+    email = models.EmailField(_('company email'), blank=True)
     phone = models.CharField(_('phone number'), max_length=20, blank=True)
     website = models.URLField(_('website'), validators=[URLValidator()], blank=True)
 
     # Location
-    country = models.CharField(_('country'), max_length=100)
-    city = models.CharField(_('city'), max_length=100)
+    country = models.CharField(_('country'), max_length=100, blank=True)
+    city = models.CharField(_('city'), max_length=100, blank=True)
     address = models.TextField(_('address'), blank=True)
 
     # Company Details
-    industry = models.CharField(_('industry'), max_length=50, choices=INDUSTRY_CHOICES)
-    company_size = models.CharField(_('company size'), max_length=20, choices=COMPANY_SIZE_CHOICES)
+    industry = models.CharField(_('industry'), max_length=50, choices=INDUSTRY_CHOICES, blank=True)
+    company_size = models.CharField(_('company size'), max_length=20, choices=COMPANY_SIZE_CHOICES, blank=True)
 
     # Subscription & Status
     is_active = models.BooleanField(_('active'), default=True)

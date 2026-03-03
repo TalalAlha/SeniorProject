@@ -7,7 +7,7 @@ URL routing for company CRUD, user management, and statistics.
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import CompanyViewSet
+from .views import CompanyViewSet, register_company
 
 app_name = 'companies'
 
@@ -15,6 +15,7 @@ router = DefaultRouter()
 router.register(r'', CompanyViewSet, basename='company')
 
 urlpatterns = [
+    path('register/', register_company, name='company-register'),
     path('', include(router.urls)),
 ]
 

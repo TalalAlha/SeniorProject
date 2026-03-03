@@ -150,7 +150,16 @@ class VerifyEmailView(views.APIView):
             )
 
         user.is_verified = True
-        user.save(update_fields=['is_verified'])
+        user.is_active = True  # activates accounts created inactive (e.g. company admins)
+        user.save(update_fields=['is_verified', 'is_active'])
+
+        # Send branded welcome email to newly verified company admins
+        if user.role == 'COMPANY_ADMIN' and user.company:
+            try:
+                from apps.core.emails import send_company_welcome_email
+                send_company_welcome_email(user, user.company)
+            except Exception as exc:
+                logger.warning('Failed to send company welcome email to %s: %s', user.email, exc)
 
         return Response(
             {'message': 'Email verified successfully! You can now log in.', 'verified': True},
