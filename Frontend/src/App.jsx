@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster, ToastBar } from 'react-hot-toast';
 import { AuthProvider } from './contexts';
 import router from './routes';
 import './i18n';
@@ -32,6 +32,7 @@ function App() {
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
               borderRadius: '0.75rem',
               padding: '1rem',
+              cursor: 'pointer',
             },
             success: {
               iconTheme: {
@@ -46,7 +47,21 @@ function App() {
               },
             },
           }}
-        />
+        >
+          {(t) => (
+            <ToastBar toast={t}>
+              {({ icon, message }) => (
+                <div
+                  style={{ display: 'contents' }}
+                  onClick={() => toast.dismiss(t.id)}
+                >
+                  {icon}
+                  {message}
+                </div>
+              )}
+            </ToastBar>
+          )}
+        </Toaster>
       </AuthProvider>
     </Suspense>
   );
