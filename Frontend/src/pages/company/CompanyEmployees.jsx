@@ -586,6 +586,7 @@ function CompanyEmployees() {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [viewingEmployee, setViewingEmployee] = useState(null);
   const [deactivatingEmployee, setDeactivatingEmployee] = useState(null);
+  const [deletingEmployee, setDeletingEmployee] = useState(null);
   const [cancellingInvitation, setCancellingInvitation] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -750,6 +751,21 @@ function CompanyEmployees() {
     } catch (err) {
       const message = err.response?.data?.detail || 'Failed to update employee status';
       toast.error(message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteEmployee = async () => {
+    if (!deletingEmployee) return;
+    setActionLoading(true);
+    try {
+      await companiesAPI.removeUser(companyId, deletingEmployee.id);
+      toast.success(`${deletingEmployee.first_name} ${deletingEmployee.last_name} has been deleted`);
+      setDeletingEmployee(null);
+      fetchEmployees();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to delete employee');
     } finally {
       setActionLoading(false);
     }
@@ -1090,6 +1106,13 @@ function CompanyEmployees() {
                                 onClick: () => setDeactivatingEmployee(employee),
                                 danger: employee.is_active,
                               },
+                              { divider: true },
+                              {
+                                icon: Trash2,
+                                label: 'Delete',
+                                onClick: () => setDeletingEmployee(employee),
+                                danger: true,
+                              },
                             ]}
                           />
                         </div>
@@ -1259,6 +1282,17 @@ function CompanyEmployees() {
         title="Cancel Invitation"
         message={`Cancel the invitation for ${cancellingInvitation?.email}? The invitation link will stop working and this cannot be undone.`}
         confirmText="Cancel Invitation"
+        danger
+        loading={actionLoading}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deletingEmployee}
+        onClose={() => setDeletingEmployee(null)}
+        onConfirm={handleDeleteEmployee}
+        title="Delete Employee"
+        message={`Are you sure you want to permanently delete ${deletingEmployee?.first_name} ${deletingEmployee?.last_name}? This action cannot be undone and all their data will be removed.`}
+        confirmText="Delete"
         danger
         loading={actionLoading}
       />

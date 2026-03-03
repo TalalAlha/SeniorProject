@@ -62,8 +62,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is not 401 or request already retried, reject
-    if (error.response?.status !== 401 || originalRequest._retry) {
+    // Skip refresh logic for auth endpoints (login returning 401 = bad credentials)
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/token') ||
+      originalRequest.url?.includes('/auth/login');
+
+    // If error is not 401, request already retried, or it's the auth endpoint itself, reject
+    if (error.response?.status !== 401 || originalRequest._retry || isAuthEndpoint) {
       // Handle other errors
       handleApiError(error);
       return Promise.reject(error);

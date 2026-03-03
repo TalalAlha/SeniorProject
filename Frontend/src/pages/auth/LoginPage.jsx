@@ -31,11 +31,10 @@ function LoginPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    // Clear errors when field changes
+    // Clear field-level validation errors when that field changes
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
-    if (authError) setAuthError(null);
   };
 
   const validateForm = () => {
@@ -53,7 +52,7 @@ function LoginPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     if (!validateForm()) return;
 
     setEmailNotVerified(false);
@@ -135,7 +134,7 @@ function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-sm rounded-xl sm:px-10 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="label">
@@ -148,6 +147,7 @@ function LoginPage() {
                 autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                 className={errors.email ? 'input-error' : 'input'}
                 placeholder="you@example.com"
               />
@@ -169,6 +169,7 @@ function LoginPage() {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                   className={errors.password ? 'input-error pr-10' : 'input pr-10'}
                   placeholder="••••••••"
                 />
@@ -246,7 +247,8 @@ function LoginPage() {
 
             {/* Submit Button */}
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={loading}
               className="btn-primary w-full py-3"
             >
@@ -259,7 +261,7 @@ function LoginPage() {
                 t('auth.signIn')
               )}
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
