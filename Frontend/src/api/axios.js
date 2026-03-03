@@ -68,8 +68,10 @@ api.interceptors.response.use(
 
     // If error is not 401, request already retried, or it's the auth endpoint itself, reject
     if (error.response?.status !== 401 || originalRequest._retry || isAuthEndpoint) {
-      // Handle other errors
-      handleApiError(error);
+      // Auth endpoint errors (login/register) are handled by the caller — skip global toast
+      if (!isAuthEndpoint) {
+        handleApiError(error);
+      }
       return Promise.reject(error);
     }
 
