@@ -17,9 +17,9 @@ import {
   Building2,
   Globe,
   ChevronDown,
-  Shield,
   User,
 } from 'lucide-react';
+import Logo from '../components/Logo';
 import NotificationDropdown from '../components/NotificationDropdown';
 import { useAuth, USER_ROLES } from '../contexts';
 import { changeLanguage } from '../i18n';
@@ -87,11 +87,8 @@ function DashboardLayout() {
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:start-0 bg-white border-e border-gray-200">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <Link to="/" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary-600" />
-            <span className="text-xl font-bold text-gray-900">
-              {t('common.appName')}
-            </span>
+          <Link to="/">
+            <Logo variant="horizontal" className="h-10 w-auto" />
           </Link>
         </div>
 
@@ -156,11 +153,8 @@ function DashboardLayout() {
 
             {/* Logo */}
             <div className="h-16 flex items-center px-6 border-b border-gray-200">
-              <Link to="/" className="flex items-center gap-2">
-                <Shield className="h-8 w-8 text-primary-600" />
-                <span className="text-xl font-bold text-gray-900">
-                  {t('common.appName')}
-                </span>
+              <Link to="/">
+                <Logo variant="horizontal" className="h-10 w-auto" />
               </Link>
             </div>
 

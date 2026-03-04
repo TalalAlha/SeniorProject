@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, X, Globe, Shield, Mail, ExternalLink } from 'lucide-react';
+import { Menu, X, Globe, Mail, ExternalLink } from 'lucide-react';
+import Logo from '../components/Logo';
 import { useState } from 'react';
 import { changeLanguage } from '../i18n';
 import { useAuth } from '../contexts';
@@ -35,11 +36,8 @@ function PublicLayout() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <Shield className="h-8 w-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">
-                {t('common.appName')}
-              </span>
+            <Link to="/">
+              <Logo variant="horizontal" className="h-10 w-auto" />
             </Link>
 
             {/* Desktop Navigation */}
@@ -172,9 +170,8 @@ function PublicLayout() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="h-8 w-8 text-primary-400" />
-                <span className="text-xl font-bold">{t('common.appName')}</span>
+              <div className="mb-4">
+                <Logo variant="icon" className="h-8 w-auto" />
               </div>
               <p className="text-gray-400 text-sm">
                 {t('public.footer.about')}

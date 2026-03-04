@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, BookOpen, Mail, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
+import { BookOpen, Mail, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
 
 function LandingPage() {
   const { t } = useTranslation();

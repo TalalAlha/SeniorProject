@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Eye, EyeOff, Globe, Loader2, Mail, RefreshCw, Building2 } from 'lucide-react';
+import { Eye, EyeOff, Globe, Loader2, Mail, RefreshCw, Building2 } from 'lucide-react';
+import Logo from '../../components/Logo';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../contexts';
 import { authAPI } from '../../api';
@@ -108,11 +109,8 @@ function LoginPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo */}
-        <Link to="/" className="flex justify-center items-center gap-2 mb-6">
-          <Shield className="h-12 w-12 text-primary-600" />
-          <span className="text-2xl font-bold text-gray-900">
-            {t('common.appName')}
-          </span>
+        <Link to="/" className="flex justify-center mb-6">
+          <Logo variant="vertical" className="h-32 w-auto mx-auto" />
         </Link>
 
         <h2 className="text-center text-2xl font-bold text-gray-900">

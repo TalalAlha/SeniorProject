@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Building2, Check, X, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Check, X, Loader2, Eye, EyeOff } from 'lucide-react';
+import Logo from '../../components/Logo';
 import toast from 'react-hot-toast';
 import { employeesAPI } from '../../api';
 
@@ -145,9 +146,7 @@ function AcceptInvitation() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Building2 className="w-8 h-8 text-primary-600" />
-          </div>
+          <Logo variant="vertical" className="h-20 w-auto mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900">You're Invited!</h2>
           <p className="text-gray-600 mt-1">
             Join <span className="font-semibold text-gray-900">{company_name}</span> on PhishAware

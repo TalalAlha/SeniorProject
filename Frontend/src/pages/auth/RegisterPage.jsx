@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
-import { Shield, Eye, EyeOff, CheckCircle, RefreshCw, Building2 } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, RefreshCw, Building2 } from 'lucide-react';
+import Logo from '../../components/Logo';
 import { authAPI } from '../../api';
 
 const RegisterPage = () => {
@@ -107,10 +108,7 @@ const RegisterPage = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <Shield className="h-8 w-8 text-blue-600" />
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">PhishAware</h2>
+          <Logo variant="vertical" className="h-24 w-auto mx-auto mb-4" />
           <p className="mt-2 text-sm text-gray-600">Create your account</p>
           <p className="mt-2 text-sm text-gray-600">
             Already have an account?{' '}

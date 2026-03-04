@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Mail, ArrowLeft, Loader2 } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
+import Logo from '../../components/Logo';
 import { toast } from 'react-hot-toast';
 import { authAPI } from '../../api';
 
@@ -27,9 +28,8 @@ function ForgotPassword() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Link to="/" className="flex justify-center items-center gap-2 mb-6">
-            <Shield className="h-12 w-12 text-primary-600" />
-            <span className="text-2xl font-bold text-gray-900">PhishAware</span>
+          <Link to="/" className="flex justify-center mb-6">
+            <Logo variant="vertical" className="h-32 w-auto mx-auto" />
           </Link>
         </div>
 
@@ -55,9 +55,8 @@ function ForgotPassword() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="flex justify-center items-center gap-2 mb-6">
-          <Shield className="h-12 w-12 text-primary-600" />
-          <span className="text-2xl font-bold text-gray-900">PhishAware</span>
+        <Link to="/" className="flex justify-center mb-6">
+          <Logo variant="vertical" className="h-32 w-auto mx-auto" />
         </Link>
 
         <h2 className="text-center text-2xl font-bold text-gray-900">Reset your password</h2>

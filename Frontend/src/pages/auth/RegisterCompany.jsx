@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, User, Mail, Lock, Globe, Eye, EyeOff, CheckCircle, RefreshCw } from 'lucide-react';
+import Logo from '../../components/Logo';
 import { toast } from 'react-hot-toast';
 import { companiesAPI, authAPI } from '../../api';
 
@@ -111,9 +112,7 @@ const RegisterCompany = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Building2 className="w-8 h-8 text-blue-600" />
-          </div>
+          <Logo variant="vertical" className="h-24 w-auto mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900">Register Your Company</h1>
           <p className="text-gray-600 mt-2">Create your company account and start protecting your team</p>
         </div>
