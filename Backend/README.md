@@ -153,27 +153,7 @@ API available at: `http://localhost:8000/api/v1/`
 
 ### Campaigns — `/api/v1/campaigns/`
 
-> **Campaigns and Simulations are two separate systems.**
-> Campaigns are assessment-style exercises where employees classify a set of emails (phishing or legitimate) through a quiz interface. Simulations are real phishing emails sent to employee inboxes with live click and report tracking.
-
-**Campaign flow:** Admin creates a campaign with a defined number of phishing and legitimate email templates → assigns it to employees → each employee gets a personalized quiz → employees classify each email and identify red flags → results are scored and a risk level is determined.
-
-**Quiz scoring model (per question, 0–100 points):**
-- Phishing email, correctly identified: 50 base + up to 50 from red-flag accuracy
-- Phishing email, missed (answered Legitimate): 0
-- Legitimate email, correctly identified: 100
-- Legitimate email, false positive (answered Phishing): 0
-
-**Risk level after quiz:**
-
-| Score | Phishing Missed | Risk Level |
-|-------|----------------|------------|
-| ≥ 90% | 0 | LOW |
-| ≥ 70% | ≤ 1 | MEDIUM |
-| ≥ 50% | ≤ 3 | HIGH |
-| < 50% | > 3 | CRITICAL |
-
-#### Campaign Endpoints
+Assessment-style exercises where employees classify a set of emails (phishing or legitimate) through a quiz interface. Different from Simulations — no real emails are sent; employees take a quiz to test their awareness.
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -181,34 +161,15 @@ API available at: `http://localhost:8000/api/v1/`
 | GET/PATCH | `/campaigns/<id>/` | Campaign detail / update | Admin |
 | DELETE | `/campaigns/<id>/` | Delete campaign | Admin |
 | POST | `/campaigns/<id>/activate/` | Activate campaign | Admin |
-| POST | `/campaigns/<id>/assign_to_employees/` | Assign campaign to employees (creates quizzes) | Admin |
-| GET | `/campaigns/<id>/statistics/` | Campaign stats (completion rate, avg score, risk distribution) | Admin |
+| POST | `/campaigns/<id>/assign_to_employees/` | Assign to employees (creates quizzes) | Admin |
+| GET | `/campaigns/<id>/statistics/` | Completion rate, avg score, risk distribution | Admin |
 | GET | `/campaigns/<id>/assigned_employees/` | List employees with quiz status and score | Admin |
-
-#### Quiz Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
 | GET | `/quizzes/` | List quizzes (own for employees, all for admins) | Required |
-| GET | `/quizzes/<id>/` | Quiz detail | Required |
-| GET | `/quizzes/<id>/questions/` | Get all questions (email content, no answers revealed) | Required |
-| POST | `/quizzes/<id>/start/` | Start quiz — sets status to `IN_PROGRESS` | Employee |
+| GET | `/quizzes/<id>/questions/` | Get quiz questions (no answers revealed) | Required |
+| POST | `/quizzes/<id>/start/` | Start quiz | Employee |
 | POST | `/quizzes/<id>/answer_question/` | Submit answer for a single question | Employee |
 | POST | `/quizzes/<id>/submit/` | Finalize quiz and calculate result | Employee |
-| GET | `/quizzes/<id>/result/` | View detailed result with per-question breakdown | Required |
-
-**`answer_question` payload:**
-```json
-{
-  "question_number": 1,
-  "answer": "PHISHING",
-  "confidence_level": 3,
-  "time_spent_seconds": 45,
-  "selected_flags": ["suspicious_sender", "urgent_language"],
-  "flag_score": 2,
-  "flag_max_score": 3
-}
-```
+| GET | `/quizzes/<id>/result/` | View result with per-question breakdown | Required |
 
 ---
 
