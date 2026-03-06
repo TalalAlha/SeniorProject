@@ -27,8 +27,7 @@
 13. [Issues Found & Resolved](#13-issues-found--resolved)
 14. [Test Coverage Summary](#14-test-coverage-summary)
 15. [Backend Features Validated](#15-backend-features-validated)
-16. [Recommendations](#16-recommendations)
-17. [Conclusion](#17-conclusion)
+16. [Conclusion](#17-conclusion)
 
 ---
 
@@ -1001,47 +1000,6 @@ All error responses follow a consistent format:
 - [x] Seeded global simulation templates (15 templates)
 - [x] Seeded training modules (3 modules, 5 questions each, bilingual)
 
----
-
-## 16. Recommendations
-
-### 16.1 Testing Infrastructure
-
-1. **Add automated test suite** — The project currently relies entirely on manual testing. Adding Django's built-in `TestCase` with DRF's `APITestCase` for unit and integration tests would catch regressions automatically during development.
-
-2. **Add a CI/CD pipeline** — Even a simple GitHub Actions workflow running `python manage.py test` on every push would significantly improve code quality and confidence.
-
-3. **Load testing** — No load or stress testing was performed. Before production deployment, endpoints that trigger email dispatch and analytics aggregations should be tested under concurrent load.
-
-### 16.2 Database
-
-4. **Migrate to PostgreSQL for production** — SQLite is not suitable for production workloads. PostgreSQL provides proper concurrent write support, full-text search, and better index utilization.
-
-5. **Add database query monitoring** — Tools like Django Debug Toolbar (in development) and Sentry (in production) would help identify N+1 query problems before they affect performance.
-
-### 16.3 Email
-
-6. **Implement async email queue** — Currently emails are fire-and-forget in a try/except block. A proper task queue (Celery + Redis) would provide retry logic, delivery confirmation, and better failure visibility.
-
-7. **Add email delivery webhooks** — Integrating SendGrid's event webhooks would allow the system to track bounces, unsubscribes, and spam reports.
-
-### 16.4 Security
-
-8. **Add rate limiting** — Login, password reset, and resend verification endpoints should be rate-limited to prevent brute force attacks. Consider `django-ratelimit` or DRF throttling.
-
-9. **Implement HTTPS enforcement** — All API traffic should be forced to HTTPS in production via `SECURE_SSL_REDIRECT = True` and appropriate load balancer settings.
-
-10. **Token storage security review** — Confirm the frontend stores JWT tokens in `httpOnly` cookies rather than `localStorage` to mitigate XSS risks.
-
-### 16.5 Known Limitations
-
-- The system does not currently support multi-factor authentication (MFA).
-- Bulk CSV import does not send individual invitation emails; users are created directly.
-- The notification system uses database polling (frontend polls every N seconds) rather than WebSockets; at scale this may cause unnecessary database load.
-- The analytics CSV export does not currently support streaming for very large datasets.
-
----
-
 ## 17. Conclusion
 
 ### Overall Assessment
@@ -1072,7 +1030,5 @@ The backend is functionally complete and ready for integration with the producti
 
 The core security model — invitation-only employee onboarding, mandatory email verification, JWT token management, and role-based access control — is solid and suitable for production use.
 
----
 
-*Document prepared by the PhishAware development team: Talal, Emad, and Thameer.*
-*Last updated: March 2026*
+
