@@ -31,7 +31,8 @@
     "english": "English",
     "arabic": "العربية",
     "active": "نشط",
-    "inactive": "غير نشط"
+    "inactive": "غير نشط",
+    "deselectAll": "إلغاء تحديد الكل"
   },
   "auth": {
     "login": "تسجيل الدخول",

@@ -454,6 +454,7 @@ class BulkAssignTrainingSerializer(serializers.Serializer):
         default='MANUAL_ADMIN'
     )
     due_date = serializers.DateTimeField(required=False)
+    force_assign = serializers.BooleanField(required=False, default=False)
 
     def validate(self, attrs):
         has_single = attrs.get('training_module_id') is not None

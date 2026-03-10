@@ -812,6 +812,7 @@ class RemediationTrainingViewSet(viewsets.ModelViewSet):
         employee_ids = data['employee_ids']
         reason = data['assignment_reason']
         due_date = data.get('due_date') or (timezone.now() + timedelta(days=7))
+        force_assign = data.get('force_assign', False)
 
         # Resolve module list from whichever field was supplied
         if data.get('training_module_ids'):
@@ -831,21 +832,48 @@ class RemediationTrainingViewSet(viewsets.ModelViewSet):
         else:
             employees = list(User.objects.filter(id__in=employee_ids, role='EMPLOYEE'))
 
+        # If not forcing, check for incomplete assignments and return a warning
+        if not force_assign:
+            pending_employees = []
+            seen_ids = set()
+            for module in modules:
+                for employee in employees:
+                    if employee.id not in seen_ids and RemediationTraining.objects.filter(
+                        employee=employee,
+                        training_module=module,
+                        status__in=['ASSIGNED', 'IN_PROGRESS']
+                    ).exists():
+                        seen_ids.add(employee.id)
+                        pending_employees.append({
+                            'id': employee.id,
+                            'name': f'{employee.first_name} {employee.last_name}'.strip() or employee.email,
+                            'email': employee.email,
+                        })
+
+            if pending_employees:
+                return Response({
+                    'warning': True,
+                    'message': f'{len(pending_employees)} employee(s) already have this training in progress',
+                    'pending_employees': pending_employees,
+                    'total_selected': len(employees),
+                }, status=status.HTTP_200_OK)
+
         created = []
         skipped = []
 
         for module in modules:
             for employee in employees:
-                # Check if already assigned
-                exists = RemediationTraining.objects.filter(
-                    employee=employee,
-                    training_module=module,
-                    status__in=['ASSIGNED', 'IN_PROGRESS']
-                ).exists()
-
-                if exists:
-                    skipped.append(employee.email)
-                    continue
+                # When force_assign=True, skip the duplicate check (allow re-assign)
+                # When force_assign=False, we already checked above — no pending exist
+                if not force_assign:
+                    exists = RemediationTraining.objects.filter(
+                        employee=employee,
+                        training_module=module,
+                        status__in=['ASSIGNED', 'IN_PROGRESS']
+                    ).exists()
+                    if exists:
+                        skipped.append(employee.email)
+                        continue
 
                 RemediationTraining.objects.create(
                     employee=employee,

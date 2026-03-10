@@ -173,7 +173,10 @@ function TrainingManagement() {
   const [dueDate, setDueDate] = useState('');
   const [assignLoading, setAssignLoading] = useState(false);
   const [employeesLoading, setEmployeesLoading] = useState(false);
-  const [alreadyAssignedIds, setAlreadyAssignedIds] = useState(new Set());
+  const [pendingAssignedIds, setPendingAssignedIds] = useState(new Set());
+  const [completedAssignedIds, setCompletedAssignedIds] = useState(new Set());
+  const [pendingWarning, setPendingWarning] = useState(false);
+  const [warningEmployees, setWarningEmployees] = useState([]);
 
   // Details modal state
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -216,15 +219,24 @@ function TrainingManagement() {
     setSelectedModule(module);
     setSelectedEmployees(new Set());
     setDueDate('');
+    setPendingWarning(false);
+    setWarningEmployees([]);
     setShowModal(true);
 
     if (module) {
       const moduleAssignments = assignments.filter(
         (a) => a.training_module === module.id || a.module === module.id
       );
-      setAlreadyAssignedIds(new Set(moduleAssignments.map((a) => a.employee)));
+      const incompleteStatuses = ['ASSIGNED', 'IN_PROGRESS'];
+      setPendingAssignedIds(new Set(
+        moduleAssignments.filter(a => incompleteStatuses.includes(a.status)).map(a => a.employee)
+      ));
+      setCompletedAssignedIds(new Set(
+        moduleAssignments.filter(a => !incompleteStatuses.includes(a.status)).map(a => a.employee)
+      ));
     } else {
-      setAlreadyAssignedIds(new Set());
+      setPendingAssignedIds(new Set());
+      setCompletedAssignedIds(new Set());
     }
 
     if (!employees.length && companyId) {
@@ -250,17 +262,15 @@ function TrainingManagement() {
   };
 
   const toggleAllEmployees = () => {
-    const selectableIds = employees
-      .filter((e) => !alreadyAssignedIds.has(e.id))
-      .map((e) => e.id);
-    if (selectedEmployees.size === selectableIds.length) {
+    const allIds = employees.map((e) => e.id);
+    if (selectedEmployees.size === allIds.length) {
       setSelectedEmployees(new Set());
     } else {
-      setSelectedEmployees(new Set(selectableIds));
+      setSelectedEmployees(new Set(allIds));
     }
   };
 
-  const handleAssign = async () => {
+  const handleAssign = async (forceAssign = false) => {
     if (!selectedModule) { toast.error(t('training.selectModule')); return; }
     if (selectedEmployees.size === 0) { toast.error(t('training.selectEmployees')); return; }
 
@@ -270,15 +280,26 @@ function TrainingManagement() {
         training_module_id: selectedModule.id,
         employee_ids: Array.from(selectedEmployees),
         assignment_reason: 'MANUAL_ADMIN',
+        force_assign: forceAssign,
       };
       if (dueDate) payload.due_date = `${dueDate}T23:59:59Z`;
 
       const res = await trainingAPI.bulkAssign(payload);
+
+      // Backend returned a warning about incomplete assignments
+      if (res.data.warning) {
+        setPendingWarning(true);
+        setWarningEmployees(res.data.pending_employees || []);
+        return;
+      }
+
       const { assigned, skipped } = res.data;
       if (assigned > 0) toast.success(t('training.assignSuccess', { count: assigned }));
       if (skipped > 0) toast(t('training.assignSkipped', { count: skipped }), { icon: 'ℹ️' });
 
       setShowModal(false);
+      setPendingWarning(false);
+      setWarningEmployees([]);
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || err.response?.data?.error || 'Failed to assign training');
@@ -679,13 +700,22 @@ function TrainingManagement() {
                     const mod = modules.find((m) => m.id === parseInt(e.target.value));
                     setSelectedModule(mod || null);
                     setSelectedEmployees(new Set());
+                    setPendingWarning(false);
+                    setWarningEmployees([]);
                     if (mod) {
                       const moduleAssignments = assignments.filter(
                         (a) => a.training_module === mod.id || a.module === mod.id
                       );
-                      setAlreadyAssignedIds(new Set(moduleAssignments.map((a) => a.employee)));
+                      const incompleteStatuses = ['ASSIGNED', 'IN_PROGRESS'];
+                      setPendingAssignedIds(new Set(
+                        moduleAssignments.filter(a => incompleteStatuses.includes(a.status)).map(a => a.employee)
+                      ));
+                      setCompletedAssignedIds(new Set(
+                        moduleAssignments.filter(a => !incompleteStatuses.includes(a.status)).map(a => a.employee)
+                      ));
                     } else {
-                      setAlreadyAssignedIds(new Set());
+                      setPendingAssignedIds(new Set());
+                      setCompletedAssignedIds(new Set());
                     }
                   }}
                   className="input w-full"
@@ -708,7 +738,7 @@ function TrainingManagement() {
                     onClick={toggleAllEmployees}
                     className="text-sm text-primary-600 hover:text-primary-700"
                   >
-                    {selectedEmployees.size === employees.filter(e => !alreadyAssignedIds.has(e.id)).length
+                    {selectedEmployees.size === employees.length
                       ? t('common.deselectAll') || 'Deselect All'
                       : t('training.selectAll')}
                   </button>
@@ -721,33 +751,33 @@ function TrainingManagement() {
                 ) : (
                   <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
                     {employees.map((emp) => {
-                      const isAlreadyAssigned = alreadyAssignedIds.has(emp.id);
+                      const isPending = pendingAssignedIds.has(emp.id);
+                      const isCompleted = completedAssignedIds.has(emp.id);
                       return (
                         <label
                           key={emp.id}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2',
-                            isAlreadyAssigned
-                              ? 'opacity-60 cursor-not-allowed bg-gray-50'
-                              : 'hover:bg-gray-50 cursor-pointer'
-                          )}
+                          className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer"
                         >
                           <input
                             type="checkbox"
-                            checked={isAlreadyAssigned || selectedEmployees.has(emp.id)}
-                            disabled={isAlreadyAssigned}
-                            onChange={() => { if (!isAlreadyAssigned) toggleEmployee(emp.id); }}
+                            checked={selectedEmployees.has(emp.id)}
+                            onChange={() => toggleEmployee(emp.id)}
                             className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                           />
                           <div className="min-w-0 flex-1">
-                            <div className={clsx('text-sm font-medium truncate', isAlreadyAssigned ? 'text-gray-400' : 'text-gray-900')}>
+                            <div className="text-sm font-medium truncate text-gray-900">
                               {emp.first_name} {emp.last_name}
                             </div>
                             <div className="text-xs text-gray-500 truncate">{emp.email}</div>
                           </div>
-                          {isAlreadyAssigned && (
+                          {isPending && (
+                            <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full font-medium whitespace-nowrap">
+                              {isAr ? 'قيد التنفيذ' : 'In Progress'}
+                            </span>
+                          )}
+                          {isCompleted && (
                             <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium whitespace-nowrap">
-                              {t('training.alreadyAssigned') || 'Already Assigned'}
+                              {isAr ? 'مكتمل' : 'Completed'}
                             </span>
                           )}
                         </label>
@@ -776,12 +806,51 @@ function TrainingManagement() {
               </div>
             </div>
 
+            {/* Warning banner for incomplete assignments */}
+            {pendingWarning && warningEmployees.length > 0 && (
+              <div className="mx-6 mb-2 rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+                <p className="text-sm font-semibold text-yellow-800 mb-2">
+                  {isAr
+                    ? `⚠️ ${warningEmployees.length} موظف(ين) لديهم تدريب غير مكتمل`
+                    : `⚠️ ${warningEmployees.length} employee(s) have this training in progress`}
+                </p>
+                <ul className="text-xs text-yellow-700 space-y-1 mb-3 max-h-24 overflow-y-auto">
+                  {warningEmployees.map((emp) => (
+                    <li key={emp.id}>• {emp.name} ({emp.email})</li>
+                  ))}
+                </ul>
+                <p className="text-xs text-yellow-700 mb-3">
+                  {isAr
+                    ? 'هل تريد إعادة التعيين على أي حال؟ سيتم إنشاء تعيين جديد.'
+                    : 'Assign anyway? A new assignment will be created alongside the existing one.'}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAssign(true)}
+                    disabled={assignLoading}
+                    className="btn-primary text-sm py-1.5 px-4 flex items-center gap-1.5"
+                  >
+                    {assignLoading
+                      ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+                      : <UserPlus className="h-3.5 w-3.5" />}
+                    {isAr ? 'تعيين على أي حال' : 'Assign Anyway'}
+                  </button>
+                  <button
+                    onClick={() => { setPendingWarning(false); setWarningEmployees([]); }}
+                    className="btn-secondary text-sm py-1.5 px-4"
+                  >
+                    {t('common.cancel') || 'Cancel'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3 p-6 border-t">
               <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
                 {t('common.cancel') || 'Cancel'}
               </button>
               <button
-                onClick={handleAssign}
+                onClick={() => handleAssign(false)}
                 disabled={assignLoading || !selectedModule || selectedEmployees.size === 0}
                 className={clsx(
                   'btn-primary flex-1 flex items-center justify-center gap-2',
