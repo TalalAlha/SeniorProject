@@ -845,31 +845,33 @@ function TrainingManagement() {
               </div>
             )}
 
-            <div className="flex gap-3 p-6 border-t">
-              <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
-                {t('common.cancel') || 'Cancel'}
-              </button>
-              <button
-                onClick={() => handleAssign(false)}
-                disabled={assignLoading || !selectedModule || selectedEmployees.size === 0}
-                className={clsx(
-                  'btn-primary flex-1 flex items-center justify-center gap-2',
-                  (assignLoading || !selectedModule || selectedEmployees.size === 0) && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                {assignLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                    {t('training.assigning')}
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4" />
-                    {t('training.assign')} ({selectedEmployees.size})
-                  </>
-                )}
-              </button>
-            </div>
+            {!pendingWarning && (
+              <div className="flex gap-3 p-6 border-t">
+                <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
+                  {t('common.cancel') || 'Cancel'}
+                </button>
+                <button
+                  onClick={() => handleAssign(false)}
+                  disabled={assignLoading || !selectedModule || selectedEmployees.size === 0}
+                  className={clsx(
+                    'btn-primary flex-1 flex items-center justify-center gap-2',
+                    (assignLoading || !selectedModule || selectedEmployees.size === 0) && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  {assignLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      {t('training.assigning')}
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      {t('training.assign')} ({selectedEmployees.size})
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
