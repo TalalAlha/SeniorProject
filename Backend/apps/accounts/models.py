@@ -97,6 +97,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     verification_token = models.UUIDField(default=uuid.uuid4, unique=True)
     verification_token_created = models.DateTimeField(default=timezone.now)
 
+    # Password reset token — kept separate so a password-reset request
+    # cannot invalidate a pending email-verification link.
+    password_reset_token = models.UUIDField(null=True, blank=True, unique=True)
+    password_reset_token_created = models.DateTimeField(null=True, blank=True)
+
     # Invitation fields (set when admin invites an employee by email)
     invitation_token = models.UUIDField(null=True, blank=True, unique=True)
     invitation_sent_at = models.DateTimeField(null=True, blank=True)

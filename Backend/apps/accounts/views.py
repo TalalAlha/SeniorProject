@@ -299,21 +299,15 @@ class InviteEmployeeView(views.APIView):
         # (department is not on User model, it's handled at the employee level)
         # We pass it along in the email context for display purposes.
 
-        try:
-            send_employee_invitation(
-                inviting_admin=request.user,
-                employee_email=email,
-                employee_name=f'{first_name} {last_name}'.strip() or email,
-                company=company,
-                invitation_token=str(invitation_token),
-            )
-        except Exception as exc:
-            logger.error('Failed to send invitation email to %s: %s', email, exc)
-            user.delete()
-            return Response(
-                {'error': 'Failed to send invitation email. Please try again.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        from apps.core.emails import _send_in_background
+        _send_in_background(
+            send_employee_invitation,
+            inviting_admin=request.user,
+            employee_email=email,
+            employee_name=f'{first_name} {last_name}'.strip() or email,
+            company=company,
+            invitation_token=str(invitation_token),
+        )
 
         return Response({
             'message': 'Invitation sent successfully.',
@@ -549,14 +543,15 @@ def request_password_reset(request):
 
     try:
         user = User.objects.get(email=email)
-        user.verification_token = uuid.uuid4()
-        user.verification_token_created = timezone.now()
-        user.save(update_fields=['verification_token', 'verification_token_created'])
+        user.password_reset_token = uuid.uuid4()
+        user.password_reset_token_created = timezone.now()
+        user.save(update_fields=['password_reset_token', 'password_reset_token_created'])
 
         try:
-            send_password_reset_email(user, str(user.verification_token))
+            from apps.core.emails import _send_in_background
+            _send_in_background(send_password_reset_email, user, str(user.password_reset_token))
         except Exception as exc:
-            logger.error('Failed to send password reset email to %s: %s', email, exc)
+            logger.error('Failed to queue password reset email to %s: %s', email, exc)
 
     except User.DoesNotExist:
         pass  # Don't reveal whether the address is registered
@@ -572,15 +567,15 @@ def request_password_reset(request):
 def reset_password(request, token):
     """Reset user password using a previously issued token."""
     try:
-        user = User.objects.get(verification_token=token)
+        user = User.objects.get(password_reset_token=token)
     except User.DoesNotExist:
         return Response(
             {'error': 'Invalid reset token.'},
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    if user.verification_token_created:
-        expiry = user.verification_token_created + timedelta(hours=24)
+    if user.password_reset_token_created:
+        expiry = user.password_reset_token_created + timedelta(hours=24)
         if timezone.now() > expiry:
             return Response(
                 {'error': 'Reset link has expired. Please request a new one.', 'expired': True},
@@ -595,8 +590,10 @@ def reset_password(request, token):
         )
 
     user.set_password(new_password)
-    user.verification_token = uuid.uuid4()  # Invalidate the used token
-    user.save(update_fields=['password', 'verification_token'])
+    # Consume the token so the same link cannot be reused
+    user.password_reset_token = None
+    user.password_reset_token_created = None
+    user.save(update_fields=['password', 'password_reset_token', 'password_reset_token_created'])
 
     return Response(
         {'message': 'Password reset successfully! You can now log in.'},

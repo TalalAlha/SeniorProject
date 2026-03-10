@@ -150,6 +150,14 @@ export const trainingAPI = {
 
   // Risk scores
   getMyRiskScore: () => api.get('/training/risk-scores/my_score/'),
+
+  // Interactive lessons
+  getInteractiveProgress: (lessonType, language) =>
+    api.get(`/training/interactive/progress/${lessonType}/${language}/`),
+  saveInteractiveProgress: (data) =>
+    api.post('/training/interactive/save/', data),
+  completeInteractiveLesson: (data) =>
+    api.post('/training/interactive/complete/', data),
 };
 
 // ============== Analytics ==============

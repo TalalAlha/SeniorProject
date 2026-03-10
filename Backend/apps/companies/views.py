@@ -823,11 +823,19 @@ def register_company(request):
         )
 
     # Send verification email (non-critical — log but don't roll back on failure)
+    _logger.info('=' * 60)
+    _logger.info('REGISTRATION: user=%s company=%s token=%s',
+                 admin_email, company_name, admin_user.verification_token)
+    _logger.info('FRONTEND_URL=%s', settings.FRONTEND_URL)
+    _logger.info('EMAIL_BACKEND=%s', settings.EMAIL_BACKEND)
+    _logger.info('DEFAULT_FROM_EMAIL=%s', settings.DEFAULT_FROM_EMAIL)
     try:
-        from apps.core.emails import send_verification_email
-        send_verification_email(admin_user, str(admin_user.verification_token))
+        from apps.core.emails import send_verification_email, _send_in_background
+        _send_in_background(send_verification_email, admin_user, str(admin_user.verification_token))
+        _logger.info('REGISTRATION: verification email queued for background delivery to %s', admin_email)
     except Exception as exc:
-        _logger.error('Failed to send verification email to %s: %s', admin_email, exc)
+        _logger.error('REGISTRATION: exception while queuing verification email to %s: %s', admin_email, exc, exc_info=True)
+    _logger.info('=' * 60)
 
     return Response(
         {

@@ -6,12 +6,19 @@ built-in mail backend. Templates live in apps/core/templates/emails/.
 """
 
 import logging
+import threading
 from django.conf import settings
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
+
+
+def _send_in_background(func, *args, **kwargs):
+    """Run an email helper in a daemon thread so the HTTP response is not blocked."""
+    t = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+    t.start()
 
 
 def _get_from_email():
@@ -36,8 +43,10 @@ def _send_html_email(subject, template_name, context, recipient_email, from_emai
     base_context.update(context)
 
     try:
+        logger.debug('Rendering template "emails/%s" for %s', template_name, recipient_email)
         html_body = render_to_string(f'emails/{template_name}', base_context)
         text_body = strip_tags(html_body)
+        logger.debug('Template rendered OK (html=%d chars, text=%d chars)', len(html_body), len(text_body))
 
         message = EmailMultiAlternatives(
             subject=subject,
@@ -46,7 +55,14 @@ def _send_html_email(subject, template_name, context, recipient_email, from_emai
             to=[recipient_email],
         )
         message.attach_alternative(html_body, 'text/html')
-        message.send(fail_silently=False)
+
+        logger.debug('Calling message.send() from=%s to=%s', from_email, recipient_email)
+        result = message.send(fail_silently=False)
+        logger.debug('message.send() returned %s', result)
+
+        if result == 0:
+            logger.error('Email "%s" to %s: send() returned 0 — not delivered', subject, recipient_email)
+            return False
 
         logger.info('Email "%s" sent successfully to %s', subject, recipient_email)
         return True

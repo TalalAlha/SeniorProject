@@ -860,3 +860,57 @@ class TrainingQuizAnswer(models.Model):
         """Auto-check if answer is correct."""
         self.is_correct = self.selected_answer_index == self.question.correct_answer_index
         super().save(*args, **kwargs)
+
+
+class InteractiveLessonProgress(models.Model):
+    """Track progress in interactive lessons (separate from video training)."""
+
+    LESSON_TYPES = [
+        ('PHISHING', 'Phishing'),
+        ('VISHING', 'Vishing'),
+        ('SMISHING', 'Smishing'),
+    ]
+
+    PORTAL_TYPES = [
+        ('PUBLIC', 'Public Portal'),
+        ('EMPLOYEE', 'Employee Portal'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='interactive_lesson_progress'
+    )
+    lesson_type = models.CharField(max_length=20, choices=LESSON_TYPES)
+    portal_type = models.CharField(max_length=20, choices=PORTAL_TYPES)
+    language = models.CharField(
+        max_length=2,
+        choices=[('ar', 'Arabic'), ('en', 'English')]
+    )
+
+    started_at = models.DateTimeField(auto_now_add=True)
+    last_accessed = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    is_completed = models.BooleanField(default=False)
+
+    current_scene = models.IntegerField(default=0)
+    total_scenes = models.IntegerField(default=0)
+    quiz_score = models.IntegerField(null=True, blank=True)
+    quiz_total = models.IntegerField(null=True, blank=True)
+    time_spent_seconds = models.IntegerField(default=0)
+    quiz_answers = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        unique_together = ['user', 'lesson_type', 'portal_type', 'language']
+        ordering = ['-last_accessed']
+        verbose_name = 'Interactive Lesson Progress'
+        verbose_name_plural = 'Interactive Lesson Progress'
+
+    def __str__(self):
+        return f"{self.user.email} - {self.lesson_type} ({self.language}) - Interactive"
+
+    @property
+    def completion_percentage(self):
+        if self.total_scenes == 0:
+            return 0
+        return int((self.current_scene / self.total_scenes) * 100)

@@ -3,13 +3,29 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, ArrowRight, CheckCircle, XCircle, AlertCircle,
-  RefreshCw, Play, Award,
+  RefreshCw, Play, Award, BookOpen, Video,
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import { trainingAPI } from '../../api';
+import InteractiveLessonWrapper from '../../components/training/InteractiveLessonWrapper';
+
+// Interactive components – employee portal (place files before uncommenting)
+import PhishAwareV4AR from '../../components/training/interactive/employee/PhishAware_V4_AR';
+import PhishAwareV4EN from '../../components/training/interactive/employee/PhishAware_V4_EN';
+import PhishAwareV5AR from '../../components/training/interactive/employee/PhishAware_V5_AR';
+import PhishAwareV5EN from '../../components/training/interactive/employee/PhishAware_V5_EN';
+import PhishAwareV6AR from '../../components/training/interactive/employee/PhishAware_V6_AR';
+import PhishAwareV6EN from '../../components/training/interactive/employee/PhishAware_V6_EN';
 
 const STAGES = { VIDEO: 'VIDEO', QUIZ: 'QUIZ', RESULTS: 'RESULTS' };
+
+// Maps TrainingModule.category → interactive lesson type
+const CATEGORY_TO_LESSON = {
+  EMAIL_SECURITY: 'phishing',
+  SOCIAL_ENGINEERING: 'vishing',
+  MOBILE_SECURITY: 'smishing',
+};
 
 function TakeTraining() {
   const { t, i18n } = useTranslation();
@@ -22,6 +38,9 @@ function TakeTraining() {
   const [assignment, setAssignment] = useState(null);
   const [stage, setStage] = useState(STAGES.VIDEO);
   const [videoWatched, setVideoWatched] = useState(false);
+
+  // null = mode chooser | 'video' = existing flow | 'interactive' = lesson
+  const [mode, setMode] = useState(null);
 
   // Quiz state
   const [questions, setQuestions] = useState([]);
@@ -157,6 +176,102 @@ function TakeTraining() {
             {t('common.tryAgain') || 'Try Again'}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // ── Derive interactive component from assignment ──────────────────────────
+  const lessonType = assignment
+    ? CATEGORY_TO_LESSON[assignment.training_module?.category]
+    : null;
+  const lang = isAr ? 'ar' : 'en';
+  const interactiveMap = {
+    phishing: { ar: PhishAwareV4AR, en: PhishAwareV4EN },
+    vishing:  { ar: PhishAwareV5AR, en: PhishAwareV5EN },
+    smishing: { ar: PhishAwareV6AR, en: PhishAwareV6EN },
+  };
+  const InteractiveComponent = lessonType ? interactiveMap[lessonType]?.[lang] : null;
+  const hasInteractive = Boolean(InteractiveComponent);
+
+  // ── Mode chooser – shown before VIDEO stage when mode is not yet chosen ──
+  if (stage === STAGES.VIDEO && !videoWatched && mode === null && assignment) {
+    return (
+      <div className="fade-in max-w-3xl mx-auto space-y-6">
+        <Link
+          to="/employee/training"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('training.backToTraining')}
+        </Link>
+
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {getModuleField('title', 'title_ar')}
+          </h1>
+          <p className="text-gray-600 mt-1">{getModuleField('description', 'description_ar')}</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">{t('training.chooseMethod')}</h2>
+          <p className="text-sm text-gray-500 mb-5">{t('training.chooseMethodSubtitle')}</p>
+
+          <div className={`grid gap-4 ${hasInteractive ? 'sm:grid-cols-2' : ''}`}>
+            {hasInteractive && (
+              <button
+                onClick={() => setMode('interactive')}
+                className="bg-white rounded-xl border border-gray-200 p-6 hover:border-blue-400 hover:shadow-md transition-all text-start group"
+              >
+                <div className="bg-blue-100 w-11 h-11 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-200 transition-colors">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">{t('training.interactive')}</h3>
+                <p className="text-sm text-gray-500">{t('training.interactiveDescription')}</p>
+              </button>
+            )}
+
+            <button
+              onClick={() => setMode('video')}
+              className="bg-white rounded-xl border border-gray-200 p-6 hover:border-emerald-400 hover:shadow-md transition-all text-start group"
+            >
+              <div className="bg-emerald-100 w-11 h-11 rounded-lg flex items-center justify-center mb-3 group-hover:bg-emerald-200 transition-colors">
+                <Video className="h-5 w-5 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-gray-900 mb-1">{t('training.videoQuiz')}</h3>
+              <p className="text-sm text-gray-500">{t('training.videoQuizDescription')}</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Interactive mode ──────────────────────────────────────────────────────
+  if (mode === 'interactive' && InteractiveComponent) {
+    return (
+      <div className="fade-in">
+        <div className="mb-4">
+          <button
+            onClick={() => setMode(null)}
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('common.back')}
+          </button>
+        </div>
+        <InteractiveLessonWrapper
+          LessonComponent={InteractiveComponent}
+          lessonType={lessonType}
+          language={lang}
+          onComplete={(result) => {
+            if (result?.passed === true) {
+              toast.success(isAr ? '✅ نجحت! تم احتساب التدريب مكتملاً.' : '✅ Passed! Training marked as complete.');
+            } else if (result?.passed === false) {
+              toast.error(isAr ? '❌ لم تنجح. يمكنك إعادة المحاولة عبر المسار المعتاد.' : '❌ Not passed. You can retry via the standard path.');
+            }
+            navigate('/employee/training');
+          }}
+        />
       </div>
     );
   }

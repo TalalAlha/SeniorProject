@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,7 +11,18 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  BookOpen,
+  Video,
 } from 'lucide-react';
+import InteractiveLessonWrapper from '../../components/training/InteractiveLessonWrapper';
+
+// Interactive components – public portal (place files before uncommenting)
+import PhishAwareV1AR from '../../components/training/interactive/public/PhishAware_V1_AR';
+import PhishAwareV1EN from '../../components/training/interactive/public/PhishAware_V1_EN';
+import PhishAwareV2AR from '../../components/training/interactive/public/PhishAware_V2_AR';
+import PhishAwareV2EN from '../../components/training/interactive/public/PhishAware_V2_EN';
+import PhishAwareV3AR from '../../components/training/interactive/public/PhishAware_V3_AR';
+import PhishAwareV3EN from '../../components/training/interactive/public/PhishAware_V3_EN';
 
 const topicConfig = {
   phishing: {
@@ -40,6 +52,10 @@ function TopicTraining() {
   const { topic } = useParams();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+
+  // null = mode chooser | 'video' = video content | 'interactive' = lesson
+  const [mode, setMode] = useState(null);
 
   const config = topicConfig[topic];
   if (!config) {
@@ -47,9 +63,7 @@ function TopicTraining() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('errors.notFound')}</h2>
-          <Link to="/training" className="btn-primary">
-            {t('common.back')}
-          </Link>
+          <Link to="/training" className="btn-primary">{t('common.back')}</Link>
         </div>
       </div>
     );
@@ -57,7 +71,16 @@ function TopicTraining() {
 
   const Icon = config.icon;
 
-  // Saudi-specific red flags by topic
+  // Map topic → component (keyed by language)
+  const interactiveMap = {
+    phishing: { ar: PhishAwareV1AR, en: PhishAwareV1EN },
+    vishing:  { ar: PhishAwareV2AR, en: PhishAwareV2EN },
+    smishing: { ar: PhishAwareV3AR, en: PhishAwareV3EN },
+  };
+  const InteractiveComponent = interactiveMap[topic]?.[lang];
+  const hasInteractive = Boolean(InteractiveComponent);
+
+  // Saudi-specific content
   const redFlags = {
     phishing: [
       { en: 'Emails claiming to be from Absher asking to verify your identity via a link', ar: 'رسائل تدعي أنها من أبشر تطلب التحقق من هويتك عبر رابط' },
@@ -106,41 +129,133 @@ function TopicTraining() {
   const currentRedFlags = redFlags[topic] || [];
   const currentTips = protectionTips[topic] || [];
 
-  return (
-    <div className="fade-in">
-      {/* Header */}
-      <section className={`bg-gradient-to-br ${config.color} text-white py-16`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            to="/training"
-            className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors"
+  // ── Interactive mode ──────────────────────────────────────────────────────
+  if (mode === 'interactive' && InteractiveComponent) {
+    return (
+      <div className="min-h-screen bg-gray-950">
+        <div className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center">
+          <button
+            onClick={() => setMode(null)}
+            className="text-gray-400 hover:text-white flex items-center gap-2 text-sm transition-colors"
           >
-            {isRTL ? <ArrowRight className="h-4 w-4 ml-2" /> : <ArrowLeft className="h-4 w-4 mr-2" />}
+            {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
             {t('common.back')}
-          </Link>
+          </button>
+        </div>
+        <InteractiveLessonWrapper
+          LessonComponent={InteractiveComponent}
+          lessonType={topic}
+          language={lang}
+        />
+      </div>
+    );
+  }
 
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center">
-              <Icon className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold">
-                {t(`public.topics.${topic}.title`)}
-              </h1>
-              <p className="text-white/80 mt-1 text-lg">
-                {t(`public.topics.${topic}.description`)}
-              </p>
-            </div>
+  // ── Shared page header ────────────────────────────────────────────────────
+  const pageHeader = (
+    <section className={`bg-gradient-to-br ${config.color} text-white py-16`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Link
+          to="/training"
+          className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors"
+        >
+          {isRTL ? <ArrowRight className="h-4 w-4 ml-2" /> : <ArrowLeft className="h-4 w-4 mr-2" />}
+          {t('common.back')}
+        </Link>
+        <div className="flex items-center gap-4">
+          <div className="bg-white/20 backdrop-blur-sm w-16 h-16 rounded-2xl flex items-center justify-center">
+            <Icon className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold">
+              {t(`public.topics.${topic}.title`)}
+            </h1>
+            <p className="text-white/80 mt-1 text-lg">
+              {t(`public.topics.${topic}.description`)}
+            </p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+
+  // ── Mode chooser (mode === null) ──────────────────────────────────────────
+  if (mode === null) {
+    return (
+      <div className="fade-in">
+        {pageHeader}
+        <section className="py-14 bg-gray-50">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+              {t('training.chooseMethod')}
+            </h2>
+            <p className="text-gray-500 text-center mb-8 text-sm">
+              {t('training.chooseMethodSubtitle')}
+            </p>
+
+            <div className={`grid gap-6 ${hasInteractive ? 'sm:grid-cols-2' : 'sm:grid-cols-1 max-w-sm mx-auto'}`}>
+              {hasInteractive && (
+                <button
+                  onClick={() => setMode('interactive')}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-lg hover:border-blue-300 transition-all text-start group"
+                >
+                  <div className="bg-blue-100 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
+                    <BookOpen className="h-7 w-7 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{t('training.interactive')}</h3>
+                  <p className="text-gray-500 text-sm mb-4">{t('training.interactiveDescription')}</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600">
+                    <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />{t('training.interactiveBenefit1')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />{t('training.interactiveBenefit2')}</li>
+                    <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />{t('training.interactiveBenefit3')}</li>
+                  </ul>
+                </button>
+              )}
+
+              <button
+                onClick={() => setMode('video')}
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-lg hover:border-emerald-300 transition-all text-start group"
+              >
+                <div className="bg-emerald-100 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-200 transition-colors">
+                  <Video className="h-7 w-7 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('training.video')}</h3>
+                <p className="text-gray-500 text-sm mb-4">{t('training.videoDescription')}</p>
+                <ul className="space-y-1.5 text-sm text-gray-600">
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />{t('training.videoBenefit1')}</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />{t('training.videoBenefit2')}</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />{t('training.videoBenefit3')}</li>
+                </ul>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // ── Video mode ─────────────────────────────────────────────────────────────
+  return (
+    <div className="fade-in">
+      {pageHeader}
 
       {/* Training Video */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            {t('public.training.videoTitle')}
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {t('public.training.videoTitle')}
+            </h2>
+            {hasInteractive && (
+              <button
+                onClick={() => setMode('interactive')}
+                className="btn-secondary flex items-center gap-2 text-sm"
+              >
+                <BookOpen className="h-4 w-4" />
+                {t('training.switchToInteractive')}
+              </button>
+            )}
+          </div>
 
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
@@ -170,7 +285,6 @@ function TopicTraining() {
               {i18n.language === 'ar' ? 'علامات التحذير' : 'Red Flags to Watch For'}
             </h2>
           </div>
-
           <div className="space-y-3">
             {currentRedFlags.map((flag, index) => (
               <div key={index} className="flex items-start gap-3 p-4 bg-danger-50 rounded-xl border border-danger-100">
@@ -193,7 +307,6 @@ function TopicTraining() {
               {i18n.language === 'ar' ? 'كيف تحمي نفسك' : 'How to Protect Yourself'}
             </h2>
           </div>
-
           <div className="space-y-3">
             {currentTips.map((tip, index) => (
               <div key={index} className="flex items-start gap-3 p-4 bg-success-50 rounded-xl border border-green-100">
@@ -208,12 +321,8 @@ function TopicTraining() {
       {/* Quiz CTA */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            {t('public.quiz.title')}
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-xl mx-auto">
-            {t('public.quiz.subtitle')}
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('public.quiz.title')}</h2>
+          <p className="text-gray-600 mb-6 max-w-xl mx-auto">{t('public.quiz.subtitle')}</p>
           <Link
             to={`/quiz?topic=${topic}`}
             className="btn-primary inline-flex items-center text-lg px-8 py-3"

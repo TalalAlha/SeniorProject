@@ -5,9 +5,9 @@ API views for Risk Scoring & Remediation Training.
 """
 
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, Avg, Count, F
@@ -20,7 +20,8 @@ from .models import (
     TrainingModule,
     TrainingQuestion,
     RemediationTraining,
-    TrainingQuizAnswer
+    TrainingQuizAnswer,
+    InteractiveLessonProgress,
 )
 from .serializers import (
     RiskScoreListSerializer,
@@ -947,3 +948,265 @@ class RemediationTrainingViewSet(viewsets.ModelViewSet):
 
         serializer = RemediationTrainingListSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+# =============================================================================
+# Interactive Lesson Progress Views
+# =============================================================================
+
+def _get_portal_type(user):
+    """Determine portal type based on user's company membership."""
+    if hasattr(user, 'company') and user.company:
+        return 'EMPLOYEE'
+    return 'PUBLIC'
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_interactive_progress(request, lesson_type, language):
+    """Get progress - only for authenticated employee users."""
+    _empty = {'current_scene': 0, 'total_scenes': 0, 'is_completed': False, 'completion_percentage': 0}
+
+    if not request.user.is_authenticated:
+        return Response(_empty)
+
+    # Authenticated public users (no company) - no progress saved
+    if not getattr(request.user, 'company', None):
+        return Response(_empty)
+
+    # Employee - load saved progress
+    try:
+        progress = InteractiveLessonProgress.objects.get(
+            user=request.user,
+            lesson_type=lesson_type.upper(),
+            portal_type='EMPLOYEE',
+            language=language,
+        )
+        return Response({
+            'current_scene': progress.current_scene,
+            'total_scenes': progress.total_scenes,
+            'is_completed': progress.is_completed,
+            'quiz_score': progress.quiz_score,
+            'quiz_total': progress.quiz_total,
+            'time_spent': progress.time_spent_seconds,
+            'completion_percentage': progress.completion_percentage,
+            'last_accessed': progress.last_accessed.isoformat(),
+        })
+    except InteractiveLessonProgress.DoesNotExist:
+        return Response(_empty)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def save_interactive_progress(request):
+    """Save progress - ONLY for employee users."""
+    _no_save = {'message': 'Public user - progress not saved', 'progress_id': None}
+
+    if not request.user.is_authenticated:
+        return Response(_no_save)
+
+    if not getattr(request.user, 'company', None):
+        return Response(_no_save)
+
+    data = request.data
+    lesson_type = data.get('lesson_type', '').upper()
+    language = data.get('language', 'en')
+
+    if not lesson_type:
+        return Response({'error': 'lesson_type is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    progress, _ = InteractiveLessonProgress.objects.update_or_create(
+        user=request.user,
+        lesson_type=lesson_type,
+        portal_type='EMPLOYEE',
+        language=language,
+        defaults={
+            'current_scene': data.get('current_scene', 0),
+            'total_scenes': data.get('total_scenes', 0),
+            'time_spent_seconds': data.get('time_spent', 0),
+        },
+    )
+    return Response({'message': 'Progress saved', 'progress_id': progress.id})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@transaction.atomic
+def complete_interactive_lesson(request):
+    """Complete lesson - save results ONLY for employee users, and update RemediationTraining."""
+    data = request.data
+    _no_save = {
+        'message': 'Lesson completed!',
+        'quiz_score': data.get('quiz_score'),
+        'quiz_total': data.get('quiz_total'),
+        'is_completed': True,
+        'saved': False,
+    }
+
+    if not request.user.is_authenticated:
+        return Response(_no_save)
+
+    if not getattr(request.user, 'company', None):
+        return Response(_no_save)
+
+    lesson_type = data.get('lesson_type', '').upper()
+    language = data.get('language', 'en')
+
+    if not lesson_type:
+        return Response({'error': 'lesson_type is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Save interactive lesson progress
+    progress, _ = InteractiveLessonProgress.objects.update_or_create(
+        user=request.user,
+        lesson_type=lesson_type,
+        portal_type='EMPLOYEE',
+        language=language,
+        defaults={
+            'is_completed': True,
+            'completed_at': timezone.now(),
+            'quiz_score': data.get('quiz_score'),
+            'quiz_total': data.get('quiz_total'),
+            'quiz_answers': data.get('quiz_answers', {}),
+            'current_scene': data.get('total_scenes', 0),
+            'total_scenes': data.get('total_scenes', 0),
+            'time_spent_seconds': data.get('time_spent', 0),
+        },
+    )
+
+    # Map lesson type to training module category
+    lesson_to_category = {
+        'PHISHING': 'EMAIL_SECURITY',
+        'VISHING': 'SOCIAL_ENGINEERING',
+        'SMISHING': 'MOBILE_SECURITY',
+    }
+    category = lesson_to_category.get(lesson_type)
+    passed = False
+    training = None
+
+    if category:
+        training = RemediationTraining.objects.filter(
+            employee=request.user,
+            training_module__category=category,
+            status__in=['ASSIGNED', 'IN_PROGRESS'],
+        ).select_related('training_module').first()
+
+        if training:
+            quiz_score_raw = int(data.get('quiz_score') or 0)
+            quiz_total_raw = int(data.get('quiz_total') or 1)
+            percentage = (quiz_score_raw / quiz_total_raw * 100) if quiz_total_raw > 0 else 0
+            passed = percentage >= training.training_module.passing_score
+
+            # Capture risk score before
+            try:
+                risk_score = RiskScore.objects.get(employee=request.user)
+                training.risk_score_before = risk_score.score
+            except RiskScore.DoesNotExist:
+                risk_score = None
+
+            # Mark content viewed and complete the assignment
+            training.content_viewed = True
+            training.content_viewed_at = training.content_viewed_at or timezone.now()
+            training.quiz_score = round(percentage, 2)
+            training.correct_answers = quiz_score_raw
+            training.total_questions = quiz_total_raw
+            training.completed_at = timezone.now()
+            training.status = 'PASSED' if passed else 'FAILED'
+            training.quiz_attempts = F('quiz_attempts') + 1
+            training.save()
+            training.refresh_from_db()
+
+            # Update training module stats
+            module = training.training_module
+            module.times_completed = F('times_completed') + 1
+            if passed:
+                module.times_passed = F('times_passed') + 1
+            module.save(update_fields=['times_completed', 'times_passed'])
+
+            # Update risk score stats
+            if risk_score:
+                old_score = risk_score.score
+                risk_score.trainings_completed = F('trainings_completed') + 1
+                risk_score.last_training_date = timezone.now()
+                if passed:
+                    risk_score.trainings_passed = F('trainings_passed') + 1
+                risk_score.save()
+                risk_score.refresh_from_db()
+
+                if passed:
+                    new_score = max(0, risk_score.score - module.score_reduction_on_pass)
+                    risk_score.score = new_score
+                    risk_score.save()
+                    training.risk_score_after = new_score
+                    training.save(update_fields=['risk_score_after'])
+
+                    RiskScoreHistory.objects.create(
+                        risk_score=risk_score,
+                        employee=request.user,
+                        event_type='TRAINING_PASSED',
+                        previous_score=old_score,
+                        new_score=new_score,
+                        previous_risk_level=risk_score.calculate_risk_level(),
+                        new_risk_level=risk_score.risk_level,
+                        source_type='RemediationTraining',
+                        source_id=training.id,
+                        description=f'Passed interactive training: {module.title}',
+                    )
+                else:
+                    RiskScoreHistory.objects.create(
+                        risk_score=risk_score,
+                        employee=request.user,
+                        event_type='TRAINING_FAILED',
+                        previous_score=old_score,
+                        new_score=old_score,
+                        previous_risk_level=risk_score.risk_level,
+                        new_risk_level=risk_score.risk_level,
+                        source_type='RemediationTraining',
+                        source_id=training.id,
+                        description=f'Failed interactive training: {module.title} (Score: {percentage:.1f}%)',
+                    )
+
+            # Send notifications (best-effort)
+            try:
+                from apps.notifications.services import NotificationService
+                if passed:
+                    NotificationService.notify_quiz_passed(
+                        employee=request.user,
+                        training_module=module,
+                        score=percentage,
+                    )
+                    NotificationService.notify_training_completed_employee(
+                        employee=request.user,
+                        training_module=module,
+                        score=percentage,
+                    )
+                    if training.assigned_by:
+                        NotificationService.notify_training_completed(
+                            admin=training.assigned_by,
+                            employee=request.user,
+                            training_module=module,
+                        )
+                else:
+                    NotificationService.notify_quiz_failed(
+                        employee=request.user,
+                        training_module=module,
+                        score=percentage,
+                    )
+                    if training.assigned_by:
+                        NotificationService.notify_employee_failed_quiz(
+                            admin=training.assigned_by,
+                            employee=request.user,
+                            training_module=module,
+                            score=percentage,
+                        )
+            except Exception:
+                pass
+
+    return Response({
+        'message': 'Training completed and saved!',
+        'quiz_score': progress.quiz_score,
+        'quiz_total': progress.quiz_total,
+        'is_completed': True,
+        'saved': True,
+        'passed': passed,
+        'training_updated': training is not None,
+    })

@@ -11,7 +11,10 @@ from .views import (
     RiskScoreViewSet,
     TrainingModuleViewSet,
     TrainingQuestionViewSet,
-    RemediationTrainingViewSet
+    RemediationTrainingViewSet,
+    get_interactive_progress,
+    save_interactive_progress,
+    complete_interactive_lesson,
 )
 
 app_name = 'training'
@@ -24,6 +27,16 @@ router.register(r'assignments', RemediationTrainingViewSet, basename='remediatio
 
 urlpatterns = [
     path('', include(router.urls)),
+    # Interactive lesson progress
+    path('interactive/progress/<str:lesson_type>/<str:language>/',
+         get_interactive_progress,
+         name='get_interactive_progress'),
+    path('interactive/save/',
+         save_interactive_progress,
+         name='save_interactive_progress'),
+    path('interactive/complete/',
+         complete_interactive_lesson,
+         name='complete_interactive_lesson'),
 ]
 
 # API Endpoints Summary:

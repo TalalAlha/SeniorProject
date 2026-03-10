@@ -254,6 +254,40 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 # Backend public URL (used for simulation tracking pixel and link URLs in emails)
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'apps': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+
 # Security Settings (Development)
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True  # Only for development
