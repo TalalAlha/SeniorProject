@@ -52,7 +52,9 @@
     "loginSuccess": "مرحباً بعودتك!",
     "loginError": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     "registerSuccess": "تم إنشاء الحساب بنجاح",
-    "logoutSuccess": "تم تسجيل الخروج"
+    "logoutSuccess": "تم تسجيل الخروج",
+    "registerYourCompany": "سجّل شركتك",
+    "employeeInviteHint": "موظف؟ استخدم رابط الدعوة المرسل إلى بريدك الإلكتروني."
   },
   "nav": {
     "home": "الرئيسية",

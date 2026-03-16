@@ -122,10 +122,10 @@ function LoginPage() {
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm transition-colors"
           >
             <Building2 className="w-4 h-4" />
-            Register Your Company
+            {t('auth.registerYourCompany')}
           </Link>
           <p className="text-xs text-gray-400">
-            Employee? Use the invitation link sent to your email.
+            {t('auth.employeeInviteHint')}
           </p>
         </div>
       </div>

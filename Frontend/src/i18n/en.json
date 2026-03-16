@@ -52,7 +52,9 @@
     "loginSuccess": "Welcome back!",
     "loginError": "Invalid email or password",
     "registerSuccess": "Account created successfully",
-    "logoutSuccess": "You have been logged out"
+    "logoutSuccess": "You have been logged out",
+    "registerYourCompany": "Register Your Company",
+    "employeeInviteHint": "Employee? Use the invitation link sent to your email."
   },
   "nav": {
     "home": "Home",
