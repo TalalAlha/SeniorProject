@@ -135,65 +135,70 @@ def add_table_borders(table):
     tblPr.append(borders)
 
 
-W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+from lxml import etree
+
+XML_SPACE_NS = '{http://www.w3.org/XML/1998/namespace}space'
 
 
-def _make_field_runs(instruction):
-    """Build a list of complete <w:r> elements for a Word field code."""
-    runs = []
-    # begin
-    runs.append(parse_xml(
-        f'<w:r xmlns:w="{W_NS}"><w:fldChar w:fldCharType="begin"/></w:r>'
-    ))
-    # instrText
-    runs.append(parse_xml(
-        f'<w:r xmlns:w="{W_NS}">'
-        f'<w:instrText xml:space="preserve"> {instruction} </w:instrText>'
-        f'</w:r>'
-    ))
-    # separate
-    runs.append(parse_xml(
-        f'<w:r xmlns:w="{W_NS}"><w:fldChar w:fldCharType="separate"/></w:r>'
-    ))
-    return runs
+def _append_field_to_paragraph(p_elem, fld_type, dirty=False):
+    """Append a <w:r><w:fldChar w:fldCharType="..."/></w:r> to paragraph element."""
+    r = etree.SubElement(p_elem, qn('w:r'))
+    fld = etree.SubElement(r, qn('w:fldChar'))
+    fld.set(qn('w:fldCharType'), fld_type)
+    if dirty:
+        fld.set(qn('w:dirty'), 'true')
+    return r
 
 
-def _make_field_end():
-    """Build the end <w:r> element for a Word field code."""
-    return parse_xml(
-        f'<w:r xmlns:w="{W_NS}"><w:fldChar w:fldCharType="end"/></w:r>'
-    )
+def _append_instr_to_paragraph(p_elem, instruction):
+    """Append a <w:r><w:instrText>...</w:instrText></w:r> to paragraph element."""
+    r = etree.SubElement(p_elem, qn('w:r'))
+    instr = etree.SubElement(r, qn('w:instrText'))
+    instr.set(XML_SPACE_NS, 'preserve')
+    instr.text = f' {instruction} '
+    return r
 
 
-def add_seq_field(paragraph, seq_name, run_font_name=FONT_NAME, run_font_size=CAPTION_SIZE):
-    """Insert a SEQ field (auto-number) into a paragraph."""
+def _append_text_to_paragraph(p_elem, text):
+    """Append a <w:r><w:t>text</w:t></w:r> to paragraph element."""
+    r = etree.SubElement(p_elem, qn('w:r'))
+    t = etree.SubElement(r, qn('w:t'))
+    t.set(XML_SPACE_NS, 'preserve')
+    t.text = text
+    return r
+
+
+def add_seq_field(paragraph, seq_name, number=0, run_font_name=FONT_NAME, run_font_size=CAPTION_SIZE):
+    """Insert a SEQ field (auto-number) into a paragraph using lxml SubElement."""
     p_elem = paragraph._element
 
-    # Insert begin + instrText + separate runs
-    for r in _make_field_runs(f'SEQ {seq_name} \\* ARABIC'):
-        p_elem.append(r)
-
-    # Placeholder text run (Word replaces with actual number on Ctrl+A, F9)
-    run_placeholder = paragraph.add_run("0")
-    run_placeholder.font.name = run_font_name
-    run_placeholder.font.size = run_font_size
-
-    # End
-    p_elem.append(_make_field_end())
+    # begin
+    _append_field_to_paragraph(p_elem, 'begin')
+    # instruction
+    _append_instr_to_paragraph(p_elem, f'SEQ {seq_name} \\* ARABIC')
+    # separate
+    _append_field_to_paragraph(p_elem, 'separate')
+    # pre-filled number (correct value even before Word updates)
+    _append_text_to_paragraph(p_elem, str(number))
+    # end
+    _append_field_to_paragraph(p_elem, 'end')
 
 
 def add_toc_field(doc, field_instruction, heading_text=None):
-    """Insert a TOC/TOF field into the document."""
+    """Insert a TOC/TOF field into the document using lxml SubElement."""
     if heading_text:
         doc.add_heading(heading_text, level=1)
     p = doc.add_paragraph()
     p_elem = p._element
 
-    # Insert begin + instrText + separate runs
-    for r in _make_field_runs(field_instruction):
-        p_elem.append(r)
+    # begin
+    _append_field_to_paragraph(p_elem, 'begin')
+    # instruction
+    _append_instr_to_paragraph(p_elem, field_instruction)
+    # separate
+    _append_field_to_paragraph(p_elem, 'separate')
 
-    # Placeholder
+    # Placeholder text
     run4 = p.add_run("Right-click and select 'Update Field' to populate this list.")
     run4.font.name = FONT_NAME
     run4.font.size = BODY_SIZE
@@ -201,14 +206,15 @@ def add_toc_field(doc, field_instruction, heading_text=None):
     run4.font.color.rgb = RGBColor(0x88, 0x88, 0x88)
 
     # end
-    p_elem.append(_make_field_end())
+    _append_field_to_paragraph(p_elem, 'end')
     return p
 
 
 class IEEEDocGenerator:
     def __init__(self):
         self.doc = Document()
-        self.table_counter = 0  # manual counter for table captions
+        self.table_counter = 0
+        self.figure_counter = 0
         self._setup_styles()
         self._setup_margins()
 
@@ -327,7 +333,8 @@ class IEEEDocGenerator:
         run_prefix.font.italic = True
 
         # Add SEQ Figure field (auto-number)
-        add_seq_field(cap_p, "Figure")
+        self.figure_counter += 1
+        add_seq_field(cap_p, "Figure", number=self.figure_counter)
 
         # Add ". " separator and description
         run_desc = cap_p.add_run(". " + caption_desc)
@@ -351,7 +358,7 @@ class IEEEDocGenerator:
         run_prefix.font.italic = False
 
         # Add SEQ Table field (auto-number)
-        add_seq_field(cap_p, "Table")
+        add_seq_field(cap_p, "Table", number=self.table_counter)
 
         # Generate caption text from headers if not provided
         if caption is None:
@@ -413,7 +420,7 @@ class IEEEDocGenerator:
         self.add_paragraph("PhishAware: A Bilingual Cybersecurity Awareness Platform\nfor Saudi Arabian Organizations",
                           bold=True, size=Pt(16), align=WD_ALIGN_PARAGRAPH.CENTER, space_after=Pt(24))
         self.add_paragraph("Senior Project Report", bold=True, size=Pt(14), align=WD_ALIGN_PARAGRAPH.CENTER, space_after=Pt(36))
-        self.add_paragraph("Abdulrahman Alharthi", size=Pt(12), align=WD_ALIGN_PARAGRAPH.CENTER)
+        self.add_paragraph("PhishAware Team", size=Pt(12), align=WD_ALIGN_PARAGRAPH.CENTER)
         self.add_paragraph("Department of Computer Science", size=Pt(12), align=WD_ALIGN_PARAGRAPH.CENTER)
         self.add_paragraph("King Abdulaziz University", size=Pt(12), align=WD_ALIGN_PARAGRAPH.CENTER)
         self.add_paragraph("Jeddah, Saudi Arabia", size=Pt(12), align=WD_ALIGN_PARAGRAPH.CENTER, space_after=Pt(24))
