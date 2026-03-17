@@ -2031,7 +2031,7 @@ class IEEEDocGenerator:
             '[4] E. You, "Vite: Next generation frontend tooling," 2024. [Online]. Available: https://vitejs.dev/',
             '[5] J. Müller, "i18next internationalization framework," 2024. [Online]. Available: https://www.i18next.com/',
             '[6] Tailwind Labs, "Tailwind CSS documentation," 2024. [Online]. Available: https://tailwindcss.com/',
-            '[7] S. Canny, "python-docx library documentation," 2024. [Online]. Available: https://python-docx.readthedocs.io/',
+            '[7] Microsoft, "Office Open XML (OOXML) documentation," 2024. [Online]. Available: https://learn.microsoft.com/en-us/openspecs/',
             '[8] D. Arias, "djangorestframework-simplejwt," 2024. [Online]. Available: https://django-rest-framework-simplejwt.readthedocs.io/',
             '[9] SendGrid, "SendGrid SMTP relay documentation," 2024. [Online]. Available: https://docs.sendgrid.com/',
             '[10] Anti-Phishing Working Group, "Phishing activity trends report," APWG, 2024.',
@@ -2168,11 +2168,18 @@ class IEEEDocGenerator:
         print("Building appendices...")
         self.build_appendices()
 
+        # Set document metadata
+        props = self.doc.core_properties
+        props.author = "PhishAware Team"
+        props.title = "PhishAware: A Bilingual Cybersecurity Awareness Platform"
+        props.subject = "Senior Project Report"
+        props.keywords = "cybersecurity, phishing, awareness, Django, React"
+        props.category = "Technical Report"
+        props.comments = ""
+
         print(f"Saving to {OUTPUT_PATH}...")
         self.doc.save(OUTPUT_PATH)
         print(f"Done! Document saved to {OUTPUT_PATH}")
-        print("\nIMPORTANT: After opening in Word, press Ctrl+A then F9 to update all fields.")
-        print("This will populate the List of Figures, List of Tables, and figure/table numbers.")
 
 
 if __name__ == "__main__":
