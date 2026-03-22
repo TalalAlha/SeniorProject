@@ -64,22 +64,22 @@ const RegisterPage = () => {
   // ── Verification success screen ──────────────────────────────────────────
   if (verificationSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
-          <div className="mx-auto w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 transition-colors">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg dark:shadow-gray-900/50 text-center">
+          <div className="mx-auto w-20 h-20 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-6">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox!</h2>
-          <p className="text-gray-500 mb-4">We sent a verification link to:</p>
-          <p className="font-semibold text-blue-600 text-lg mb-6">{registeredEmail}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Check your inbox!</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">We sent a verification link to:</p>
+          <p className="font-semibold text-blue-600 dark:text-blue-400 text-lg mb-6">{registeredEmail}</p>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 text-sm text-blue-800 text-left">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-4 mb-6 text-sm text-blue-800 dark:text-blue-300 text-left">
             <p>
               Click the link in the email to activate your account. The link expires in
               <strong> 24 hours</strong>.
             </p>
-            <p className="mt-2 text-blue-600">
+            <p className="mt-2 text-blue-600 dark:text-blue-400">
               Can't find it? Check your <strong>spam / junk</strong> folder.
             </p>
           </div>
@@ -87,14 +87,14 @@ const RegisterPage = () => {
           <button
             onClick={handleResend}
             disabled={resendLoading}
-            className="flex items-center justify-center gap-2 mx-auto text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 mx-auto text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${resendLoading ? 'animate-spin' : ''}`} />
             {resendLoading ? 'Sending…' : 'Resend verification email'}
           </button>
 
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <Link to="/login" className="text-sm text-gray-500 hover:text-gray-700">
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <Link to="/login" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
               Back to sign in
             </Link>
           </div>
@@ -104,26 +104,26 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg dark:shadow-gray-900/50">
         {/* Header */}
         <div className="text-center">
           <Logo variant="vertical" className="h-24 w-auto mx-auto mb-4" />
-          <p className="mt-2 text-sm text-gray-600">Create your account</p>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Create your account</p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/login" className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
               Sign In
             </Link>
           </p>
         </div>
 
         {/* Company registration callout */}
-        <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-lg p-4">
+        <div className="flex items-start gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-4">
           <Building2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-blue-800 dark:text-blue-300">
             Registering a company?{' '}
-            <Link to="/register/company" className="font-semibold underline hover:text-blue-900">
+            <Link to="/register/company" className="font-semibold underline hover:text-blue-900 dark:hover:text-blue-200">
               Create a company account here
             </Link>
             . Employees should use the invitation link sent to their email.
@@ -135,7 +135,7 @@ const RegisterPage = () => {
           {/* First Name & Last Name */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 First Name
               </label>
               <input
@@ -145,12 +145,12 @@ const RegisterPage = () => {
                 required
                 value={formData.first_name}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
             </div>
 
             <div>
-              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Last Name
               </label>
               <input
@@ -160,14 +160,14 @@ const RegisterPage = () => {
                 required
                 value={formData.last_name}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
             </div>
           </div>
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Email Address
             </label>
             <input
@@ -177,13 +177,13 @@ const RegisterPage = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Password
             </label>
             <div className="mt-1 relative">
@@ -194,21 +194,21 @@ const RegisterPage = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" /> : <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
               </button>
             </div>
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="password_confirm" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password_confirm" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Confirm Password
             </label>
             <div className="mt-1 relative">
@@ -219,14 +219,14 @@ const RegisterPage = () => {
                 required
                 value={formData.password_confirm}
                 onChange={handleChange}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" /> : <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
               </button>
             </div>
           </div>

@@ -8,16 +8,16 @@ function NotFoundPage() {
   const { isAuthenticated, getDashboardPath } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 text-gray-600 mb-6">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mb-6">
           <FileQuestion className="h-10 w-10" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">404</h1>
+        <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
           {t('errors.notFound')}
         </h2>
-        <p className="text-gray-600 mb-8 max-w-md">
+        <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md">
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

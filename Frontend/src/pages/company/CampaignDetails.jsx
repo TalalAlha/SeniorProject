@@ -34,18 +34,18 @@ import { useAuth } from '../../contexts';
 
 // Status configuration
 const STATUS_CONFIG = {
-  DRAFT: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: Edit2 },
-  ACTIVE: { label: 'Active', color: 'bg-success-50 text-success-700', icon: Play },
-  PAUSED: { label: 'Paused', color: 'bg-warning-50 text-warning-700', icon: Pause },
-  COMPLETED: { label: 'Completed', color: 'bg-primary-50 text-primary-700', icon: CheckCircle },
+  DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: Edit2 },
+  ACTIVE: { label: 'Active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', icon: Play },
+  PAUSED: { label: 'Paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', icon: Pause },
+  COMPLETED: { label: 'Completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300', icon: CheckCircle },
 };
 
 // Employee quiz status
 const QUIZ_STATUS = {
-  NOT_STARTED: { label: 'Not Started', color: 'bg-gray-100 text-gray-600', icon: Clock },
-  IN_PROGRESS: { label: 'In Progress', color: 'bg-warning-50 text-warning-600', icon: Clock },
-  COMPLETED: { label: 'Completed', color: 'bg-success-50 text-success-600', icon: CheckCircle },
-  FAILED: { label: 'Failed', color: 'bg-danger-50 text-danger-600', icon: XCircle },
+  NOT_STARTED: { label: 'Not Started', color: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300', icon: Clock },
+  IN_PROGRESS: { label: 'In Progress', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400', icon: Clock },
+  COMPLETED: { label: 'Completed', color: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400', icon: CheckCircle },
+  FAILED: { label: 'Failed', color: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400', icon: XCircle },
 };
 
 // Modal Component
@@ -63,11 +63,11 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className={clsx('relative bg-white rounded-xl shadow-xl w-full', sizeClasses[size])}>
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
+        <div className={clsx('relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full', sizeClasses[size])}>
+          <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="p-6">{children}</div>
@@ -85,9 +85,9 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-6">{message}</p>
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
           <div className="flex gap-3 justify-end">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
               Cancel
@@ -110,19 +110,19 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
 // Stat Card
 function StatCard({ title, value, subtitle, icon: Icon, color = 'primary' }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg border border-gray-200">
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+          {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>}
         </div>
         <div className={clsx('p-2 rounded-lg', colorClasses[color])}>
           <Icon className="h-5 w-5" />
@@ -207,7 +207,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess, alreadyAss
       ) : (
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search employees..."
@@ -217,8 +217,8 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess, alreadyAss
             />
           </div>
 
-          <div className="flex items-center justify-between px-4 py-2 bg-primary-50 rounded-lg">
-            <span className="text-sm text-primary-700">
+          <div className="flex items-center justify-between px-4 py-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+            <span className="text-sm text-primary-700 dark:text-primary-300">
               <strong>{assignedIds.size}</strong> new employee(s) selected
             </span>
             <div className="flex gap-2">
@@ -246,8 +246,8 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess, alreadyAss
                   className={clsx(
                     'flex items-center gap-4 p-4',
                     isAlready
-                      ? 'bg-gray-50 opacity-60 cursor-not-allowed'
-                      : 'hover:bg-gray-50 cursor-pointer'
+                      ? 'bg-gray-50 dark:bg-gray-700 opacity-60 cursor-not-allowed'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
                   )}
                 >
                   <input
@@ -255,16 +255,16 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess, alreadyAss
                     checked={isAlready || assignedIds.has(employee.id)}
                     disabled={isAlready}
                     onChange={() => toggleEmployee(employee.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className={clsx('font-medium', isAlready ? 'text-gray-400' : 'text-gray-900')}>
+                    <p className={clsx('font-medium', isAlready ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white')}>
                       {employee.first_name} {employee.last_name}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">{employee.email}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{employee.email}</p>
                   </div>
                   {isAlready && (
-                    <span className="shrink-0 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                    <span className="shrink-0 text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">
                       Already Assigned
                     </span>
                   )}
@@ -273,7 +273,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess, alreadyAss
             })}
           </div>
 
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
             <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
             <button
               onClick={handleSave}
@@ -365,7 +365,7 @@ function EditCampaignModal({ isOpen, onClose, campaign, onSuccess }) {
           />
         </div>
 
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
           <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2">
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -448,7 +448,7 @@ function CampaignDetails() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading campaign...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading campaign...</p>
         </div>
       </div>
     );
@@ -458,7 +458,7 @@ function CampaignDetails() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error || 'Campaign not found'}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error || 'Campaign not found'}</p>
         <button onClick={() => navigate('/company/campaigns')} className="btn-primary">
           Back to Campaigns
         </button>
@@ -483,7 +483,7 @@ function CampaignDetails() {
       {/* Back Button */}
       <button
         onClick={() => navigate('/company/campaigns')}
-        className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
       >
         <ArrowLeft className="h-5 w-5 mr-2" />
         {t('common.back')} to Campaigns
@@ -493,18 +493,18 @@ function CampaignDetails() {
       <div className="card">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="p-4 bg-primary-100 rounded-xl">
-              <Target className="h-8 w-8 text-primary-600" />
+            <div className="p-4 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
+              <Target className="h-8 w-8 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">{campaign.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{campaign.name}</h1>
                 <span className={clsx('inline-flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full', status.color)}>
                   <StatusIcon className="h-4 w-4" />
                   {status.label}
                 </span>
               </div>
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-400">
                 Created {campaign.created_at ? formatDistanceToNow(new Date(campaign.created_at), { addSuffix: true }) : 'recently'}
               </p>
             </div>
@@ -532,31 +532,31 @@ function CampaignDetails() {
         </div>
 
         {/* Campaign Config */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t dark:border-gray-700">
           <div>
-            <p className="text-sm text-gray-500">Total Emails</p>
-            <p className="text-xl font-semibold text-gray-900 flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Emails</p>
+            <p className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-1">
               <Mail className="h-5 w-5 text-primary-600" />
               {campaign.num_emails || 10}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Phishing Ratio</p>
-            <p className="text-xl font-semibold text-gray-900 flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Phishing Ratio</p>
+            <p className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-1">
               <AlertTriangle className="h-5 w-5 text-warning-600" />
               {Math.round((campaign.phishing_ratio || 0.5) * 100)}%
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Assigned Employees</p>
-            <p className="text-xl font-semibold text-gray-900 flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Assigned Employees</p>
+            <p className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-1">
               <Users className="h-5 w-5 text-primary-600" />
               {totalAssigned}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Completion Rate</p>
-            <p className="text-xl font-semibold text-gray-900 flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Completion Rate</p>
+            <p className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-1">
               <TrendingUp className="h-5 w-5 text-success-600" />
               {completionRate}%
             </p>
@@ -599,7 +599,7 @@ function CampaignDetails() {
       {/* Employees Table */}
       <div className="card">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Assigned Employees</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Assigned Employees</h2>
           <div className="flex gap-2">
             <button onClick={() => setShowAssignModal(true)} className="btn-secondary text-sm">
               <UserPlus className="h-4 w-4 mr-1" />
@@ -616,15 +616,15 @@ function CampaignDetails() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Employee</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Email</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Score</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Progress</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Employee</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Score</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Progress</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {assignedEmployees.map((employee) => {
                   const quizStatus = QUIZ_STATUS[employee.quiz_status] || QUIZ_STATUS.NOT_STARTED;
                   const QuizIcon = quizStatus.icon;
@@ -632,18 +632,18 @@ function CampaignDetails() {
                   const score = employee.score;
 
                   return (
-                    <tr key={employee.id || employee.employee_id} className="hover:bg-gray-50">
+                    <tr key={employee.id || employee.employee_id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium text-sm">
+                          <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-medium text-sm">
                             {employee.first_name?.[0]}{employee.last_name?.[0]}
                           </div>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 dark:text-white">
                             {employee.first_name} {employee.last_name}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-500">{employee.email}</td>
+                      <td className="py-3 px-4 text-gray-500 dark:text-gray-400">{employee.email}</td>
                       <td className="py-3 px-4">
                         <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full', quizStatus.color)}>
                           <QuizIcon className="h-3 w-3" />
@@ -659,18 +659,18 @@ function CampaignDetails() {
                             {Math.round(score)}%
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-400 dark:text-gray-500">-</span>
                         )}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                             <div
                               className="bg-primary-600 h-2 rounded-full"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
-                          <span className="text-sm text-gray-500">{progress}%</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{progress}%</span>
                         </div>
                       </td>
                     </tr>
@@ -681,9 +681,9 @@ function CampaignDetails() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No employees assigned</h3>
-            <p className="text-gray-500 mb-4">Assign employees to start tracking their progress</p>
+            <Users className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No employees assigned</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Assign employees to start tracking their progress</p>
             <button onClick={() => setShowAssignModal(true)} className="btn-primary">
               <UserPlus className="h-5 w-5 mr-2" />
               Assign Employees
@@ -695,15 +695,15 @@ function CampaignDetails() {
       {/* Statistics Card (if available) */}
       {statistics && (
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Campaign Analytics</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Campaign Analytics</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {statistics.question_stats && statistics.question_stats.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Question Performance</h3>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">Question Performance</h3>
                 <div className="space-y-2">
                   {statistics.question_stats.slice(0, 5).map((q, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 truncate flex-1 mr-2">Q{idx + 1}</span>
+                      <span className="text-gray-600 dark:text-gray-300 truncate flex-1 mr-2">Q{idx + 1}</span>
                       <span className={clsx(
                         'font-medium',
                         q.accuracy >= 70 ? 'text-success-600' : q.accuracy >= 50 ? 'text-warning-600' : 'text-danger-600'
@@ -717,8 +717,8 @@ function CampaignDetails() {
             )}
             {statistics.completion_by_day && (
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Completion Trend</h3>
-                <p className="text-sm text-gray-500">Analytics visualization coming soon</p>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">Completion Trend</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Analytics visualization coming soon</p>
               </div>
             )}
           </div>

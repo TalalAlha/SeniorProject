@@ -7,11 +7,11 @@ import { gamificationAPI } from '../../api';
 
 // Rarity order and styling
 const RARITY_CONFIG = {
-  COMMON: { order: 1, label: 'Common', color: 'gray', bgClass: 'bg-gray-100', textClass: 'text-gray-600', borderClass: 'border-gray-300' },
-  UNCOMMON: { order: 2, label: 'Uncommon', color: 'green', bgClass: 'bg-green-100', textClass: 'text-green-600', borderClass: 'border-green-300' },
-  RARE: { order: 3, label: 'Rare', color: 'blue', bgClass: 'bg-blue-100', textClass: 'text-blue-600', borderClass: 'border-blue-300' },
-  EPIC: { order: 4, label: 'Epic', color: 'purple', bgClass: 'bg-purple-100', textClass: 'text-purple-600', borderClass: 'border-purple-300' },
-  LEGENDARY: { order: 5, label: 'Legendary', color: 'yellow', bgClass: 'bg-yellow-100', textClass: 'text-yellow-600', borderClass: 'border-yellow-400' },
+  COMMON: { order: 1, label: 'Common', color: 'gray', bgClass: 'bg-gray-100 dark:bg-gray-700', textClass: 'text-gray-600 dark:text-gray-300', borderClass: 'border-gray-300 dark:border-gray-600' },
+  UNCOMMON: { order: 2, label: 'Uncommon', color: 'green', bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400', borderClass: 'border-green-300 dark:border-green-600' },
+  RARE: { order: 3, label: 'Rare', color: 'blue', bgClass: 'bg-blue-100 dark:bg-blue-900/30', textClass: 'text-blue-600 dark:text-blue-400', borderClass: 'border-blue-300 dark:border-blue-600' },
+  EPIC: { order: 4, label: 'Epic', color: 'purple', bgClass: 'bg-purple-100 dark:bg-purple-900/30', textClass: 'text-purple-600 dark:text-purple-400', borderClass: 'border-purple-300 dark:border-purple-600' },
+  LEGENDARY: { order: 5, label: 'Legendary', color: 'yellow', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-yellow-400 dark:border-yellow-600' },
 };
 
 function EmployeeBadges() {
@@ -128,7 +128,7 @@ function EmployeeBadges() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading badges...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading badges...</p>
         </div>
       </div>
     );
@@ -138,7 +138,7 @@ function EmployeeBadges() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -152,10 +152,10 @@ function EmployeeBadges() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('nav.badges')} & {t('nav.leaderboard')}
           </h1>
-          <p className="text-gray-600 mt-1">Track your achievements and see how you rank</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Track your achievements and see how you rank</p>
         </div>
         <button onClick={fetchData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
@@ -170,18 +170,18 @@ function EmployeeBadges() {
           <div className="grid grid-cols-3 gap-4">
             <div className="card text-center">
               <Award className="h-8 w-8 text-warning-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{earnedCount}</p>
-              <p className="text-sm text-gray-500">Earned</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{earnedCount}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Earned</p>
             </div>
             <div className="card text-center">
               <Lock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{lockedCount}</p>
-              <p className="text-sm text-gray-500">Locked</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{lockedCount}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Locked</p>
             </div>
             <div className="card text-center">
               <Trophy className="h-8 w-8 text-primary-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{allBadges.length}</p>
-              <p className="text-sm text-gray-500">Total</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{allBadges.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
             </div>
           </div>
 
@@ -199,7 +199,7 @@ function EmployeeBadges() {
                   'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                   filter === key
                     ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                 )}
               >
                 {label} ({count})
@@ -229,7 +229,7 @@ function EmployeeBadges() {
                             'text-center p-4 rounded-lg border-2 transition-all hover:scale-105 cursor-pointer',
                             badge.earned
                               ? `bg-gradient-to-br from-${config.color}-50 to-${config.color}-100 ${config.borderClass}`
-                              : 'bg-gray-50 border-gray-200 opacity-60'
+                              : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 opacity-60'
                           )}
                         >
                           <div className="relative inline-block">
@@ -237,20 +237,20 @@ function EmployeeBadges() {
                               {badge.icon || '🏅'}
                             </div>
                             {!badge.earned && (
-                              <Lock className="absolute -bottom-1 -right-1 h-4 w-4 text-gray-400 bg-white rounded-full p-0.5" />
+                              <Lock className="absolute -bottom-1 -right-1 h-4 w-4 text-gray-400 bg-white dark:bg-gray-800 rounded-full p-0.5" />
                             )}
                           </div>
-                          <h3 className={clsx('font-medium', badge.earned ? 'text-gray-900' : 'text-gray-500')}>
+                          <h3 className={clsx('font-medium', badge.earned ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400')}>
                             {badge.name}
                           </h3>
-                          <p className="text-xs text-gray-400 mt-1 line-clamp-2">{badge.description}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">{badge.description}</p>
                           {badge.earned && badge.awarded_at && (
                             <p className={clsx('text-xs mt-2', config.textClass)}>
                               Earned {formatDate(badge.awarded_at)}
                             </p>
                           )}
                           {badge.points_awarded > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">+{badge.points_awarded} pts</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">+{badge.points_awarded} pts</p>
                           )}
                         </button>
                       ))}
@@ -262,8 +262,8 @@ function EmployeeBadges() {
           ) : (
             <div className="card text-center py-12">
               <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No badges found</h3>
-              <p className="text-gray-500">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No badges found</h3>
+              <p className="text-gray-500 dark:text-gray-400">
                 {filter === 'earned'
                   ? 'You haven\'t earned any badges yet. Complete quizzes and training to earn badges!'
                   : filter === 'locked'
@@ -276,7 +276,7 @@ function EmployeeBadges() {
 
         {/* Leaderboard */}
         <div className="card h-fit">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Trophy className="h-5 w-5 text-warning-500" />
             {t('nav.leaderboard')}
           </h2>
@@ -287,7 +287,7 @@ function EmployeeBadges() {
                   key={user.id || index}
                   className={clsx(
                     'flex items-center gap-3 p-3 rounded-lg',
-                    user.is_current_user ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50'
+                    user.is_current_user ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700' : 'bg-gray-50 dark:bg-gray-700'
                   )}
                 >
                   <span
@@ -296,32 +296,32 @@ function EmployeeBadges() {
                       index === 0 && 'bg-warning-400 text-white',
                       index === 1 && 'bg-gray-300 text-white',
                       index === 2 && 'bg-orange-400 text-white',
-                      index > 2 && 'bg-gray-100 text-gray-600'
+                      index > 2 && 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                     )}
                   >
                     {user.rank || index + 1}
                   </span>
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium">
+                  <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-medium">
                     {user.avatar || user.name?.substring(0, 2).toUpperCase() || 'U'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p
                       className={clsx(
                         'font-medium truncate',
-                        user.is_current_user ? 'text-primary-700' : 'text-gray-900'
+                        user.is_current_user ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white'
                       )}
                     >
                       {user.name || user.employee_name || 'Anonymous'}
                       {user.is_current_user && ' (You)'}
                     </p>
-                    <p className="text-xs text-gray-500">{user.points || user.total_points || 0} pts</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.points || user.total_points || 0} pts</p>
                   </div>
                   {index < 3 && <Star className="h-5 w-5 text-warning-400" />}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Trophy className="h-8 w-8 text-gray-300 mx-auto mb-2" />
               <p>No leaderboard data available</p>
             </div>
@@ -332,10 +332,10 @@ function EmployeeBadges() {
       {/* Badge Details Modal */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 max-w-md w-full p-6 relative">
             <button
               onClick={() => setSelectedBadge(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
             >
               <X className="h-6 w-6" />
             </button>
@@ -350,7 +350,7 @@ function EmployeeBadges() {
                 {selectedBadge.icon || '🏅'}
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedBadge.name}</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{selectedBadge.name}</h3>
 
               <span
                 className={clsx(
@@ -362,34 +362,34 @@ function EmployeeBadges() {
                 {RARITY_CONFIG[selectedBadge.rarity]?.label || 'Common'}
               </span>
 
-              <p className="text-gray-600 mb-4">{selectedBadge.description}</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedBadge.description}</p>
 
               <div className="flex justify-center gap-4 text-sm">
                 <div className="text-center">
-                  <p className="font-bold text-primary-600">{selectedBadge.points_awarded || 0}</p>
-                  <p className="text-gray-500">Points</p>
+                  <p className="font-bold text-primary-600 dark:text-primary-400">{selectedBadge.points_awarded || 0}</p>
+                  <p className="text-gray-500 dark:text-gray-400">Points</p>
                 </div>
               </div>
 
               {selectedBadge.earned ? (
-                <div className="mt-6 p-4 bg-success-50 rounded-lg">
-                  <div className="flex items-center justify-center gap-2 text-success-700">
+                <div className="mt-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 text-success-700 dark:text-success-300">
                     <Award className="h-5 w-5" />
                     <span className="font-medium">Badge Earned!</span>
                   </div>
                   {selectedBadge.awarded_at && (
-                    <p className="text-sm text-success-600 mt-1">
+                    <p className="text-sm text-success-600 dark:text-success-400 mt-1">
                       on {formatDate(selectedBadge.awarded_at)}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
                     <Lock className="h-5 w-5" />
                     <span className="font-medium">Badge Locked</span>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                     Complete the requirements to unlock this badge
                   </p>
                 </div>

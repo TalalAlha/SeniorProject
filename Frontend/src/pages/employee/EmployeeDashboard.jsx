@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts';
 import { trainingAPI, campaignsAPI, gamificationAPI } from '../../api';
 import clsx from 'clsx';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Risk score configuration
 const RISK_CONFIG = {
@@ -28,6 +29,7 @@ const RISK_CONFIG = {
 
 // Circular Progress Gauge Component
 function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
+  const { isDark } = useTheme();
   const radius = 80;
   const strokeWidth = 12;
   const normalizedRadius = radius - strokeWidth / 2;
@@ -53,7 +55,7 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
         <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
           {/* Background circle */}
           <circle
-            stroke="#e5e7eb"
+            stroke={isDark ? '#374151' : '#e5e7eb'}
             fill="transparent"
             strokeWidth={strokeWidth}
             r={normalizedRadius}
@@ -74,13 +76,13 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={clsx('text-4xl font-bold', isNewUser ? 'text-gray-400' : config.textColor)}>{score}</span>
-          <span className="text-sm text-gray-500">/ 100</span>
+          <span className={clsx('text-4xl font-bold', isNewUser ? 'text-gray-400 dark:text-gray-500' : config.textColor)}>{score}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">/ 100</span>
         </div>
       </div>
       <div className="mt-4 text-center">
         {isNewUser ? (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
             Not yet established
           </span>
         ) : (
@@ -96,7 +98,7 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
         )}
       </div>
       {isNewUser && (
-        <p className="mt-3 text-sm text-gray-500 text-center">
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 text-center">
           Complete your first quiz to establish your risk score
         </p>
       )}
@@ -113,11 +115,11 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
 // Quick Stat Card Component
 function QuickStatCard({ title, value, subtitle, icon: Icon, color, linkTo, linkText }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
-    purple: 'bg-purple-100 text-purple-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
+    purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
   };
 
   return (
@@ -127,9 +129,9 @@ function QuickStatCard({ title, value, subtitle, icon: Icon, color, linkTo, link
           <Icon className="h-6 w-6" />
         </div>
       </div>
-      <p className="text-sm text-gray-500">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+      <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+      {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>}
       {linkTo && (
         <Link
           to={linkTo}
@@ -235,7 +237,7 @@ function EmployeeDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -245,7 +247,7 @@ function EmployeeDashboard() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -263,10 +265,10 @@ function EmployeeDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('dashboard.welcome')}, {user?.first_name || 'there'}!
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
             Here's an overview of your security awareness progress.
           </p>
         </div>
@@ -281,7 +283,7 @@ function EmployeeDashboard() {
         {/* Risk Score Card - Large */}
         <div className="card lg:row-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.riskScore')}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.riskScore')}</h2>
             <AlertTriangle className={clsx('h-5 w-5',
               riskScore?.risk_level === 'LOW' && 'text-success-500',
               riskScore?.risk_level === 'MEDIUM' && 'text-warning-500',
@@ -300,16 +302,16 @@ function EmployeeDashboard() {
 
           {/* Score Breakdown */}
           {!riskScore?.is_new_user && (
-            <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 space-y-3">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Quiz Accuracy</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-gray-500 dark:text-gray-400">Quiz Accuracy</span>
+                <span className="font-medium text-gray-900 dark:text-white">
                   {Math.round(riskScore?.quiz_accuracy || 0)}%
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Simulation Click Rate</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-gray-500 dark:text-gray-400">Simulation Click Rate</span>
+                <span className="font-medium text-gray-900 dark:text-white">
                   {Math.round(riskScore?.simulation_click_rate || 0)}%
                 </span>
               </div>
@@ -360,7 +362,7 @@ function EmployeeDashboard() {
         {/* Recent Badges */}
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Badges</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Badges</h2>
             <Link
               to="/employee/badges"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
@@ -377,12 +379,12 @@ function EmployeeDashboard() {
                 return (
                   <div
                     key={badge.id || index}
-                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-warning-50 to-warning-100 rounded-lg"
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-warning-50 to-warning-100 dark:from-warning-900/20 dark:to-warning-800/20 rounded-lg"
                   >
                     <div className="text-3xl">{badge.icon || '🏅'}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{badge.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-gray-900 dark:text-white truncate">{badge.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {item.awarded_at ? `Earned ${formatDate(item.awarded_at)}` : 'Recently earned'}
                       </p>
                     </div>
@@ -391,8 +393,8 @@ function EmployeeDashboard() {
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Award className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Award className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
               <p>No badges earned yet</p>
               <p className="text-sm">Complete quizzes and training to earn badges!</p>
             </div>
@@ -407,12 +409,12 @@ function EmployeeDashboard() {
           className="card-hover flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary-100">
-              <BookOpen className="h-6 w-6 text-primary-600" />
+            <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+              <BookOpen className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('quiz.takeQuiz')}</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-white">{t('quiz.takeQuiz')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {pendingQuizzes + inProgressQuizzes > 0
                   ? `${pendingQuizzes + inProgressQuizzes} quizzes available`
                   : 'No quizzes pending'}
@@ -427,12 +429,12 @@ function EmployeeDashboard() {
           className="card-hover flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-success-50">
-              <Target className="h-6 w-6 text-success-600" />
+            <div className="p-3 rounded-lg bg-success-50 dark:bg-success-900/20">
+              <Target className="h-6 w-6 text-success-600 dark:text-success-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('training.continueTraining')}</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-white">{t('training.continueTraining')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {pendingTraining > 0
                   ? `${pendingTraining} modules pending`
                   : 'All training complete'}
@@ -447,12 +449,12 @@ function EmployeeDashboard() {
           className="card-hover flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-purple-100">
-              <Trophy className="h-6 w-6 text-purple-600" />
+            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <Trophy className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('nav.leaderboard')}</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-white">{t('nav.leaderboard')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {weeklyRank ? `Rank #${weeklyRank} this week` : 'View rankings'}
               </p>
             </div>

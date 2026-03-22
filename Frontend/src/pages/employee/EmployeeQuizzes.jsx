@@ -48,7 +48,7 @@ function EmployeeQuizzes() {
   const getStatusBadge = (status, progressPercentage) => {
     if (status === QUIZ_STATUS.COMPLETED) {
       return (
-        <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-success-50 text-success-700">
+        <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-success-50 dark:bg-success-500/20 text-success-700 dark:text-success-500">
           <CheckCircle className="h-3 w-3" />
           {t('training.completed')}
         </span>
@@ -56,14 +56,14 @@ function EmployeeQuizzes() {
     }
     if (status === QUIZ_STATUS.IN_PROGRESS) {
       return (
-        <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-primary-50 text-primary-700">
+        <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400">
           <Play className="h-3 w-3" />
           {t('training.inProgress')} ({progressPercentage}%)
         </span>
       );
     }
     return (
-      <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+      <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
         <Clock className="h-3 w-3" />
         {t('training.notStarted')}
       </span>
@@ -86,7 +86,7 @@ function EmployeeQuizzes() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading quizzes...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading quizzes...</p>
         </div>
       </div>
     );
@@ -96,7 +96,7 @@ function EmployeeQuizzes() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
         <button
           onClick={fetchQuizzes}
           className="btn-primary flex items-center gap-2"
@@ -113,8 +113,8 @@ function EmployeeQuizzes() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('quiz.title')}</h1>
-          <p className="text-gray-600 mt-1">Complete quizzes to test your security knowledge</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('quiz.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Complete quizzes to test your security knowledge</p>
         </div>
         <button
           onClick={fetchQuizzes}
@@ -140,7 +140,7 @@ function EmployeeQuizzes() {
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               filter === key
                 ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             )}
           >
             {label}
@@ -154,17 +154,17 @@ function EmployeeQuizzes() {
           {filteredQuizzes.map((quiz) => (
             <div key={quiz.id} className="card-hover">
               <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-lg bg-primary-100">
-                  <BookOpen className="h-6 w-6 text-primary-600" />
+                <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+                  <BookOpen className="h-6 w-6 text-primary-600 dark:text-primary-400" />
                 </div>
                 {getStatusBadge(quiz.status, quiz.progress_percentage)}
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 {quiz.campaign_name || 'Security Quiz'}
               </h3>
 
-              <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
                 <span>{quiz.total_questions} {t('quiz.questions')}</span>
                 {quiz.status === QUIZ_STATUS.IN_PROGRESS && (
                   <>
@@ -179,7 +179,7 @@ function EmployeeQuizzes() {
               {/* Progress bar for in-progress quizzes */}
               {quiz.status === QUIZ_STATUS.IN_PROGRESS && (
                 <div className="mb-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className="bg-primary-600 h-2 rounded-full transition-all"
                       style={{ width: `${quiz.progress_percentage}%` }}
@@ -204,9 +204,9 @@ function EmployeeQuizzes() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No quizzes found</h3>
-          <p className="text-gray-500">
+          <BookOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No quizzes found</h3>
+          <p className="text-gray-500 dark:text-gray-400">
             {filter === 'all'
               ? 'You have no quizzes assigned yet.'
               : `No quizzes with status "${filter.replace('_', ' ').toLowerCase()}".`}

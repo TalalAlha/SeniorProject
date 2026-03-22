@@ -77,7 +77,7 @@ const enhanceInlineText = (text, emailType = 'LEGITIMATE') => {
           {part}
         </strong>
       ) : (
-        <strong key={i} className="font-bold text-gray-900">
+        <strong key={i} className="font-bold text-gray-900 dark:text-white">
           {part}
         </strong>
       );
@@ -156,8 +156,8 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
 
   // Direction-aware left-border callout for the opening paragraph
   const firstParaClass = isRtl
-    ? 'text-[15px] font-semibold text-gray-900 leading-relaxed border-r-4 border-blue-400 pr-4 py-2'
-    : 'text-[15px] font-semibold text-gray-900 leading-relaxed border-l-4 border-blue-400 pl-4 py-2';
+    ? 'text-[15px] font-semibold text-gray-900 dark:text-white leading-relaxed border-r-4 border-blue-400 pr-4 py-2'
+    : 'text-[15px] font-semibold text-gray-900 dark:text-white leading-relaxed border-l-4 border-blue-400 pl-4 py-2';
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -167,7 +167,7 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
         return (
           <p
             key={idx}
-            className={isFirst ? firstParaClass : 'text-[15px] text-gray-700 leading-[1.8]'}
+            className={isFirst ? firstParaClass : 'text-[15px] text-gray-700 dark:text-gray-200 leading-[1.8]'}
           >
             {lines.map((line, li) => (
               <span key={li}>
@@ -806,7 +806,7 @@ function TakeQuiz() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Loading quiz...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading quiz...</p>
         </div>
       </div>
     );
@@ -816,7 +816,7 @@ function TakeQuiz() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
         <button onClick={fetchQuizData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -832,16 +832,16 @@ function TakeQuiz() {
       <div className="fade-in max-w-2xl mx-auto">
         <div className="card text-center py-10">
           <CheckCircle className="h-16 w-16 text-success-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {t('quiz.quizComplete')}
           </h1>
-          <p className="text-gray-500 mb-6">{quizData?.campaign_name}</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">{quizData?.campaign_name}</p>
 
           {/* Score */}
           <div className="text-5xl font-bold text-primary-600 mb-2">
             {Math.round(result.score)}%
           </div>
-          <p className="text-gray-500 mb-4">{t('quiz.yourScore')}</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">{t('quiz.yourScore')}</p>
 
           {/* Pass/Fail Badge */}
           {(() => {
@@ -851,8 +851,8 @@ function TakeQuiz() {
               <div className="mb-8">
                 <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-bold ${
                   hasPassed
-                    ? 'bg-green-100 text-green-800 border-2 border-green-500'
-                    : 'bg-red-100 text-red-800 border-2 border-red-500'
+                    ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-2 border-green-500'
+                    : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-2 border-red-500'
                 }`}>
                   {hasPassed ? (
                     <>
@@ -867,7 +867,7 @@ function TakeQuiz() {
                   )}
                 </div>
                 {!hasPassed && (
-                  <p className="text-sm text-red-700 mt-2">
+                  <p className="text-sm text-red-700 dark:text-red-400 mt-2">
                     {i18n.language === 'ar'
                       ? `تحتاج ${passThreshold}٪ للنجاح. يمكنك إعادة المحاولة.`
                       : t('quiz.needToPassMsg', { threshold: passThreshold })}
@@ -884,35 +884,35 @@ function TakeQuiz() {
             const performanceBonus = Math.floor(finalScore * 0.7);
             const totalEarned = basePoints + performanceBonus;
             return (
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-6">
-                <h4 className="font-semibold text-purple-900 mb-4 flex items-center gap-2 justify-center">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6 mb-6">
+                <h4 className="font-semibold text-purple-900 dark:text-purple-300 mb-4 flex items-center gap-2 justify-center">
                   <Award className="w-5 h-5" />
                   {t('quiz.leaderboardImpact')}
                 </h4>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-1">{t('quiz.basePoints')}</p>
-                    <p className="text-2xl font-bold text-green-600">{basePoints}</p>
-                    <p className="text-xs text-gray-500">{t('quiz.forCompletion')}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('quiz.basePoints')}</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{basePoints}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('quiz.forCompletion')}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-1">{t('quiz.performanceBonus')}</p>
-                    <p className="text-2xl font-bold text-blue-600">+{performanceBonus}</p>
-                    <p className="text-xs text-gray-500">{finalScore}% × 0.7</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('quiz.performanceBonus')}</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">+{performanceBonus}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{finalScore}% × 0.7</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-1">{t('quiz.totalEarned')}</p>
-                    <p className="text-2xl font-bold text-purple-600">{totalEarned}</p>
-                    <p className="text-xs text-gray-500">{t('quiz.leaderboardPoints')}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('quiz.totalEarned')}</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{totalEarned}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('quiz.leaderboardPoints')}</p>
                   </div>
                 </div>
                 <div className="mt-4 text-center">
                   {finalScore >= 90 ? (
-                    <p className="text-sm text-green-700 font-medium">{t('quiz.excellentPerformance')}</p>
+                    <p className="text-sm text-green-700 dark:text-green-400 font-medium">{t('quiz.excellentPerformance')}</p>
                   ) : finalScore >= 70 ? (
-                    <p className="text-sm text-blue-700 font-medium">{t('quiz.goodPerformance')}</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">{t('quiz.goodPerformance')}</p>
                   ) : (
-                    <p className="text-sm text-orange-700 font-medium">{t('quiz.keepImproving')}</p>
+                    <p className="text-sm text-orange-700 dark:text-orange-400 font-medium">{t('quiz.keepImproving')}</p>
                   )}
                 </div>
               </div>
@@ -921,23 +921,23 @@ function TakeQuiz() {
 
           {/* Stats grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-            <div className="p-4 bg-success-50 rounded-lg">
-              <p className="text-2xl font-bold text-success-700">{result.correct_answers}</p>
+            <div className="p-4 bg-success-50 dark:bg-success-500/20 rounded-lg">
+              <p className="text-2xl font-bold text-success-700 dark:text-success-500">{result.correct_answers}</p>
               <p className="text-xs text-success-600">{t('quiz.answeredCorrectly')}</p>
             </div>
-            <div className="p-4 bg-primary-50 rounded-lg">
+            <div className="p-4 bg-primary-50 dark:bg-primary-500/20 rounded-lg">
               <p className="text-2xl font-bold text-primary-700">
                 {result.phishing_emails_identified}
               </p>
               <p className="text-xs text-primary-600">{t('quiz.phishingDetected')}</p>
             </div>
-            <div className="p-4 bg-danger-50 rounded-lg">
+            <div className="p-4 bg-danger-50 dark:bg-danger-500/20 rounded-lg">
               <p className="text-2xl font-bold text-danger-700">
                 {result.phishing_emails_missed}
               </p>
               <p className="text-xs text-danger-600">{t('quiz.phishingMissed')}</p>
             </div>
-            <div className="p-4 bg-warning-50 rounded-lg">
+            <div className="p-4 bg-warning-50 dark:bg-warning-500/20 rounded-lg">
               <p className="text-2xl font-bold text-warning-700">
                 {result.false_positives}
               </p>
@@ -1032,23 +1032,23 @@ function TakeQuiz() {
               <>
                 {/* Flag Detection Summary */}
                 {(flagStats.correct + flagStats.missed + flagStats.incorrect) > 0 && (
-                  <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 justify-center">
+                  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2 justify-center">
                       <Award className="h-4 w-4 text-blue-600" />
                       {t('quiz.redFlagsAccuracy')}
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="text-center p-2 bg-green-50 rounded-lg">
+                      <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                         <p className="text-2xl font-bold text-green-600">{flagStats.correct}</p>
-                        <p className="text-xs text-green-700">{t('quiz.correctFlags')}</p>
+                        <p className="text-xs text-green-700 dark:text-green-400">{t('quiz.correctFlags')}</p>
                       </div>
-                      <div className="text-center p-2 bg-orange-50 rounded-lg">
+                      <div className="text-center p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                         <p className="text-2xl font-bold text-orange-500">{flagStats.missed}</p>
-                        <p className="text-xs text-orange-700">{t('quiz.missedFlags')}</p>
+                        <p className="text-xs text-orange-700 dark:text-orange-400">{t('quiz.missedFlags')}</p>
                       </div>
-                      <div className="text-center p-2 bg-red-50 rounded-lg">
+                      <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
                         <p className="text-2xl font-bold text-red-600">{flagStats.incorrect}</p>
-                        <p className="text-xs text-red-700">{t('quiz.incorrectFlags')}</p>
+                        <p className="text-xs text-red-700 dark:text-red-400">{t('quiz.incorrectFlags')}</p>
                       </div>
                     </div>
                   </div>
@@ -1056,7 +1056,7 @@ function TakeQuiz() {
 
                 {/* Detailed Results Accordion */}
                 <div className="mt-2 text-left space-y-2">
-                  <h3 className="text-base font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                  <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-3">
                     <AlertTriangle className="h-5 w-5 text-orange-500" />
                     {t('quiz.detailedResults')}
                   </h3>
@@ -1069,14 +1069,14 @@ function TakeQuiz() {
                     const isExpanded = expandedQuestion === idx;
 
                     return (
-                      <div key={q.question_number} className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div key={q.question_number} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                         {/* Accordion header */}
                         <button
                           type="button"
                           onClick={() => setExpandedQuestion(isExpanded ? null : idx)}
                           className={clsx(
                             'w-full p-4 flex items-center justify-between transition-colors text-left',
-                            isCorrect ? 'bg-green-50 hover:bg-green-100' : 'bg-red-50 hover:bg-red-100'
+                            isCorrect ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
                           )}
                         >
                           <div className="flex items-center gap-3 min-w-0">
@@ -1089,13 +1089,13 @@ function TakeQuiz() {
                               {isCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 truncate">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                 {resultIsArabic ? `السؤال ${q.question_number}` : `Q${q.question_number}`}
                                 {q.email_subject && (
-                                  <span className="text-gray-500 font-normal"> — {q.email_subject}</span>
+                                  <span className="text-gray-500 dark:text-gray-400 font-normal"> — {q.email_subject}</span>
                                 )}
                               </p>
-                              <p className={clsx('text-xs', isCorrect ? 'text-green-700' : 'text-red-700')}>
+                              <p className={clsx('text-xs', isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400')}>
                                 {isCorrect
                                   ? (userAnswer === 'PHISHING'
                                       ? (resultIsArabic ? 'تصيد احتيالي — صحيح ✓' : 'Phishing — Correct ✓')
@@ -1109,28 +1109,28 @@ function TakeQuiz() {
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             {scoringResult && scoringResult.maxScore > 0 && (
                               <div className="text-right">
-                                <p className="text-sm font-bold text-blue-700">
+                                <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
                                   {scoringResult.score}
-                                  <span className="text-xs text-blue-400 font-normal">/{scoringResult.maxScore}</span>
+                                  <span className="text-xs text-blue-400 dark:text-blue-500 font-normal">/{scoringResult.maxScore}</span>
                                 </p>
-                                <p className="text-[10px] text-gray-400">{resultIsArabic ? 'نقاط' : 'flag pts'}</p>
+                                <p className="text-[10px] text-gray-400 dark:text-gray-500">{resultIsArabic ? 'نقاط' : 'flag pts'}</p>
                               </div>
                             )}
                             {isExpanded
-                              ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                              : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                              ? <ChevronUp className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                              : <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />}
                           </div>
                         </button>
 
                         {/* Accordion body */}
                         {isExpanded && (
-                          <div className="p-4 bg-white border-t border-gray-100 space-y-3">
+                          <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 space-y-3">
                             {/* PHISHING answered as PHISHING */}
                             {userAnswer === 'PHISHING' && emailType === 'PHISHING' && (
                               <>
                                 {scoringResult && (
-                                  <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-                                    <p className="text-xs font-semibold text-blue-900">
+                                  <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-3 rounded">
+                                    <p className="text-xs font-semibold text-blue-900 dark:text-blue-300">
                                       {resultIsArabic ? 'نقاط العلامات: ' : 'Flag score: '}
                                       <span className="text-sm">{scoringResult.score}</span>
                                       <span className="text-blue-500 font-normal"> / {scoringResult.maxScore}</span>
@@ -1145,14 +1145,14 @@ function TakeQuiz() {
                                   </div>
                                 )}
                                 {correctFlags.length > 0 && (
-                                  <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
-                                    <h4 className="font-semibold text-green-800 text-xs mb-2 flex items-center gap-1">
+                                  <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-3 rounded">
+                                    <h4 className="font-semibold text-green-800 dark:text-green-300 text-xs mb-2 flex items-center gap-1">
                                       <Check className="w-3.5 h-3.5" />
                                       {t('quiz.correctlyIdentified')} ({correctFlags.length})
                                     </h4>
                                     <ul className="space-y-1">
                                       {correctFlags.map((f) => (
-                                        <li key={f.id} className="text-xs text-green-700 flex justify-between gap-2">
+                                        <li key={f.id} className="text-xs text-green-700 dark:text-green-400 flex justify-between gap-2">
                                           <span>• {f.label}</span>
                                           <span className="text-green-600 font-semibold flex-shrink-0">+{f.points}</span>
                                         </li>
@@ -1161,15 +1161,15 @@ function TakeQuiz() {
                                   </div>
                                 )}
                                 {incorrectFlags.length > 0 && (
-                                  <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-                                    <h4 className="font-semibold text-red-800 text-xs mb-1 flex items-center gap-1">
+                                  <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 rounded">
+                                    <h4 className="font-semibold text-red-800 dark:text-red-300 text-xs mb-1 flex items-center gap-1">
                                       <X className="w-3.5 h-3.5" />
                                       {t('quiz.incorrectSelections')} ({incorrectFlags.length})
                                     </h4>
-                                    <p className="text-[10px] text-red-500 mb-2">{t('quiz.theseWereNotInEmail')}</p>
+                                    <p className="text-[10px] text-red-500 dark:text-red-400 mb-2">{t('quiz.theseWereNotInEmail')}</p>
                                     <ul className="space-y-1">
                                       {incorrectFlags.map((f) => (
-                                        <li key={f.id} className="text-xs text-red-700 flex justify-between gap-2">
+                                        <li key={f.id} className="text-xs text-red-700 dark:text-red-400 flex justify-between gap-2">
                                           <span>• {f.label}</span>
                                           <span className="text-red-600 font-semibold flex-shrink-0">{f.points}</span>
                                         </li>
@@ -1178,29 +1178,29 @@ function TakeQuiz() {
                                   </div>
                                 )}
                                 {missedFlags.length > 0 && (
-                                  <div className="bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
-                                    <h4 className="font-semibold text-orange-800 text-xs mb-1 flex items-center gap-1">
+                                  <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-3 rounded">
+                                    <h4 className="font-semibold text-orange-800 dark:text-orange-300 text-xs mb-1 flex items-center gap-1">
                                       <AlertTriangle className="w-3.5 h-3.5" />
                                       {t('quiz.youMissed')} ({missedFlags.length})
                                     </h4>
-                                    <p className="text-[10px] text-orange-500 mb-2">{t('quiz.theseWerePresent')}</p>
+                                    <p className="text-[10px] text-orange-500 dark:text-orange-400 mb-2">{t('quiz.theseWerePresent')}</p>
                                     <ul className="space-y-1">
                                       {missedFlags.map((f) => (
-                                        <li key={f.id} className="text-xs text-orange-700">• {f.label}</li>
+                                        <li key={f.id} className="text-xs text-orange-700 dark:text-orange-400">• {f.label}</li>
                                       ))}
                                     </ul>
                                   </div>
                                 )}
                                 {correctFlags.length === 0 && missedFlags.length === 0 && incorrectFlags.length === 0 && (
-                                  <p className="text-xs text-gray-400 italic text-center py-2">
+                                  <p className="text-xs text-gray-400 dark:text-gray-500 italic text-center py-2">
                                     {resultIsArabic ? 'لا تتوفر تفاصيل العلامات' : 'No flag details available'}
                                   </p>
                                 )}
                                 {scoringResult
                                   && scoringResult.score === scoringResult.maxScore
                                   && scoringResult.maxScore > 0 && (
-                                    <div className="bg-yellow-50 border-2 border-yellow-400 p-3 rounded text-center">
-                                      <p className="text-sm font-bold text-yellow-800 flex items-center justify-center gap-1">
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 p-3 rounded text-center">
+                                      <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center justify-center gap-1">
                                         <Award className="w-4 h-4" />
                                         {t('quiz.perfectFlagScore')}
                                       </p>
@@ -1211,22 +1211,22 @@ function TakeQuiz() {
                             {/* PHISHING answered as LEGITIMATE */}
                             {userAnswer === 'LEGITIMATE' && emailType === 'PHISHING' && (
                               <div className="space-y-2">
-                                <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-                                  <p className="text-sm font-semibold text-red-800">
+                                <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 rounded">
+                                  <p className="text-sm font-semibold text-red-800 dark:text-red-300">
                                     {resultIsArabic
                                       ? 'كانت هذه رسالة تصيدية! يجب أن تكون الإجابة "تصيد احتيالي".'
                                       : 'This was a phishing email! The correct answer was "Phishing".'}
                                   </p>
                                 </div>
                                 {missedFlags.length > 0 && (
-                                  <div className="bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
-                                    <h4 className="font-semibold text-orange-800 text-xs mb-2 flex items-center gap-1">
+                                  <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-3 rounded">
+                                    <h4 className="font-semibold text-orange-800 dark:text-orange-300 text-xs mb-2 flex items-center gap-1">
                                       <AlertTriangle className="w-3.5 h-3.5" />
                                       {resultIsArabic ? 'العلامات التحذيرية التي كان يجب ملاحظتها:' : 'Red flags you should have noticed:'}
                                     </h4>
                                     <ul className="space-y-1">
                                       {missedFlags.map((f) => (
-                                        <li key={f.id} className="text-xs text-orange-700">• {f.label}</li>
+                                        <li key={f.id} className="text-xs text-orange-700 dark:text-orange-400">• {f.label}</li>
                                       ))}
                                     </ul>
                                   </div>
@@ -1235,8 +1235,8 @@ function TakeQuiz() {
                             )}
                             {/* LEGITIMATE answered correctly */}
                             {userAnswer === 'LEGITIMATE' && emailType === 'LEGITIMATE' && (
-                              <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
-                                <p className="text-sm text-green-800 flex items-center gap-2">
+                              <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-3 rounded">
+                                <p className="text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
                                   <Check className="w-4 h-4 flex-shrink-0" />
                                   {t('quiz.correctlyIdentifiedLegitimate')}
                                 </p>
@@ -1244,8 +1244,8 @@ function TakeQuiz() {
                             )}
                             {/* LEGITIMATE answered as PHISHING (false positive) */}
                             {userAnswer === 'PHISHING' && emailType === 'LEGITIMATE' && (
-                              <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-                                <p className="text-sm text-red-800 flex items-center gap-2">
+                              <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 rounded">
+                                <p className="text-sm text-red-800 dark:text-red-300 flex items-center gap-2">
                                   <X className="w-4 h-4 flex-shrink-0" />
                                   {resultIsArabic
                                     ? 'هذا كان بريداً شرعياً! تجنب الإيجابيات الكاذبة.'
@@ -1261,12 +1261,12 @@ function TakeQuiz() {
                 </div>
 
                 {/* Key Takeaways */}
-                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-left">
-                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-left">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
                     <Award className="w-5 h-5 text-blue-600" />
                     {t('quiz.keyTakeaways')}
                   </h4>
-                  <ul className="space-y-2 text-sm text-blue-800">
+                  <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
                     <li className="flex items-start gap-2">
                       <span className="flex-shrink-0">•</span>
                       <span>{t('quiz.takeaway1')}</span>
@@ -1300,8 +1300,8 @@ function TakeQuiz() {
   if (questions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <Mail className="h-12 w-12 text-gray-300 mb-4" />
-        <p className="text-gray-600">No questions found for this quiz.</p>
+        <Mail className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+        <p className="text-gray-600 dark:text-gray-400">No questions found for this quiz.</p>
         <Link to="/employee/quizzes" className="btn-secondary mt-4">
           {t('quiz.backToQuizzes')}
         </Link>
@@ -1337,10 +1337,10 @@ function TakeQuiz() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {quizData?.campaign_name || t('quiz.takeQuiz')}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {t('quiz.questionOf', {
               current: currentIndex + 1,
               total: questions.length,
@@ -1348,14 +1348,14 @@ function TakeQuiz() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {answeredCount}/{questions.length} answered
           </span>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-8">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-8">
         <div
           className="bg-primary-600 h-2 rounded-full transition-all duration-300"
           style={{
@@ -1366,11 +1366,11 @@ function TakeQuiz() {
 
       {/* Assessment Instructions — shown before first answer */}
       {answeredCount === 0 && !isAnswered && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h4 className="font-semibold text-yellow-800 mb-2">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+          <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
             {i18n.language === 'ar' ? '⚠️ تعليمات الاختبار' : `⚠️ ${t('quiz.assessmentTitle')}`}
           </h4>
-          <ul className="text-sm text-yellow-700 space-y-1">
+          <ul className="text-sm text-yellow-700 dark:text-yellow-400 space-y-1">
             <li>• {i18n.language === 'ar'
               ? 'لن يتم عرض النتائج حتى إكمال جميع الأسئلة'
               : t('quiz.resultsAfterCompletion')}
@@ -1390,33 +1390,33 @@ function TakeQuiz() {
       {/* Prompt */}
       <div className="flex items-center gap-2 mb-4">
         <AlertCircle className="h-5 w-5 text-primary-600" />
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {t('quiz.identifyEmail')}
         </p>
       </div>
 
       {/* Email Client — Gmail-style */}
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 mb-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 mb-6 hover:shadow-2xl transition-shadow duration-300">
 
         {/* ── Toolbar ── */}
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between overflow-hidden rounded-t-xl">
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
+        <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2.5 flex items-center justify-between overflow-hidden rounded-t-xl">
+          <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 font-medium">
             <Mail className="h-4 w-4" />
             <span>Inbox</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-xs text-gray-400">
+            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
               <Clock className="h-3 w-3" />
               <span>{getReadTime(question.email_body)} min read</span>
             </div>
-            <MoreVertical className="h-4 w-4 text-gray-400" />
+            <MoreVertical className="h-4 w-4 text-gray-400 dark:text-gray-500" />
           </div>
         </div>
 
         {/* ── Urgency badge (shown only when email contains urgency keywords) ── */}
         {isUrgent && (
           <div className="px-6 pt-4 pb-1">
-            <div className={`flex items-center gap-2 px-3 py-2 bg-red-50 border-l-4 border-red-500 rounded text-sm font-semibold text-red-800 ${isArabic ? 'flex-row-reverse border-l-0 border-r-4 text-right' : ''}`}>
+            <div className={`flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded text-sm font-semibold text-red-800 dark:text-red-300 ${isArabic ? 'flex-row-reverse border-l-0 border-r-4 text-right' : ''}`}>
               <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
               {isArabic ? 'تنبيه: إجراء عاجل مطلوب' : 'Warning: Urgent Action Required'}
             </div>
@@ -1424,7 +1424,7 @@ function TakeQuiz() {
         )}
 
         {/* ── Sender row ── */}
-        <div className="px-6 pb-5 border-b border-gray-100">
+        <div className="px-6 pb-5 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-start gap-3">
             {/* Initials avatar */}
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 select-none">
@@ -1432,41 +1432,41 @@ function TakeQuiz() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 truncate">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                   {question.email_sender_name}
                 </p>
-                <span className="text-xs text-gray-400 flex-shrink-0">
+                <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
                   {formatEmailDate(currentIndex)}
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                <p className="text-xs text-gray-500 font-mono">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                   &lt;{question.email_sender_email || generateSenderEmail(question.email_sender_name, question.email_type, currentIndex)}&gt;
                 </p>
                 {question.email_type === 'PHISHING' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-[11px] font-medium rounded">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-[11px] font-medium rounded">
                     <AlertCircle className="h-3 w-3" />
                     Suspicious
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">to me</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">to me</p>
             </div>
           </div>
 
           {/* Attachments */}
           {question.has_attachments && question.attachment_names?.length > 0 && (
             <div className="mt-4">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wide font-medium mb-2">
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-medium mb-2">
                 Attachments
               </p>
               <div className="flex flex-wrap gap-2">
                 {question.attachment_names.map((name, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs text-gray-700"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs text-gray-700 dark:text-gray-300"
                   >
-                    <Paperclip className="h-3 w-3 text-gray-500 flex-shrink-0" />
+                    <Paperclip className="h-3 w-3 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                     <span>{name}</span>
                   </div>
                 ))}
@@ -1497,29 +1497,29 @@ function TakeQuiz() {
           {/* Fake attachment pill for phishing emails without a real attachment */}
           {showFakeAttachment && (
             <div
-              className={`mt-5 inline-flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg cursor-default select-none max-w-xs ${isArabic ? 'flex-row-reverse' : ''}`}
+              className={`mt-5 inline-flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-default select-none max-w-xs ${isArabic ? 'flex-row-reverse' : ''}`}
             >
-              <Paperclip className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <Paperclip className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {isArabic ? 'فاتورة.pdf' : 'Invoice.pdf'}
                 </p>
-                <p className="text-xs text-gray-400">245 KB</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">245 KB</p>
               </div>
-              <Download className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <Download className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
             </div>
           )}
 
           {/* Email signature — legitimate emails only (phishing rarely has professional signatures) */}
           {question.email_type === 'LEGITIMATE' && (
-            <div className={`mt-8 pt-5 border-t border-gray-200 text-sm space-y-0.5 ${isArabic ? 'text-right' : ''}`}>
-              <p className="font-semibold text-gray-900 text-[15px]">{question.email_sender_name}</p>
-              <p className="text-gray-500">{sig.title}</p>
-              <p className="text-gray-400 font-mono text-xs">
+            <div className={`mt-8 pt-5 border-t border-gray-200 dark:border-gray-700 text-sm space-y-0.5 ${isArabic ? 'text-right' : ''}`}>
+              <p className="font-semibold text-gray-900 dark:text-white text-[15px]">{question.email_sender_name}</p>
+              <p className="text-gray-500 dark:text-gray-400">{sig.title}</p>
+              <p className="text-gray-400 dark:text-gray-500 font-mono text-xs">
                 {question.email_sender_email || generateSenderEmail(question.email_sender_name, 'LEGITIMATE', currentIndex)}
               </p>
-              <p className="text-gray-400 text-xs">{sig.phone}</p>
-              <p className="text-gray-400 italic text-xs mt-2 pt-1.5 border-t border-gray-100">{sig.tagline}</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs">{sig.phone}</p>
+              <p className="text-gray-400 dark:text-gray-500 italic text-xs mt-2 pt-1.5 border-t border-gray-100 dark:border-gray-700">{sig.tagline}</p>
             </div>
           )}
         </div>
@@ -1535,9 +1535,9 @@ function TakeQuiz() {
               'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
               isAnswered
                 ? selectedAnswer === 'PHISHING'
-                  ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md cursor-default'
-                  : 'border-gray-200 bg-gray-50 text-gray-400 opacity-50 cursor-not-allowed'
-                : 'border-gray-200 text-gray-600 hover:border-danger-300 hover:bg-danger-50/50'
+                  ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-md cursor-default'
+                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 opacity-50 cursor-not-allowed'
+                : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-danger-300 hover:bg-danger-50/50'
             )}
           >
             <ShieldAlert className="h-6 w-6" />
@@ -1551,9 +1551,9 @@ function TakeQuiz() {
               'flex items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all font-medium',
               isAnswered
                 ? selectedAnswer === 'LEGITIMATE'
-                  ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md cursor-default'
-                  : 'border-gray-200 bg-gray-50 text-gray-400 opacity-50 cursor-not-allowed'
-                : 'border-gray-200 text-gray-600 hover:border-success-300 hover:bg-success-50/50'
+                  ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-md cursor-default'
+                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 opacity-50 cursor-not-allowed'
+                : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-success-300 hover:bg-success-50/50'
             )}
           >
             <ShieldCheck className="h-6 w-6" />
@@ -1563,17 +1563,17 @@ function TakeQuiz() {
 
         {/* Answer recorded notification */}
         {isAnswered && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-            <p className="text-blue-800 flex items-center gap-2">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-lg">
+            <p className="text-blue-800 dark:text-blue-300 flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
               {i18n.language === 'ar' ? 'تم تسجيل إجابتك' : t('quiz.answerRecorded')}
             </p>
             {currentIndex < questions.length - 1 ? (
-              <p className="text-sm text-blue-600 mt-2">
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
                 {i18n.language === 'ar' ? 'انتقل إلى السؤال التالي' : t('quiz.continueToNext')}
               </p>
             ) : (
-              <p className="text-sm text-blue-600 mt-2">
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
                 {i18n.language === 'ar' ? 'جاهز لإرسال الاختبار' : t('quiz.readyToSubmit')}
               </p>
             )}
@@ -1584,7 +1584,7 @@ function TakeQuiz() {
       {/* Red Flags Modal */}
       {showRedFlagsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
 
             {/* Header */}
             <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-5 text-white">
@@ -1608,8 +1608,8 @@ function TakeQuiz() {
             {/* Body */}
             <div className="p-6 max-h-[60vh] overflow-y-auto">
               {detectedRedFlags.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
                   <p>{i18n.language === 'ar' ? 'لا توجد علامات مشبوهة للعرض' : 'No red flags to display'}</p>
                 </div>
               ) : (
@@ -1620,8 +1620,8 @@ function TakeQuiz() {
                       className={clsx(
                         'flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
                         selectedFlags.includes(flag.id)
-                          ? 'bg-red-50 border-red-500 shadow-md scale-[1.02]'
-                          : 'bg-white border-gray-200 hover:border-red-300 hover:bg-red-50 hover:shadow-sm'
+                          ? 'bg-red-50 dark:bg-red-900/20 border-red-500 shadow-md scale-[1.02]'
+                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm'
                       )}
                     >
                       <input
@@ -1631,11 +1631,11 @@ function TakeQuiz() {
                         className="mt-1 w-5 h-5 text-red-600 rounded focus:ring-red-500 cursor-pointer flex-shrink-0"
                       />
                       <div className="flex-1">
-                        <p className={`text-sm font-medium text-gray-800 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+                        <p className={`text-sm font-medium text-gray-800 dark:text-gray-100 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
                           {flag.label}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
                             {flag.category}
                           </span>
                         </div>
@@ -1647,16 +1647,16 @@ function TakeQuiz() {
 
               {/* Selection count + penalty hint */}
               <div className="mt-4 space-y-2">
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-800 flex items-center gap-2">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-300 flex items-center gap-2">
                     <Info className="w-4 h-4 flex-shrink-0" />
                     {i18n.language === 'ar'
                       ? `تم اختيار ${selectedFlags.length} من ${detectedRedFlags.length} علامات`
                       : `${selectedFlags.length} of ${detectedRedFlags.length} flags selected`}
                   </p>
                 </div>
-                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                  <p className="text-xs text-amber-800 flex items-start gap-2">
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <p className="text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
                     <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
                     {i18n.language === 'ar'
                       ? 'تحذير: اختيار علامة غير موجودة في هذا البريد يخصم نقاطاً من نتيجتك. حلّل البريد بعناية!'
@@ -1666,7 +1666,7 @@ function TakeQuiz() {
               </div>
 
               {selectedFlags.length === 0 && (
-                <p className="text-sm text-orange-600 mt-3 flex items-center gap-2 bg-orange-50 p-3 rounded-lg">
+                <p className="text-sm text-orange-600 dark:text-orange-400 mt-3 flex items-center gap-2 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>
                     {i18n.language === 'ar'
@@ -1678,13 +1678,13 @@ function TakeQuiz() {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+            <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
               <button
                 onClick={() => {
                   setShowRedFlagsModal(false);
                   setSelectedFlags([]);
                 }}
-                className="px-5 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                className="px-5 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium transition-colors"
               >
                 {i18n.language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -1695,7 +1695,7 @@ function TakeQuiz() {
                 className={clsx(
                   'px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2',
                   selectedFlags.length === 0
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700 shadow-lg hover:shadow-xl hover:scale-105'
                 )}
               >
@@ -1753,8 +1753,8 @@ function TakeQuiz() {
               idx === currentIndex
                 ? 'bg-primary-600 text-white'
                 : answers[q.question_number]
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-500'
+                  ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
             )}
           >
             {answers[q.question_number] && idx !== currentIndex ? '✓' : idx + 1}

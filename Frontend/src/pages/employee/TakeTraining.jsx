@@ -156,7 +156,7 @@ function TakeTraining() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('training.startTraining')}...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('training.startTraining')}...</p>
         </div>
       </div>
     );
@@ -166,7 +166,7 @@ function TakeTraining() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
         <div className="flex gap-3">
           <Link to="/employee/training" className="btn-secondary">
             {t('training.backToTraining')}
@@ -199,46 +199,46 @@ function TakeTraining() {
       <div className="fade-in max-w-3xl mx-auto space-y-6">
         <Link
           to="/employee/training"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('training.backToTraining')}
         </Link>
 
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {getModuleField('title', 'title_ar')}
           </h1>
-          <p className="text-gray-600 mt-1">{getModuleField('description', 'description_ar')}</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{getModuleField('description', 'description_ar')}</p>
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-1">{t('training.chooseMethod')}</h2>
-          <p className="text-sm text-gray-500 mb-5">{t('training.chooseMethodSubtitle')}</p>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">{t('training.chooseMethod')}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{t('training.chooseMethodSubtitle')}</p>
 
           <div className={`grid gap-4 ${hasInteractive ? 'sm:grid-cols-2' : ''}`}>
             {hasInteractive && (
               <button
                 onClick={() => setMode('interactive')}
-                className="bg-white rounded-xl border border-gray-200 p-6 hover:border-blue-400 hover:shadow-md transition-all text-start group"
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md dark:hover:shadow-gray-900/50 transition-all text-start group"
               >
-                <div className="bg-blue-100 w-11 h-11 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-200 transition-colors">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-900/30 w-11 h-11 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                  <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">{t('training.interactive')}</h3>
-                <p className="text-sm text-gray-500">{t('training.interactiveDescription')}</p>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t('training.interactive')}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('training.interactiveDescription')}</p>
               </button>
             )}
 
             <button
               onClick={() => setMode('video')}
-              className="bg-white rounded-xl border border-gray-200 p-6 hover:border-emerald-400 hover:shadow-md transition-all text-start group"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-md dark:hover:shadow-gray-900/50 transition-all text-start group"
             >
-              <div className="bg-emerald-100 w-11 h-11 rounded-lg flex items-center justify-center mb-3 group-hover:bg-emerald-200 transition-colors">
-                <Video className="h-5 w-5 text-emerald-600" />
+              <div className="bg-emerald-100 dark:bg-emerald-900/30 w-11 h-11 rounded-lg flex items-center justify-center mb-3 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
+                <Video className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="font-bold text-gray-900 mb-1">{t('training.videoQuiz')}</h3>
-              <p className="text-sm text-gray-500">{t('training.videoQuizDescription')}</p>
+              <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t('training.videoQuiz')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('training.videoQuizDescription')}</p>
             </button>
           </div>
         </div>
@@ -253,7 +253,7 @@ function TakeTraining() {
         <div className="mb-4">
           <button
             onClick={() => setMode(null)}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
+            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
             {t('common.back')}
@@ -283,7 +283,7 @@ function TakeTraining() {
         {/* Back link */}
         <Link
           to="/employee/training"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('training.backToTraining')}
@@ -291,10 +291,10 @@ function TakeTraining() {
 
         {/* Title */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {getModuleField('title', 'title_ar')}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             {getModuleField('description', 'description_ar')}
           </p>
         </div>
@@ -320,7 +320,7 @@ function TakeTraining() {
             onChange={(e) => setVideoWatched(e.target.checked)}
             className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
           />
-          <span className="text-gray-700 font-medium">{t('training.videoWatched')}</span>
+          <span className="text-gray-700 dark:text-gray-300 font-medium">{t('training.videoWatched')}</span>
         </label>
 
         {/* Take Quiz button */}
@@ -370,16 +370,16 @@ function TakeTraining() {
       <div className="fade-in max-w-3xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {getModuleField('title', 'title_ar')}
           </h1>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {t('training.questionOf', { current: currentIndex + 1, total: totalQuestions })}
           </span>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             className="bg-primary-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -388,7 +388,7 @@ function TakeTraining() {
 
         {/* Question card */}
         <div className="card">
-          <p className="text-lg font-medium text-gray-900 mb-6">{qText}</p>
+          <p className="text-lg font-medium text-gray-900 dark:text-white mb-6">{qText}</p>
 
           <div className="space-y-3">
             {opts.map((option, idx) => {
@@ -402,15 +402,15 @@ function TakeTraining() {
                   className={clsx(
                     'w-full text-start p-4 rounded-lg border-2 transition-all flex items-start gap-3',
                     isSelected
-                      ? 'border-primary-500 bg-primary-50 text-primary-900'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-900 dark:text-primary-100'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                   )}
                 >
                   <span className={clsx(
                     'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
                     isSelected
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-600'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                   )}>
                     {optionLetter}
                   </span>
@@ -435,7 +435,7 @@ function TakeTraining() {
                   'w-8 h-8 rounded-full text-xs font-medium transition-all',
                   isCurrent && 'ring-2 ring-primary-600 ring-offset-2',
                   isAnswered && !isCurrent && 'bg-success-500 text-white',
-                  !isAnswered && !isCurrent && 'bg-gray-200 text-gray-600',
+                  !isAnswered && !isCurrent && 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
                   isCurrent && isAnswered && 'bg-success-500 text-white',
                   isCurrent && !isAnswered && 'bg-primary-600 text-white',
                 )}
@@ -519,23 +519,23 @@ function TakeTraining() {
             {score}%
           </div>
 
-          <p className="text-gray-500 mb-3">
+          <p className="text-gray-500 dark:text-gray-400 mb-3">
             {quizResult.correct}/{quizResult.total} {t('training.correctAnswers')}
           </p>
 
           <span className={clsx(
             'inline-block px-4 py-2 rounded-full text-sm font-medium',
-            passed ? 'bg-success-100 text-success-800' : 'bg-danger-100 text-danger-800'
+            passed ? 'bg-success-100 dark:bg-success-500/20 text-success-800 dark:text-success-500' : 'bg-danger-100 dark:bg-danger-500/20 text-danger-800 dark:text-danger-500'
           )}>
             {passed ? t('training.passed') : t('training.failed')}
           </span>
 
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
             {t('training.passingScore')}: {passingScore}%
           </p>
 
           {quizResult.risk_score_before !== null && quizResult.risk_score_after !== null && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
               Risk Score: {quizResult.risk_score_before} → {quizResult.risk_score_after}
             </p>
           )}
@@ -544,7 +544,7 @@ function TakeTraining() {
         {/* Per-question review */}
         {quizResult.results && quizResult.results.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {t('training.review')}
             </h2>
 
@@ -568,7 +568,7 @@ function TakeTraining() {
                     ) : (
                       <XCircle className="h-5 w-5 text-danger-500 flex-shrink-0 mt-0.5" />
                     )}
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-white">
                       {idx + 1}. {qText}
                     </p>
                   </div>
@@ -584,13 +584,13 @@ function TakeTraining() {
                           key={optIdx}
                           className={clsx(
                             'p-3 rounded-lg border text-sm flex items-center justify-between',
-                            isCorrect && 'border-success-500 bg-success-50',
-                            isWrong && 'border-danger-500 bg-danger-50',
-                            !isCorrect && !isWrong && 'border-gray-200',
+                            isCorrect && 'border-success-500 bg-success-50 dark:bg-success-500/10',
+                            isWrong && 'border-danger-500 bg-danger-50 dark:bg-danger-500/10',
+                            !isCorrect && !isWrong && 'border-gray-200 dark:border-gray-600',
                           )}
                         >
                           <span className="flex items-center gap-2">
-                            <span className="font-medium text-gray-500">
+                            <span className="font-medium text-gray-500 dark:text-gray-400">
                               {String.fromCharCode(65 + optIdx)}.
                             </span>
                             {opt}
@@ -603,7 +603,7 @@ function TakeTraining() {
                   </div>
 
                   {explanation && (
-                    <div className="ms-8 mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                    <div className="ms-8 mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-800 dark:text-blue-300">
                       {explanation}
                     </div>
                   )}
@@ -629,7 +629,7 @@ function TakeTraining() {
   return (
     <div className="text-center py-12">
       <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-      <p className="text-gray-600">{t('training.noModules')}</p>
+      <p className="text-gray-600 dark:text-gray-400">{t('training.noModules')}</p>
       <Link to="/employee/training" className="btn-primary mt-4 inline-block">
         {t('training.backToTraining')}
       </Link>

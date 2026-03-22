@@ -27,24 +27,24 @@ import PhishAwareV3EN from '../../components/training/interactive/public/PhishAw
 const topicConfig = {
   phishing: {
     icon: Mail,
-    color: 'from-blue-500 to-blue-600',
-    iconBg: 'bg-blue-100 text-blue-600',
-    accentColor: 'text-blue-600',
-    accentBg: 'bg-blue-50',
+    color: 'from-blue-500 to-blue-600 dark:from-blue-800 dark:to-blue-900',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+    accentColor: 'text-blue-600 dark:text-blue-400',
+    accentBg: 'bg-blue-50 dark:bg-blue-900/20',
   },
   smishing: {
     icon: Smartphone,
-    color: 'from-emerald-500 to-emerald-600',
-    iconBg: 'bg-emerald-100 text-emerald-600',
-    accentColor: 'text-emerald-600',
-    accentBg: 'bg-emerald-50',
+    color: 'from-emerald-500 to-emerald-600 dark:from-emerald-800 dark:to-emerald-900',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+    accentColor: 'text-emerald-600 dark:text-emerald-400',
+    accentBg: 'bg-emerald-50 dark:bg-emerald-900/20',
   },
   vishing: {
     icon: Phone,
-    color: 'from-purple-500 to-purple-600',
-    iconBg: 'bg-purple-100 text-purple-600',
-    accentColor: 'text-purple-600',
-    accentBg: 'bg-purple-50',
+    color: 'from-purple-500 to-purple-600 dark:from-purple-800 dark:to-purple-900',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    accentColor: 'text-purple-600 dark:text-purple-400',
+    accentBg: 'bg-purple-50 dark:bg-purple-900/20',
   },
 };
 
@@ -62,7 +62,7 @@ function TopicTraining() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('errors.notFound')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t('errors.notFound')}</h2>
           <Link to="/training" className="btn-primary">{t('common.back')}</Link>
         </div>
       </div>
@@ -184,12 +184,12 @@ function TopicTraining() {
     return (
       <div className="fade-in">
         {pageHeader}
-        <section className="py-14 bg-gray-50">
+        <section className="py-14 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
               {t('training.chooseMethod')}
             </h2>
-            <p className="text-gray-500 text-center mb-8 text-sm">
+            <p className="text-gray-500 dark:text-gray-400 text-center mb-8 text-sm">
               {t('training.chooseMethodSubtitle')}
             </p>
 
@@ -197,14 +197,14 @@ function TopicTraining() {
               {hasInteractive && (
                 <button
                   onClick={() => setMode('interactive')}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-lg hover:border-blue-300 transition-all text-start group"
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-8 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500 transition-all text-start group"
                 >
-                  <div className="bg-blue-100 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
-                    <BookOpen className="h-7 w-7 text-blue-600" />
+                  <div className="bg-blue-100 dark:bg-blue-900/30 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                    <BookOpen className="h-7 w-7 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{t('training.interactive')}</h3>
-                  <p className="text-gray-500 text-sm mb-4">{t('training.interactiveDescription')}</p>
-                  <ul className="space-y-1.5 text-sm text-gray-600">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('training.interactive')}</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{t('training.interactiveDescription')}</p>
+                  <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
                     <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />{t('training.interactiveBenefit1')}</li>
                     <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />{t('training.interactiveBenefit2')}</li>
                     <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />{t('training.interactiveBenefit3')}</li>
@@ -214,14 +214,14 @@ function TopicTraining() {
 
               <button
                 onClick={() => setMode('video')}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-lg hover:border-emerald-300 transition-all text-start group"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-8 hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-500 transition-all text-start group"
               >
-                <div className="bg-emerald-100 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-200 transition-colors">
-                  <Video className="h-7 w-7 text-emerald-600" />
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
+                  <Video className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('training.video')}</h3>
-                <p className="text-gray-500 text-sm mb-4">{t('training.videoDescription')}</p>
-                <ul className="space-y-1.5 text-sm text-gray-600">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('training.video')}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{t('training.videoDescription')}</p>
+                <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
                   <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />{t('training.videoBenefit1')}</li>
                   <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />{t('training.videoBenefit2')}</li>
                   <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />{t('training.videoBenefit3')}</li>
@@ -240,10 +240,10 @@ function TopicTraining() {
       {pageHeader}
 
       {/* Training Video */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {t('public.training.videoTitle')}
             </h2>
             {hasInteractive && (
@@ -268,28 +268,28 @@ function TopicTraining() {
             />
           </div>
 
-          <p className="text-gray-600 mt-4 text-sm">
+          <p className="text-gray-600 dark:text-gray-300 mt-4 text-sm">
             {t('public.training.videoDescription')}
           </p>
         </div>
       </section>
 
       {/* Red Flags */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-full bg-danger-50 flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-danger-600" />
+            <div className="w-10 h-10 rounded-full bg-danger-50 dark:bg-danger-900/20 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-danger-600 dark:text-danger-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {i18n.language === 'ar' ? 'علامات التحذير' : 'Red Flags to Watch For'}
             </h2>
           </div>
           <div className="space-y-3">
             {currentRedFlags.map((flag, index) => (
-              <div key={index} className="flex items-start gap-3 p-4 bg-danger-50 rounded-xl border border-danger-100">
-                <XCircle className="h-5 w-5 text-danger-500 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-800">{i18n.language === 'ar' ? flag.ar : flag.en}</p>
+              <div key={index} className="flex items-start gap-3 p-4 bg-danger-50 dark:bg-danger-900/20 rounded-xl border border-danger-100 dark:border-danger-800">
+                <XCircle className="h-5 w-5 text-danger-500 dark:text-danger-400 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-800 dark:text-gray-200">{i18n.language === 'ar' ? flag.ar : flag.en}</p>
               </div>
             ))}
           </div>
@@ -297,21 +297,21 @@ function TopicTraining() {
       </section>
 
       {/* Protection Tips */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-full bg-success-50 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-success-600" />
+            <div className="w-10 h-10 rounded-full bg-success-50 dark:bg-success-900/20 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-success-600 dark:text-success-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               {i18n.language === 'ar' ? 'كيف تحمي نفسك' : 'How to Protect Yourself'}
             </h2>
           </div>
           <div className="space-y-3">
             {currentTips.map((tip, index) => (
-              <div key={index} className="flex items-start gap-3 p-4 bg-success-50 rounded-xl border border-green-100">
-                <CheckCircle className="h-5 w-5 text-success-600 flex-shrink-0 mt-0.5" />
-                <p className="text-gray-800">{i18n.language === 'ar' ? tip.ar : tip.en}</p>
+              <div key={index} className="flex items-start gap-3 p-4 bg-success-50 dark:bg-success-900/20 rounded-xl border border-green-100 dark:border-green-800">
+                <CheckCircle className="h-5 w-5 text-success-600 dark:text-success-400 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-800 dark:text-gray-200">{i18n.language === 'ar' ? tip.ar : tip.en}</p>
               </div>
             ))}
           </div>
@@ -319,10 +319,10 @@ function TopicTraining() {
       </section>
 
       {/* Quiz CTA */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('public.quiz.title')}</h2>
-          <p className="text-gray-600 mb-6 max-w-xl mx-auto">{t('public.quiz.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{t('public.quiz.title')}</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-xl mx-auto">{t('public.quiz.subtitle')}</p>
           <Link
             to={`/quiz?topic=${topic}`}
             className="btn-primary inline-flex items-center text-lg px-8 py-3"

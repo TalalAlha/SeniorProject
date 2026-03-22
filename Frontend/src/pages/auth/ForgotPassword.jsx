@@ -26,7 +26,7 @@ function ForgotPassword() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <Link to="/" className="flex justify-center mb-6">
             <Logo variant="vertical" className="h-32 w-auto mx-auto" />
@@ -34,12 +34,12 @@ function ForgotPassword() {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow-sm rounded-xl sm:px-10 border border-gray-100 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-green-600" />
+          <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-sm dark:shadow-gray-900/50 rounded-xl sm:px-10 border border-gray-100 dark:border-gray-700 text-center">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Check your email</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               If an account exists for <strong>{email}</strong>, you will receive a password reset
               link shortly.
             </p>
@@ -53,20 +53,20 @@ function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link to="/" className="flex justify-center mb-6">
           <Logo variant="vertical" className="h-32 w-auto mx-auto" />
         </Link>
 
-        <h2 className="text-center text-2xl font-bold text-gray-900">Reset your password</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-white">Reset your password</h2>
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
           Enter your email and we'll send you a reset link.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm rounded-xl sm:px-10 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-sm dark:shadow-gray-900/50 rounded-xl sm:px-10 border border-gray-100 dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="label">
@@ -78,7 +78,7 @@ function ForgotPassword() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input"
+                className="input dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 placeholder="you@example.com"
                 autoComplete="email"
               />
@@ -103,7 +103,7 @@ function ForgotPassword() {
           <div className="mt-6 text-center">
             <Link
               to="/login"
-              className="text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center gap-1.5"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Login

@@ -2,22 +2,25 @@ import { Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import toast, { Toaster, ToastBar } from 'react-hot-toast';
 import { AuthProvider } from './contexts';
+import { useTheme } from './contexts/ThemeContext';
 import router from './routes';
 import './i18n';
 
 // Loading fallback component
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading...</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
       </div>
     </div>
   );
 }
 
 function App() {
+  const { isDark } = useTheme();
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <AuthProvider>
@@ -27,12 +30,15 @@ function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#fff',
-              color: '#333',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              background: isDark ? '#1E293B' : '#fff',
+              color: isDark ? '#F1F5F9' : '#333',
+              boxShadow: isDark
+                ? '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)'
+                : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
               borderRadius: '0.75rem',
               padding: '1rem',
               cursor: 'pointer',
+              border: isDark ? '1px solid #334155' : 'none',
             },
             success: {
               iconTheme: {

@@ -39,13 +39,13 @@ function SimulationCreate() {
 
   return (
     <div className="fade-in max-w-3xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-gray-900 mb-6">
+      <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-6">
         <ArrowLeft className="h-5 w-5 mr-2" />
         {t('common.back')}
       </button>
 
       <div className="card">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('simulation.createSimulation')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('simulation.createSimulation')}</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -71,7 +71,7 @@ function SimulationCreate() {
                     'p-4 rounded-lg border-2 text-left transition-colors',
                     selectedTemplate === template.id
                       ? 'border-primary-600 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -79,8 +79,8 @@ function SimulationCreate() {
                       <Mail className="h-5 w-5 text-warning-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{template.name}</p>
-                      <p className="text-sm text-gray-500">{template.description}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{template.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{template.description}</p>
                     </div>
                   </div>
                 </button>

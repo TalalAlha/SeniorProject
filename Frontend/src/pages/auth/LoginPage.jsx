@@ -95,12 +95,12 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       {/* Language Switcher */}
       <div className="absolute top-4 right-4">
         <button
           onClick={toggleLanguage}
-          className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <Globe className="h-5 w-5" />
           <span>{i18n.language === 'en' ? 'العربية' : 'English'}</span>
@@ -113,7 +113,7 @@ function LoginPage() {
           <Logo variant="vertical" className="h-32 w-auto mx-auto" />
         </Link>
 
-        <h2 className="text-center text-2xl font-bold text-gray-900">
+        <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
           {t('auth.signIn')}
         </h2>
         <div className="mt-4 flex flex-col items-center gap-3">
@@ -124,14 +124,14 @@ function LoginPage() {
             <Building2 className="w-4 h-4" />
             {t('auth.registerYourCompany')}
           </Link>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             {t('auth.employeeInviteHint')}
           </p>
         </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm rounded-xl sm:px-10 border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-sm dark:shadow-gray-900/50 rounded-xl sm:px-10 border border-gray-100 dark:border-gray-700">
           <div className="space-y-6">
             {/* Email Field */}
             <div>
@@ -146,7 +146,7 @@ function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
-                className={errors.email ? 'input-error' : 'input'}
+                className={`${errors.email ? 'input-error' : 'input'} dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400`}
                 placeholder="you@example.com"
               />
               {errors.email && (
@@ -168,13 +168,13 @@ function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
-                  className={errors.password ? 'input-error pr-10' : 'input pr-10'}
+                  className={`${errors.password ? 'input-error pr-10' : 'input pr-10'} dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400`}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -197,9 +197,9 @@ function LoginPage() {
                   type="checkbox"
                   checked={formData.rememberMe}
                   onChange={handleChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded"
                 />
-                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700 dark:text-gray-200">
                   {t('auth.rememberMe')}
                 </label>
               </div>
@@ -212,28 +212,28 @@ function LoginPage() {
 
             {/* Invalid credentials error */}
             {authError && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                <p className="text-sm font-medium text-red-800">{authError}</p>
+              <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 p-4">
+                <p className="text-sm font-medium text-red-800 dark:text-red-300">{authError}</p>
               </div>
             )}
 
             {/* Email-not-verified banner */}
             {emailNotVerified && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+              <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-4">
                 <div className="flex gap-3">
                   <Mail className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-amber-800">
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                       Email not verified
                     </p>
-                    <p className="text-sm text-amber-700 mt-1">
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
                       Please verify your email before logging in.
                     </p>
                     <button
                       type="button"
                       onClick={handleResendVerification}
                       disabled={resendLoading}
-                      className="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-800 hover:text-amber-900 disabled:opacity-50"
+                      className="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 disabled:opacity-50"
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${resendLoading ? 'animate-spin' : ''}`} />
                       {resendLoading ? 'Sending…' : 'Resend verification email'}

@@ -68,7 +68,7 @@ function CampaignCreate() {
       {/* Back Button */}
       <button
         onClick={() => navigate('/company/campaigns')}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors"
       >
         <ArrowLeft className="h-5 w-5 mr-2" />
         {t('common.back')} to Campaigns
@@ -77,12 +77,12 @@ function CampaignCreate() {
       <div className="card">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-primary-100 rounded-lg">
-            <Target className="h-6 w-6 text-primary-600" />
+          <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+            <Target className="h-6 w-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('campaign.createCampaign')}</h1>
-            <p className="text-gray-500">Create a new email awareness campaign</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.createCampaign')}</h1>
+            <p className="text-gray-500 dark:text-gray-400">Create a new email awareness campaign</p>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ function CampaignCreate() {
             {errors.name && (
               <p className="mt-1 text-sm text-danger-600">{errors.name}</p>
             )}
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Give your campaign a descriptive name to identify it later
             </p>
           </div>
@@ -118,13 +118,13 @@ function CampaignCreate() {
                 max="20"
                 value={formData.num_emails}
                 onChange={(e) => setFormData({ ...formData, num_emails: parseInt(e.target.value) })}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
               <div className="w-16 text-center">
-                <span className="text-2xl font-bold text-gray-900">{formData.num_emails}</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{formData.num_emails}</span>
               </div>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Total number of test emails each employee will receive (5-20)
             </p>
           </div>
@@ -133,7 +133,7 @@ function CampaignCreate() {
           <div>
             <label className="label">Phishing Email Ratio</label>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500 w-12">30%</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 w-12">30%</span>
               <input
                 type="range"
                 min="0.3"
@@ -141,52 +141,52 @@ function CampaignCreate() {
                 step="0.1"
                 value={formData.phishing_ratio}
                 onChange={(e) => setFormData({ ...formData, phishing_ratio: parseFloat(e.target.value) })}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
-              <span className="text-sm text-gray-500 w-12">70%</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 w-12">70%</span>
               <div className="w-16 text-center">
                 <span className="text-2xl font-bold text-primary-600">
                   {Math.round(formData.phishing_ratio * 100)}%
                 </span>
               </div>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Percentage of emails that will be phishing attempts vs legitimate
             </p>
           </div>
 
           {/* Preview Card */}
-          <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+          <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
               <Info className="h-4 w-4" />
               Campaign Preview
             </h3>
             <div className="grid grid-cols-2 gap-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-danger-100 rounded-lg">
-                  <Mail className="h-6 w-6 text-danger-600" />
+                <div className="p-3 bg-danger-100 dark:bg-danger-900/20 rounded-lg">
+                  <Mail className="h-6 w-6 text-danger-600 dark:text-danger-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Phishing Emails</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Phishing Emails</p>
                   <p className="text-2xl font-bold text-danger-600">{phishingCount}</p>
-                  <p className="text-xs text-gray-400">per employee</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">per employee</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-success-50 rounded-lg">
-                  <Mail className="h-6 w-6 text-success-600" />
+                <div className="p-3 bg-success-50 dark:bg-success-900/20 rounded-lg">
+                  <Mail className="h-6 w-6 text-success-600 dark:text-success-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Legitimate Emails</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Legitimate Emails</p>
                   <p className="text-2xl font-bold text-success-600">{legitimateCount}</p>
-                  <p className="text-xs text-gray-400">per employee</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">per employee</p>
                 </div>
               </div>
             </div>
 
             {/* Visual Bar */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                 <span>Email Distribution</span>
               </div>
               <div className="flex h-4 rounded-full overflow-hidden">
@@ -199,7 +199,7 @@ function CampaignCreate() {
                   style={{ width: `${(1 - formData.phishing_ratio) * 100}%` }}
                 />
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <span>Phishing ({Math.round(formData.phishing_ratio * 100)}%)</span>
                 <span>Legitimate ({Math.round((1 - formData.phishing_ratio) * 100)}%)</span>
               </div>
@@ -207,9 +207,9 @@ function CampaignCreate() {
           </div>
 
           {/* Info Box */}
-          <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
-            <h4 className="text-sm font-medium text-primary-800 mb-2">What happens next?</h4>
-            <ul className="text-sm text-primary-700 space-y-1">
+          <div className="p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
+            <h4 className="text-sm font-medium text-primary-800 dark:text-primary-300 mb-2">What happens next?</h4>
+            <ul className="text-sm text-primary-700 dark:text-primary-400 space-y-1">
               <li>• Campaign will be created in <strong>Draft</strong> status</li>
               <li>• You can assign employees to the campaign</li>
               <li>• Activate the campaign to start sending emails</li>
@@ -218,7 +218,7 @@ function CampaignCreate() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t">
+          <div className="flex gap-4 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               onClick={() => navigate('/company/campaigns')}

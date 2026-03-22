@@ -36,9 +36,9 @@ import { useAuth } from '../../contexts';
 
 // Status configuration
 const STATUS_CONFIG = {
-  DRAFT: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: FileText },
+  DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: FileText },
   READY: { label: 'Ready', color: 'bg-primary-50 text-primary-700', icon: Check },
-  SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 text-blue-700', icon: Clock },
+  SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Clock },
   SENT: { label: 'Sent', color: 'bg-warning-50 text-warning-700', icon: Send },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-warning-50 text-warning-700', icon: Play },
   ACTIVE: { label: 'Active', color: 'bg-success-50 text-success-700', icon: Play },
@@ -61,11 +61,11 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className={clsx('relative bg-white rounded-xl shadow-xl w-full', sizeClasses[size])}>
+        <div className={clsx('relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full', sizeClasses[size])}>
           <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">{children}</div>
@@ -83,9 +83,9 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-6">{message}</p>
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
           <div className="flex gap-3 justify-end">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
               Cancel
@@ -111,13 +111,13 @@ function DropdownMenu({ trigger, items }) {
 
   return (
     <div className="relative">
-      <button onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
         {trigger}
       </button>
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
             {items.map((item, index) =>
               item.divider ? (
                 <hr key={index} className="my-1" />
@@ -131,7 +131,7 @@ function DropdownMenu({ trigger, items }) {
                   disabled={item.disabled}
                   className={clsx(
                     'w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors',
-                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
+                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -157,14 +157,14 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
       <div className={clsx('p-3 rounded-lg', colorClasses[color])}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-        {subtext && <p className="text-xs text-gray-400">{subtext}</p>}
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+        {subtext && <p className="text-xs text-gray-400 dark:text-gray-500">{subtext}</p>}
       </div>
     </div>
   );
@@ -337,18 +337,18 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
             <div
               className={clsx(
                 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-                step >= s ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'
+                step >= s ? 'bg-primary-600 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
               )}
             >
               {step > s ? <Check className="h-4 w-4" /> : s}
             </div>
             {s < 4 && (
-              <div className={clsx('w-12 h-1 mx-1', step > s ? 'bg-primary-600' : 'bg-gray-200')} />
+              <div className={clsx('w-12 h-1 mx-1', step > s ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600')} />
             )}
           </div>
         ))}
       </div>
-      <div className="flex justify-center mb-6 text-sm text-gray-500">
+      <div className="flex justify-center mb-6 text-sm text-gray-500 dark:text-gray-400">
         {step === 1 && 'Step 1: Basic Info'}
         {step === 2 && 'Step 2: Select Employees'}
         {step === 3 && 'Step 3: Review & Create'}
@@ -395,7 +395,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                       'flex items-start gap-4 p-4 border rounded-lg cursor-pointer transition-colors',
                       formData.template === template.id
                         ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     )}
                   >
                     <input
@@ -406,8 +406,8 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                       className="mt-1"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900">{template.name}</p>
-                      <p className="text-sm text-gray-500 mt-1">{template.subject || template.description}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{template.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{template.subject || template.description}</p>
                       {template.difficulty && (
                         <span className={clsx(
                           'inline-block mt-2 text-xs px-2 py-0.5 rounded-full',
@@ -422,8 +422,8 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                   </label>
                 ))}
                 {templates.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-500" />
                     <p>No templates available</p>
                   </div>
                 )}
@@ -450,7 +450,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
           {/* Search and Actions */}
           <div className="flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Search employees..."
@@ -468,7 +468,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
           </div>
 
           {/* Include admins toggle */}
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={includeAdmins}
@@ -483,7 +483,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                   }));
                 }
               }}
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
             Include admin users (for testing)
           </label>
@@ -514,30 +514,30 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                 filteredEmployees.map((employee) => (
                   <label
                     key={employee.id}
-                    className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer"
+                    className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       checked={formData.target_employee_ids.includes(employee.id)}
                       onChange={() => toggleEmployee(employee.id)}
-                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-gray-900 dark:text-white">
                         {employee.first_name} {employee.last_name}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">{employee.email}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{employee.email}</p>
                     </div>
                     {employee.department && (
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">
+                      <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
                         {employee.department}
                       </span>
                     )}
                   </label>
                 ))
               ) : (
-                <div className="p-8 text-center text-gray-500">
-                  <Users className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                  <Users className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-500" />
                   <p>No employees found</p>
                 </div>
               )}
@@ -563,26 +563,26 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
       {/* Step 3: Review & Create */}
       {step === 3 && (
         <div className="space-y-6">
-          <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-            <h4 className="font-medium text-gray-900">Simulation Summary</h4>
+          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-4">
+            <h4 className="font-medium text-gray-900 dark:text-white">Simulation Summary</h4>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Name</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
                 <p className="font-medium">{formData.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Template</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Template</p>
                 <p className="font-medium">{selectedTemplate?.name || 'N/A'}</p>
               </div>
               {formData.description && (
                 <div className="col-span-2">
-                  <p className="text-sm text-gray-500">Description</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Description</p>
                   <p className="font-medium">{formData.description}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">Target Employees</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Target Employees</p>
                 <p className="font-medium">
                   {formData.target_all_employees
                     ? `All employees (${employees.length})`
@@ -594,19 +594,19 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
 
           {selectedTemplate && (
             <div className="p-4 border rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Template Preview</h4>
-              <div className="text-sm text-gray-600 space-y-2">
-                <p><span className="text-gray-400">Subject:</span> {selectedTemplate.subject}</p>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-2">Template Preview</h4>
+              <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                <p><span className="text-gray-400 dark:text-gray-500">Subject:</span> {selectedTemplate.subject}</p>
                 {selectedTemplate.preview_text && (
-                  <p className="text-gray-500 text-xs">{selectedTemplate.preview_text}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs">{selectedTemplate.preview_text}</p>
                 )}
               </div>
             </div>
           )}
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg">
             <div className="flex gap-3">
-              <Send className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <Send className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium">Emails will be sent automatically</p>
                 <ul className="mt-1 space-y-1 list-disc list-inside">
@@ -640,8 +640,8 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
           {sending ? (
             <div>
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary-600 mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sending Emails...</h3>
-              <p className="text-gray-500">Please wait while we send phishing emails to employees</p>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sending Emails...</h3>
+              <p className="text-gray-500 dark:text-gray-400">Please wait while we send phishing emails to employees</p>
             </div>
           ) : sendSuccess ? (
             <div className="space-y-6">
@@ -650,7 +650,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-success-700 mb-2">Simulation Launched!</h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {sentCount > 0 ? `Emails sent to ${sentCount} employee${sentCount !== 1 ? 's' : ''}` : 'Emails are being delivered to employees'}
                 </p>
               </div>
@@ -674,7 +674,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-danger-700 mb-2">Launch Failed</h3>
-                <p className="text-gray-600">{errorMessage || 'Failed to send emails. Please try again.'}</p>
+                <p className="text-gray-600 dark:text-gray-300">{errorMessage || 'Failed to send emails. Please try again.'}</p>
               </div>
               <div className="flex gap-3 justify-center">
                 <button
@@ -803,7 +803,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                 {status.label}
               </span>
               {(simulation.template_name || simulation.template?.name) && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Template: <strong>{simulation.template_name || simulation.template?.name}</strong>
                 </span>
               )}
@@ -850,13 +850,13 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
           </div>
 
           {/* Rate Visualization */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-medium text-gray-700 mb-4">Performance Overview</h4>
+          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Performance Overview</h4>
             <div className="space-y-4">
               {/* Click Rate Bar */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Click Rate (Lower is better)</span>
+                  <span className="text-gray-600 dark:text-gray-300">Click Rate (Lower is better)</span>
                   <span className={clsx(
                     'font-medium',
                     clickRate > 0.3 ? 'text-danger-600' : clickRate > 0.1 ? 'text-warning-600' : 'text-success-600'
@@ -864,7 +864,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                     {(clickRate * 100).toFixed(1)}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                   <div
                     className={clsx(
                       'h-2 rounded-full transition-all duration-300',
@@ -880,60 +880,60 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
           {/* Employee Results Table */}
           {employeeResults.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
                 Employee Results ({employeeResults.length})
               </h4>
               <div className="border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Employee
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Clicked
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Risk
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Last Activity
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {employeeResults.map((result) => {
                         const lastActivity = result.clicked_at || result.sent_at;
                         const riskColors = {
                           LOW: 'bg-success-50 text-success-700',
                           MEDIUM: 'bg-warning-50 text-warning-700',
-                          HIGH: 'bg-orange-50 text-orange-700',
+                          HIGH: 'bg-orange-50 text-orange-700 dark:text-orange-400',
                           CRITICAL: 'bg-danger-50 text-danger-700',
                         };
                         const statusColors = {
                           SENT: 'bg-success-50 text-success-700',
-                          PENDING: 'bg-gray-100 text-gray-600',
+                          PENDING: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
                           DELIVERED: 'bg-primary-50 text-primary-700',
                           FAILED: 'bg-danger-50 text-danger-700',
                         };
                         return (
-                          <tr key={result.employee_id} className="hover:bg-gray-50">
+                          <tr key={result.employee_id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-4 py-3">
                               <div>
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
                                   {result.employee_name || 'Unknown'}
                                 </p>
-                                <p className="text-xs text-gray-500">{result.employee_email}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{result.employee_email}</p>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className={clsx(
                                 'text-xs font-medium px-2 py-0.5 rounded-full',
-                                statusColors[result.email_status] || 'bg-gray-100 text-gray-600'
+                                statusColors[result.email_status] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                               )}>
                                 {result.email_status}
                               </span>
@@ -942,18 +942,18 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                               {result.was_clicked ? (
                                 <AlertTriangle className="h-5 w-5 text-danger-600 mx-auto" />
                               ) : (
-                                <span className="text-gray-300">-</span>
+                                <span className="text-gray-300 dark:text-gray-500">-</span>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className={clsx(
                                 'text-xs font-medium px-2 py-0.5 rounded-full',
-                                riskColors[result.risk_level] || 'bg-gray-100 text-gray-600'
+                                riskColors[result.risk_level] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                               )}>
                                 {result.risk_level}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                               {lastActivity
                                 ? formatDistanceToNow(new Date(lastActivity), { addSuffix: true })
                                 : '-'}
@@ -969,7 +969,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
           )}
 
           {/* Created/Updated Info */}
-          <div className="text-xs text-gray-400 pt-4 border-t">
+          <div className="text-xs text-gray-400 dark:text-gray-500 pt-4 border-t">
             Created {simulation.created_at && formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
           </div>
         </div>
@@ -1012,20 +1012,20 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
             {status.label}
           </span>
           <DropdownMenu
-            trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
+            trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
             items={menuItems}
           />
         </div>
       </div>
 
       <button onClick={() => onView(simulation)} className="block text-left w-full">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 transition-colors">
           {simulation.name}
         </h3>
       </button>
 
       {(simulation.template_name || simulation.template?.name) && (
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Template: {simulation.template_name || simulation.template?.name}
         </p>
       )}
@@ -1033,8 +1033,8 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="flex items-center gap-2 text-sm">
-          <Send className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">{simulation.total_sent || 0} sent</span>
+          <Send className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+          <span className="text-gray-600 dark:text-gray-300">{simulation.total_sent || 0} sent</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <MousePointer className={clsx(
@@ -1053,7 +1053,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
       {simulation.total_sent > 0 && (
         <div className="flex gap-4 text-xs pt-3 border-t">
           <div>
-            <span className="text-gray-400">Click Rate: </span>
+            <span className="text-gray-400 dark:text-gray-500">Click Rate: </span>
             <span className={clsx(
               'font-medium',
               clickRate > 0.3 ? 'text-danger-600' : clickRate > 0.1 ? 'text-warning-600' : 'text-success-600'
@@ -1076,12 +1076,12 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
       )}
 
       {simulation.created_at && !canViewAnalytics && (
-        <p className="text-xs text-gray-400 mt-4">
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
           Created {formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
         </p>
       )}
       {simulation.created_at && canViewAnalytics && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
           Created {formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
         </p>
       )}
@@ -1185,7 +1185,7 @@ function CompanySimulations() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading simulations...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading simulations...</p>
         </div>
       </div>
     );
@@ -1195,7 +1195,7 @@ function CompanySimulations() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchSimulations} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -1209,8 +1209,8 @@ function CompanySimulations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Phishing Simulations</h1>
-          <p className="text-gray-600 mt-1">Create and manage phishing email simulations</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Phishing Simulations</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Create and manage phishing email simulations</p>
         </div>
         <div className="flex gap-3">
           <button onClick={fetchSimulations} className="btn-secondary flex items-center gap-2">
@@ -1227,7 +1227,7 @@ function CompanySimulations() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search simulations..."
@@ -1252,11 +1252,11 @@ function CompanySimulations() {
           {showFilterMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
-              <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
                 <button
                   onClick={() => { setStatusFilter('ALL'); setShowFilterMenu(false); }}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
+                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
                     statusFilter === 'ALL' && 'bg-primary-50 text-primary-700'
                   )}
                 >
@@ -1267,7 +1267,7 @@ function CompanySimulations() {
                     key={key}
                     onClick={() => { setStatusFilter(key); setShowFilterMenu(false); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2',
+                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2',
                       statusFilter === key && 'bg-primary-50 text-primary-700'
                     )}
                   >
@@ -1298,9 +1298,9 @@ function CompanySimulations() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <Mail className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No simulations found</h3>
-          <p className="text-gray-500 mb-4">
+          <Mail className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No simulations found</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             {searchQuery || statusFilter !== 'ALL'
               ? 'Try adjusting your filters'
               : 'Get started by creating your first phishing simulation'}

@@ -68,11 +68,11 @@ const COMPANY_SIZE_OPTIONS = [
 
 // Risk level helper
 const getRiskConfig = (score) => {
-  if (score == null) return { label: 'N/A', color: 'bg-gray-100 text-gray-600', bgColor: 'bg-gray-400' };
-  if (score <= 30) return { label: 'Low', color: 'bg-success-50 text-success-700', bgColor: 'bg-success-500' };
-  if (score <= 60) return { label: 'Medium', color: 'bg-warning-50 text-warning-700', bgColor: 'bg-warning-500' };
-  if (score <= 80) return { label: 'High', color: 'bg-orange-100 text-orange-700', bgColor: 'bg-orange-500' };
-  return { label: 'Critical', color: 'bg-danger-50 text-danger-700', bgColor: 'bg-danger-500' };
+  if (score == null) return { label: 'N/A', color: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300', bgColor: 'bg-gray-400' };
+  if (score <= 30) return { label: 'Low', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400', bgColor: 'bg-success-500' };
+  if (score <= 60) return { label: 'Medium', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', bgColor: 'bg-warning-500' };
+  if (score <= 80) return { label: 'High', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400', bgColor: 'bg-orange-500' };
+  return { label: 'Critical', color: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400', bgColor: 'bg-danger-500' };
 };
 
 // ============================================================================
@@ -93,11 +93,11 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className={clsx('relative bg-white rounded-xl shadow-xl w-full', sizeClasses[size])}>
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
+        <div className={clsx('relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full', sizeClasses[size])}>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">{children}</div>
@@ -114,9 +114,9 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-4">{message}</p>
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">{message}</p>
           {children}
           <div className="flex gap-3 justify-end mt-6">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
@@ -158,7 +158,7 @@ function DropdownMenu({ trigger, items }) {
 
   return (
     <div className="relative">
-      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
         {trigger}
       </button>
       {isOpen && createPortal(
@@ -166,7 +166,7 @@ function DropdownMenu({ trigger, items }) {
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div
             ref={menuRef}
-            className="fixed w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            className="fixed w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-50"
             style={{ top: pos.top, left: pos.left }}
           >
             {items.map((item, index) =>
@@ -182,7 +182,7 @@ function DropdownMenu({ trigger, items }) {
                   disabled={item.disabled}
                   className={clsx(
                     'w-full px-4 py-2 text-start text-sm flex items-center gap-2 transition-colors',
-                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
+                    item.danger ? 'text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -201,10 +201,10 @@ function DropdownMenu({ trigger, items }) {
 
 function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
   };
 
   return (
@@ -215,9 +215,9 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-        {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+        <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        {subtext && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtext}</p>}
       </div>
     </div>
   );
@@ -483,7 +483,7 @@ function CompanyFormModal({ isOpen, onClose, company, onSuccess }) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.cancel')}</button>
           <button
             onClick={handleSubmit}
@@ -537,20 +537,20 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 text-xl font-bold flex-shrink-0">
+          <div className="w-16 h-16 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-bold flex-shrink-0">
             {company.name?.[0]?.toUpperCase()}
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900">{company.name}</h3>
-            {company.name_ar && <p className="text-gray-500 text-sm" dir="rtl">{company.name_ar}</p>}
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{company.name}</h3>
+            {company.name_ar && <p className="text-gray-500 dark:text-gray-400 text-sm" dir="rtl">{company.name_ar}</p>}
             <div className="flex items-center gap-2 mt-2">
               <span className={clsx(
                 'text-xs font-medium px-2 py-1 rounded-full',
-                company.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+                company.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
               )}>
                 {company.is_active ? t('admin.common.active') : t('admin.common.inactive')}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
                 {INDUSTRY_LABELS[company.industry] || company.industry}
               </span>
             </div>
@@ -560,26 +560,26 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
         {/* Contact Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex items-center gap-2 text-sm">
-            <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600 truncate">{company.email}</span>
+            <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300 truncate">{company.email}</span>
           </div>
           {company.phone && (
             <div className="flex items-center gap-2 text-sm">
-              <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              <span className="text-gray-600">{company.phone}</span>
+              <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+              <span className="text-gray-600 dark:text-gray-300">{company.phone}</span>
             </div>
           )}
           {company.website && (
             <div className="flex items-center gap-2 text-sm">
-              <Globe className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <Globe className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
               <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline truncate">
                 {company.website}
               </a>
             </div>
           )}
           <div className="flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">{company.city}, {company.country}</span>
+            <MapPin className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">{company.city}, {company.country}</span>
           </div>
         </div>
 
@@ -591,89 +591,89 @@ function CompanyDetailsModal({ isOpen, onClose, company, onEdit, onManageUsers }
         ) : stats ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <Users className="h-5 w-5 text-primary-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{stats.total_users}</p>
-                <p className="text-xs text-gray-500">{t('admin.companies.totalUsers')}</p>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <Users className="h-5 w-5 text-primary-600 dark:text-primary-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total_users}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.totalUsers')}</p>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <Target className="h-5 w-5 text-success-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{stats.active_campaigns}</p>
-                <p className="text-xs text-gray-500">{t('admin.companies.activeCampaigns')}</p>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <Target className="h-5 w-5 text-success-600 dark:text-success-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.active_campaigns}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.activeCampaigns')}</p>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <Mail className="h-5 w-5 text-warning-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{stats.total_simulations}</p>
-                <p className="text-xs text-gray-500">{t('admin.companies.simulations')}</p>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <Mail className="h-5 w-5 text-warning-600 dark:text-warning-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total_simulations}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.simulations')}</p>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <AlertTriangle className={clsx('h-5 w-5 mx-auto mb-1', riskConfig.bgColor === 'bg-gray-400' ? 'text-gray-400' : riskConfig.color.split(' ')[1])} />
-                <p className="text-lg font-bold text-gray-900">
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <AlertTriangle className={clsx('h-5 w-5 mx-auto mb-1', riskConfig.bgColor === 'bg-gray-400' ? 'text-gray-400 dark:text-gray-500' : riskConfig.color.split(' ')[1])} />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {stats.average_risk_score != null ? Math.round(stats.average_risk_score) : 'N/A'}
                 </p>
-                <p className="text-xs text-gray-500">{t('admin.companies.avgRiskScore')}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.avgRiskScore')}</p>
               </div>
             </div>
 
             {/* Risk Score Bar */}
             {stats.average_risk_score != null && (
-              <div className="p-4 bg-gray-50 rounded-lg">
+              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">{t('admin.common.riskScore')}</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{t('admin.common.riskScore')}</span>
                   <span className={clsx('text-sm font-medium px-2 py-0.5 rounded-full', riskConfig.color)}>
                     {riskConfig.label}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                   <div
                     className={clsx('h-3 rounded-full transition-all', riskConfig.bgColor)}
                     style={{ width: `${Math.min(stats.average_risk_score, 100)}%` }}
                   />
                 </div>
                 {stats.employees_at_high_risk > 0 && (
-                  <p className="text-xs text-danger-600 mt-2">{t('admin.companies.highRiskEmployees', { count: stats.employees_at_high_risk })}</p>
+                  <p className="text-xs text-danger-600 dark:text-danger-400 mt-2">{t('admin.companies.highRiskEmployees', { count: stats.employees_at_high_risk })}</p>
                 )}
               </div>
             )}
 
             {/* Training & Engagement */}
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-lg font-bold text-gray-900">{stats.total_quiz_completions || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.companies.quizzesDone')}</p>
+              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total_quiz_completions || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.quizzesDone')}</p>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-lg font-bold text-gray-900">{stats.total_training_completions || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.companies.trainingDone')}</p>
+              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total_training_completions || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.trainingDone')}</p>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-lg font-bold text-gray-900">{stats.total_phishing_clicks || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.companies.phishingClicks')}</p>
+              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total_phishing_clicks || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.companies.phishingClicks')}</p>
               </div>
             </div>
           </>
         ) : (
-          <div className="text-center py-4 text-gray-500 text-sm">{t('admin.companies.noStatsAvailable')}</div>
+          <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">{t('admin.companies.noStatsAvailable')}</div>
         )}
 
         {/* Meta Info */}
-        <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
+        <div className="grid grid-cols-2 gap-4 text-sm border-t border-gray-200 dark:border-gray-700 pt-4">
           <div>
-            <span className="text-gray-500">{t('admin.common.created')}</span>
-            <p className="font-medium text-gray-900">
+            <span className="text-gray-500 dark:text-gray-400">{t('admin.common.created')}</span>
+            <p className="font-medium text-gray-900 dark:text-white">
               {company.created_at ? format(new Date(company.created_at), 'MMM d, yyyy') : 'N/A'}
             </p>
           </div>
           <div>
-            <span className="text-gray-500">{t('admin.companies.companySize')}</span>
-            <p className="font-medium text-gray-900">
+            <span className="text-gray-500 dark:text-gray-400">{t('admin.companies.companySize')}</span>
+            <p className="font-medium text-gray-900 dark:text-white">
               {COMPANY_SIZE_OPTIONS.find(s => s.value === company.company_size)?.label || company.company_size || 'N/A'}
             </p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.close')}</button>
           <button
             onClick={() => { onClose(); onEdit(company); }}
@@ -715,23 +715,23 @@ function DeleteCompanyModal({ isOpen, onClose, company, onConfirm, loading }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-danger-100 rounded-lg">
-              <Trash2 className="h-5 w-5 text-danger-600" />
+            <div className="p-2 bg-danger-100 dark:bg-danger-900/30 rounded-lg">
+              <Trash2 className="h-5 w-5 text-danger-600 dark:text-danger-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">{t('admin.common.deleteCompany')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.common.deleteCompany')}</h3>
           </div>
 
           <div className="space-y-4">
-            <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
-              <p className="text-sm text-danger-800 font-medium mb-2">
+            <div className="p-4 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-lg">
+              <p className="text-sm text-danger-800 dark:text-danger-300 font-medium mb-2">
                 {t('admin.companies.deleteConfirm', { name: company.name })}
               </p>
-              <p className="text-sm text-danger-700">
+              <p className="text-sm text-danger-700 dark:text-danger-400">
                 {t('admin.companies.deleteWarning')}
               </p>
-              <ul className="text-sm text-danger-700 mt-2 space-y-1 list-disc list-inside">
+              <ul className="text-sm text-danger-700 dark:text-danger-400 mt-2 space-y-1 list-disc list-inside">
                 <li>{t('admin.companies.usersCount', { count: company.total_users || 0 })}</li>
                 <li>{t('admin.companies.allCampaignsAndSims')}</li>
                 <li>{t('admin.companies.allTrainingRecords')}</li>
@@ -988,7 +988,7 @@ function CompanyList() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('admin.companies.loadingCompanies')}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('admin.companies.loadingCompanies')}</p>
         </div>
       </div>
     );
@@ -999,7 +999,7 @@ function CompanyList() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchCompanies} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           {t('admin.common.tryAgain')}
@@ -1013,8 +1013,8 @@ function CompanyList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('admin.companies.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('admin.companies.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.companies.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('admin.companies.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
@@ -1062,7 +1062,7 @@ function CompanyList() {
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.companies.searchPlaceholder')}
@@ -1087,14 +1087,14 @@ function CompanyList() {
           {showStatusMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowStatusMenu(false)} />
-              <div className="absolute end-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute end-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
                 {['ALL', 'ACTIVE', 'INACTIVE'].map((status) => (
                   <button
                     key={status}
                     onClick={() => { setStatusFilter(status); setShowStatusMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
-                      statusFilter === status && 'bg-primary-50 text-primary-700'
+                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                      statusFilter === status && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
                     )}
                   >
                     {status === 'ALL' ? t('admin.common.allStatus') : status === 'ACTIVE' ? t('admin.common.active') : t('admin.common.inactive')}
@@ -1122,12 +1122,12 @@ function CompanyList() {
           {showIndustryMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowIndustryMenu(false)} />
-              <div className="absolute end-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 max-h-60 overflow-y-auto">
+              <div className="absolute end-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20 max-h-60 overflow-y-auto">
                 <button
                   onClick={() => { setIndustryFilter('ALL'); setShowIndustryMenu(false); setCurrentPage(1); }}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
-                    industryFilter === 'ALL' && 'bg-primary-50 text-primary-700'
+                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                    industryFilter === 'ALL' && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
                   )}
                 >
                   {t('admin.common.allIndustries')}
@@ -1137,8 +1137,8 @@ function CompanyList() {
                     key={opt.value}
                     onClick={() => { setIndustryFilter(opt.value); setShowIndustryMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
-                      industryFilter === opt.value && 'bg-primary-50 text-primary-700'
+                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                      industryFilter === opt.value && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
                     )}
                   >
                     {opt.label}
@@ -1159,10 +1159,10 @@ function CompanyList() {
       <div className="card">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
               <tr>
                 <th
-                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
@@ -1170,11 +1170,11 @@ function CompanyList() {
                     <SortIndicator column="name" />
                   </div>
                 </th>
-                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">
                   {t('admin.common.industry')}
                 </th>
                 <th
-                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('total_users')}
                 >
                   <div className="flex items-center gap-1">
@@ -1182,14 +1182,14 @@ function CompanyList() {
                     <SortIndicator column="total_users" />
                   </div>
                 </th>
-                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">
                   {t('admin.common.location')}
                 </th>
-                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   {t('admin.common.status')}
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden sm:table-cell"
+                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 hidden sm:table-cell"
                   onClick={() => handleSort('created_at')}
                 >
                   <div className="flex items-center gap-1">
@@ -1197,62 +1197,62 @@ function CompanyList() {
                     <SortIndicator column="created_at" />
                   </div>
                 </th>
-                <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   {t('admin.common.actions')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {sortedCompanies.length > 0 ? (
                 sortedCompanies.map((company) => (
-                  <tr key={company.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={company.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                          <Building2 className="h-5 w-5 text-primary-600" />
+                        <div className="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                          <Building2 className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-gray-900 truncate">{company.name}</p>
-                          <p className="text-xs text-gray-400 truncate">{company.email}</p>
+                          <p className="font-medium text-gray-900 dark:text-white truncate">{company.name}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{company.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         {INDUSTRY_LABELS[company.industry] || company.industry || '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <Users className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-900">{company.total_users || 0}</span>
+                        <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{company.total_users || 0}</span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                         {company.total_employees || 0} emp, {company.total_admins || 0} admin
                       </p>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         {company.city && company.country ? `${company.city}, ${company.country}` : company.country || '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={clsx(
                         'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
-                        company.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+                        company.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                       )}>
                         {company.is_active ? t('admin.common.active') : t('admin.common.inactive')}
                       </span>
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         {company.created_at ? format(new Date(company.created_at), 'MMM d, yyyy') : '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end">
                         <DropdownMenu
-                          trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
+                          trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
                           items={[
                             { icon: Eye, label: t('admin.common.viewDetails'), onClick: () => setViewingCompany(company) },
                             { icon: Edit2, label: t('admin.common.editCompany'), onClick: () => setEditingCompany(company) },
@@ -1279,9 +1279,9 @@ function CompanyList() {
               ) : (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
-                    <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.companies.noCompaniesFound')}</h3>
-                    <p className="text-gray-500 mb-4">
+                    <Building2 className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('admin.companies.noCompaniesFound')}</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
                       {searchQuery || statusFilter !== 'ALL' || industryFilter !== 'ALL'
                         ? t('admin.companies.adjustFilters')
                         : t('admin.companies.getStarted')}
@@ -1301,25 +1301,25 @@ function CompanyList() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <div className="text-sm text-gray-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {t('admin.companies.showingPagination', { from: ((currentPage - 1) * itemsPerPage) + 1, to: Math.min(currentPage * itemsPerPage, totalCount), total: totalCount })}
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 {t('admin.common.page')} {currentPage} {t('admin.common.of')} {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>

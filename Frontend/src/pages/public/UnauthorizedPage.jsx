@@ -8,16 +8,16 @@ function UnauthorizedPage() {
   const { isAuthenticated, getDashboardPath } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-danger-100 text-danger-600 mb-6">
           <ShieldX className="h-10 w-10" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">403</h1>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">403</h1>
+        <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
           {t('errors.unauthorized')}
         </h2>
-        <p className="text-gray-600 mb-8 max-w-md">
+        <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md">
           You don't have permission to access this page. Please contact your administrator if you believe this is a mistake.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

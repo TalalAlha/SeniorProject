@@ -21,9 +21,9 @@ function TrainingTopics() {
       description: t('public.topics.phishing.description'),
       examples: t('public.topics.phishing.examples'),
       link: '/training/phishing',
-      color: 'from-blue-500 to-blue-600',
+      color: 'from-blue-500 to-blue-600 dark:from-blue-800 dark:to-blue-900',
       iconBg: 'bg-blue-100 text-blue-600',
-      borderColor: 'border-blue-200',
+      borderColor: 'border-blue-200 dark:border-blue-800',
     },
     {
       id: 'smishing',
@@ -32,9 +32,9 @@ function TrainingTopics() {
       description: t('public.topics.smishing.description'),
       examples: t('public.topics.smishing.examples'),
       link: '/training/smishing',
-      color: 'from-emerald-500 to-emerald-600',
+      color: 'from-emerald-500 to-emerald-600 dark:from-emerald-800 dark:to-emerald-900',
       iconBg: 'bg-emerald-100 text-emerald-600',
-      borderColor: 'border-emerald-200',
+      borderColor: 'border-emerald-200 dark:border-emerald-800',
     },
     {
       id: 'vishing',
@@ -43,16 +43,16 @@ function TrainingTopics() {
       description: t('public.topics.vishing.description'),
       examples: t('public.topics.vishing.examples'),
       link: '/training/vishing',
-      color: 'from-purple-500 to-purple-600',
+      color: 'from-purple-500 to-purple-600 dark:from-purple-800 dark:to-purple-900',
       iconBg: 'bg-purple-100 text-purple-600',
-      borderColor: 'border-purple-200',
+      borderColor: 'border-purple-200 dark:border-purple-800',
     },
   ];
 
   return (
-    <div className="fade-in">
+    <div className="fade-in transition-colors">
       {/* Header */}
-      <section className="bg-gradient-to-br from-primary-700 to-primary-900 text-white py-16">
+      <section className="bg-gradient-to-br from-primary-700 to-primary-900 dark:from-primary-900 dark:to-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
             <Shield className="h-5 w-5 text-blue-300" />
@@ -68,7 +68,7 @@ function TrainingTopics() {
       </section>
 
       {/* Topics Grid */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
             {topics.map((topic) => {
@@ -76,7 +76,7 @@ function TrainingTopics() {
               return (
                 <div
                   key={topic.id}
-                  className={`bg-white rounded-2xl shadow-sm border ${topic.borderColor} overflow-hidden hover:shadow-lg transition-all duration-300`}
+                  className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/50 border ${topic.borderColor} overflow-hidden hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all duration-300`}
                 >
                   <div className="flex flex-col md:flex-row">
                     {/* Left gradient bar */}
@@ -89,15 +89,15 @@ function TrainingTopics() {
 
                     {/* Content */}
                     <div className="flex-1 p-8">
-                      <p className="text-gray-600 text-lg mb-4">
+                      <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
                         {topic.description}
                       </p>
 
-                      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-gray-500 font-medium mb-1">
+                      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-6">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">
                           {t('public.topics.examplesLabel')}
                         </p>
-                        <p className="text-gray-700">{topic.examples}</p>
+                        <p className="text-gray-700 dark:text-gray-200">{topic.examples}</p>
                       </div>
 
                       <Link
@@ -117,12 +117,12 @@ function TrainingTopics() {
       </section>
 
       {/* CTA */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             {t('public.quiz.title')}
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
             {t('public.quiz.subtitle')}
           </p>
           <Link

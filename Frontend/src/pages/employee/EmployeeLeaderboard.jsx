@@ -69,7 +69,7 @@ function EmployeeLeaderboard() {
       case 3:
         return 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
     }
   };
 
@@ -91,7 +91,7 @@ function EmployeeLeaderboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading leaderboard...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading leaderboard...</p>
         </div>
       </div>
     );
@@ -101,7 +101,7 @@ function EmployeeLeaderboard() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -115,8 +115,8 @@ function EmployeeLeaderboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('nav.leaderboard')}</h1>
-          <p className="text-gray-600 mt-1">See how you rank against other employees</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('nav.leaderboard')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">See how you rank against other employees</p>
         </div>
         <button onClick={fetchData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
@@ -126,8 +126,8 @@ function EmployeeLeaderboard() {
 
       {/* Your Position Card */}
       {myPosition && (
-        <div className="card bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="card bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-200 dark:border-primary-800">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary-600" />
             Your Position
           </h2>
@@ -141,14 +141,14 @@ function EmployeeLeaderboard() {
                   className={clsx(
                     'text-center p-4 rounded-lg transition-all cursor-pointer',
                     selectedPeriod === key
-                      ? 'bg-white shadow-md border-2 border-primary-400'
-                      : 'bg-white/50 hover:bg-white'
+                      ? 'bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/50 border-2 border-primary-400'
+                      : 'bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800'
                   )}
                   onClick={() => setSelectedPeriod(key)}
                 >
-                  <p className="text-xs text-gray-500 mb-1">{label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</p>
                   <p className="text-2xl font-bold text-primary-600">#{position.rank || '-'}</p>
-                  <p className="text-sm text-gray-600">{position.points || 0} pts</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{position.points || 0} pts</p>
                   <p className="text-xs text-gray-400">of {position.total || totalParticipants}</p>
                 </div>
               );
@@ -169,7 +169,7 @@ function EmployeeLeaderboard() {
                 'px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2',
                 selectedPeriod === key
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
               )}
             >
               {label}
@@ -177,7 +177,7 @@ function EmployeeLeaderboard() {
                 <span
                   className={clsx(
                     'px-2 py-0.5 rounded-full text-xs',
-                    selectedPeriod === key ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-600'
+                    selectedPeriod === key ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                   )}
                 >
                   #{position.rank}
@@ -192,44 +192,44 @@ function EmployeeLeaderboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="card text-center">
           <Users className="h-6 w-6 text-primary-500 mx-auto mb-2" />
-          <p className="text-xl font-bold text-gray-900">{totalParticipants}</p>
-          <p className="text-xs text-gray-500">Participants</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{totalParticipants}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Participants</p>
         </div>
         <div className="card text-center">
           <Trophy className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
-          <p className="text-xl font-bold text-gray-900">#{userRank || '-'}</p>
-          <p className="text-xs text-gray-500">Your Rank</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">#{userRank || '-'}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Your Rank</p>
         </div>
         <div className="card text-center">
           <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
-          <p className="text-xl font-bold text-gray-900">{userPoints || 0}</p>
-          <p className="text-xs text-gray-500">Your Points</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{userPoints || 0}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Your Points</p>
         </div>
         <div className="card text-center">
           <Award className="h-6 w-6 text-purple-500 mx-auto mb-2" />
-          <p className="text-xl font-bold text-gray-900">{PERIODS[selectedPeriod].label}</p>
-          <p className="text-xs text-gray-500">Period</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{PERIODS[selectedPeriod].label}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Period</p>
         </div>
       </div>
 
       {/* Top 3 Podium */}
       {entries.length >= 3 && (
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6 text-center">Top Performers</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">Top Performers</h2>
           <div className="flex items-end justify-center gap-4 mb-4">
             {/* 2nd Place */}
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold text-lg mb-2 shadow-lg">
                 {getInitials(entries[1]?.employee)}
               </div>
-              <div className="bg-gray-200 rounded-t-lg w-24 h-20 flex flex-col items-center justify-center">
-                <Medal className="h-6 w-6 text-gray-500 mb-1" />
-                <span className="text-xl font-bold text-gray-700">2</span>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded-t-lg w-24 h-20 flex flex-col items-center justify-center">
+                <Medal className="h-6 w-6 text-gray-500 dark:text-gray-400 mb-1" />
+                <span className="text-xl font-bold text-gray-700 dark:text-gray-200">2</span>
               </div>
-              <p className="text-sm font-medium text-gray-900 mt-2 text-center truncate w-24">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mt-2 text-center truncate w-24">
                 {getFullName(entries[1]?.employee)}
               </p>
-              <p className="text-xs text-gray-500">{entries[1]?.points || 0} pts</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{entries[1]?.points || 0} pts</p>
             </div>
 
             {/* 1st Place */}
@@ -237,14 +237,14 @@ function EmployeeLeaderboard() {
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-bold text-xl mb-2 shadow-xl ring-4 ring-yellow-200">
                 {getInitials(entries[0]?.employee)}
               </div>
-              <div className="bg-yellow-400 rounded-t-lg w-28 h-28 flex flex-col items-center justify-center">
-                <Trophy className="h-8 w-8 text-yellow-700 mb-1" />
-                <span className="text-2xl font-bold text-yellow-800">1</span>
+              <div className="bg-yellow-400 dark:bg-yellow-600 rounded-t-lg w-28 h-28 flex flex-col items-center justify-center">
+                <Trophy className="h-8 w-8 text-yellow-700 dark:text-yellow-200 mb-1" />
+                <span className="text-2xl font-bold text-yellow-800 dark:text-yellow-100">1</span>
               </div>
-              <p className="text-sm font-medium text-gray-900 mt-2 text-center truncate w-28">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mt-2 text-center truncate w-28">
                 {getFullName(entries[0]?.employee)}
               </p>
-              <p className="text-xs text-gray-500">{entries[0]?.points || 0} pts</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{entries[0]?.points || 0} pts</p>
             </div>
 
             {/* 3rd Place */}
@@ -252,36 +252,36 @@ function EmployeeLeaderboard() {
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg mb-2 shadow-lg">
                 {getInitials(entries[2]?.employee)}
               </div>
-              <div className="bg-orange-300 rounded-t-lg w-24 h-16 flex flex-col items-center justify-center">
-                <Award className="h-5 w-5 text-orange-600 mb-1" />
-                <span className="text-lg font-bold text-orange-700">3</span>
+              <div className="bg-orange-300 dark:bg-orange-700 rounded-t-lg w-24 h-16 flex flex-col items-center justify-center">
+                <Award className="h-5 w-5 text-orange-600 dark:text-orange-200 mb-1" />
+                <span className="text-lg font-bold text-orange-700 dark:text-orange-100">3</span>
               </div>
-              <p className="text-sm font-medium text-gray-900 mt-2 text-center truncate w-24">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mt-2 text-center truncate w-24">
                 {getFullName(entries[2]?.employee)}
               </p>
-              <p className="text-xs text-gray-500">{entries[2]?.points || 0} pts</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{entries[2]?.points || 0} pts</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Points Scoring Formula */}
-      <div className="card bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
-        <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      <div className="card bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
           <Info className="h-4 w-4 text-blue-500" />
           {t('leaderboard.howQuizPointsWork')}
         </h2>
         <div className="grid grid-cols-3 gap-3 text-center text-sm">
-          <div className="bg-white rounded-lg p-3 border border-blue-100">
-            <p className="text-lg font-bold text-green-600">30</p>
-            <p className="text-xs text-gray-500">{t('leaderboard.basePoints')}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-800">
+            <p className="text-lg font-bold text-green-600 dark:text-green-400">30</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.basePoints')}</p>
           </div>
-          <div className="bg-white rounded-lg p-3 border border-blue-100">
-            <p className="text-lg font-bold text-blue-600">+{t('leaderboard.scoreMultiplied')}</p>
-            <p className="text-xs text-gray-500">{t('leaderboard.performanceBonus')}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-800">
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">+{t('leaderboard.scoreMultiplied')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.performanceBonus')}</p>
           </div>
-          <div className="bg-white rounded-lg p-3 border border-blue-100">
-            <p className="text-xs text-gray-600 leading-relaxed">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-800">
+            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
               {t('leaderboard.example')}: 80% = 30 + 56 = <span className="font-bold text-purple-600">86</span> {t('leaderboard.points')}
             </p>
           </div>
@@ -290,7 +290,7 @@ function EmployeeLeaderboard() {
 
       {/* Full Leaderboard */}
       <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Trophy className="h-5 w-5 text-warning-500" />
           {PERIODS[selectedPeriod].label} Rankings
         </h2>
@@ -307,10 +307,10 @@ function EmployeeLeaderboard() {
                   className={clsx(
                     'flex items-center gap-4 p-4 rounded-lg transition-all',
                     isCurrentUser
-                      ? 'bg-primary-50 border-2 border-primary-300 shadow-sm'
+                      ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-300 dark:border-primary-700 shadow-sm'
                       : rank <= 3
-                      ? 'bg-gradient-to-r from-gray-50 to-transparent'
-                      : 'bg-gray-50 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-gray-50 dark:from-gray-700 to-transparent'
+                      : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
                   )}
                 >
                   {/* Rank */}
@@ -329,7 +329,7 @@ function EmployeeLeaderboard() {
                       'w-12 h-12 rounded-full flex items-center justify-center font-medium text-lg',
                       isCurrentUser
                         ? 'bg-primary-200 text-primary-700'
-                        : 'bg-gray-200 text-gray-600'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                     )}
                   >
                     {getInitials(entry.employee)}
@@ -340,13 +340,13 @@ function EmployeeLeaderboard() {
                     <p
                       className={clsx(
                         'font-medium truncate',
-                        isCurrentUser ? 'text-primary-700' : 'text-gray-900'
+                        isCurrentUser ? 'text-primary-700' : 'text-gray-900 dark:text-white'
                       )}
                     >
                       {getFullName(entry.employee)}
                       {isCurrentUser && <span className="text-primary-500 ml-2">(You)</span>}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {entry.employee?.email || ''}
                     </p>
                   </div>
@@ -361,10 +361,10 @@ function EmployeeLeaderboard() {
 
                   {/* Points */}
                   <div className="text-right">
-                    <p className={clsx('font-bold', isCurrentUser ? 'text-primary-600' : 'text-gray-900')}>
+                    <p className={clsx('font-bold', isCurrentUser ? 'text-primary-600' : 'text-gray-900 dark:text-white')}>
                       {entry.points || 0}
                     </p>
-                    <p className="text-xs text-gray-500">points</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">points</p>
                   </div>
                 </div>
               );
@@ -373,8 +373,8 @@ function EmployeeLeaderboard() {
         ) : (
           <div className="text-center py-12">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No rankings yet</h3>
-            <p className="text-gray-500">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No rankings yet</h3>
+            <p className="text-gray-500 dark:text-gray-400">
               Complete quizzes and training to appear on the leaderboard!
             </p>
           </div>

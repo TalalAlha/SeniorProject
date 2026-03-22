@@ -103,7 +103,7 @@ function CompanyCreate() {
 
   return (
     <div className="fade-in max-w-2xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-gray-900 mb-6">
+      <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-6">
         <ArrowLeft className="h-5 w-5 mr-2" />
         {t('common.back')}
       </button>
@@ -113,7 +113,7 @@ function CompanyCreate() {
           <div className="p-3 rounded-lg bg-primary-100">
             <Building2 className="h-6 w-6 text-primary-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Company</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Company</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">

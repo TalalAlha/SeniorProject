@@ -214,7 +214,7 @@ function EmployeeProfile() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading profile...</p>
         </div>
       </div>
     );
@@ -224,7 +224,7 @@ function EmployeeProfile() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchProfile} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -237,8 +237,8 @@ function EmployeeProfile() {
     <div className="fade-in max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('profile.title')}</h1>
-        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your account settings and preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -247,8 +247,8 @@ function EmployeeProfile() {
           {/* Profile Information Card */}
           <div className="card">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <User className="h-5 w-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <User className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                 Profile Information
               </h2>
               {!isEditing ? (
@@ -262,7 +262,7 @@ function EmployeeProfile() {
               ) : (
                 <button
                   onClick={handleCancelEdit}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -271,15 +271,15 @@ function EmployeeProfile() {
 
             <form onSubmit={handleProfileUpdate}>
               {/* Avatar & Basic Info */}
-              <div className="flex items-center gap-6 pb-6 border-b border-gray-200 mb-6">
+              <div className="flex items-center gap-6 pb-6 border-b border-gray-200 dark:border-gray-700 mb-6">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {getInitials()}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     {profile?.first_name} {profile?.last_name}
                   </h3>
-                  <p className="text-gray-500 flex items-center gap-1">
+                  <p className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <Mail className="h-4 w-4" />
                     {profile?.email}
                   </p>
@@ -300,7 +300,7 @@ function EmployeeProfile() {
                         disabled={savingProfile}
                       />
                     ) : (
-                      <p className="input bg-gray-50">{profile?.first_name || '-'}</p>
+                      <p className="input bg-gray-50 dark:bg-gray-700 dark:text-white">{profile?.first_name || '-'}</p>
                     )}
                   </div>
                   <div>
@@ -314,7 +314,7 @@ function EmployeeProfile() {
                         disabled={savingProfile}
                       />
                     ) : (
-                      <p className="input bg-gray-50">{profile?.last_name || '-'}</p>
+                      <p className="input bg-gray-50 dark:bg-gray-700 dark:text-white">{profile?.last_name || '-'}</p>
                     )}
                   </div>
                 </div>
@@ -326,11 +326,11 @@ function EmployeeProfile() {
                       type="email"
                       value={profile?.email || ''}
                       disabled
-                      className="input bg-gray-50 pr-10"
+                      className="input bg-gray-50 dark:bg-gray-700 dark:text-white pr-10"
                     />
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
                 </div>
 
                 <div>
@@ -340,7 +340,7 @@ function EmployeeProfile() {
                       type="text"
                       value={profile?.company?.name || 'N/A'}
                       disabled
-                      className="input bg-gray-50 pr-10"
+                      className="input bg-gray-50 dark:bg-gray-700 dark:text-white pr-10"
                     />
                     <Building2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
@@ -357,8 +357,8 @@ function EmployeeProfile() {
                         className={clsx(
                           'flex-1 px-4 py-3 rounded-lg border-2 transition-colors flex items-center justify-center gap-2',
                           profileData.preferred_language === 'en'
-                            ? 'border-primary-600 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
                         )}
                       >
                         <Globe className="h-4 w-4" />
@@ -371,8 +371,8 @@ function EmployeeProfile() {
                         className={clsx(
                           'flex-1 px-4 py-3 rounded-lg border-2 transition-colors flex items-center justify-center gap-2',
                           profileData.preferred_language === 'ar'
-                            ? 'border-primary-600 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
                         )}
                       >
                         <Globe className="h-4 w-4" />
@@ -380,7 +380,7 @@ function EmployeeProfile() {
                       </button>
                     </div>
                   ) : (
-                    <p className="input bg-gray-50">
+                    <p className="input bg-gray-50 dark:bg-gray-700 dark:text-white">
                       {profile?.preferred_language === 'ar' ? t('common.arabic') : t('common.english')}
                     </p>
                   )}
@@ -389,7 +389,7 @@ function EmployeeProfile() {
 
               {/* Save/Cancel Buttons */}
               {isEditing && (
-                <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="submit"
                     disabled={savingProfile}
@@ -417,8 +417,8 @@ function EmployeeProfile() {
 
           {/* Change Password Card */}
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-              <Lock className="h-5 w-5 text-primary-600" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <Lock className="h-5 w-5 text-primary-600 dark:text-primary-400" />
               Change Password
             </h2>
 
@@ -441,7 +441,7 @@ function EmployeeProfile() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords({ ...showPasswords, old: !showPasswords.old })}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                   >
                     {showPasswords.old ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -469,7 +469,7 @@ function EmployeeProfile() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                   >
                     {showPasswords.new ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -482,18 +482,18 @@ function EmployeeProfile() {
                 {passwordData.new_password && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-gray-500">Password strength</span>
+                      <span className="text-gray-500 dark:text-gray-400">Password strength</span>
                       <span className={clsx(
                         'font-medium',
-                        passwordStrength.color === 'danger' && 'text-danger-600',
-                        passwordStrength.color === 'warning' && 'text-warning-600',
-                        passwordStrength.color === 'yellow' && 'text-yellow-600',
-                        passwordStrength.color === 'success' && 'text-success-600'
+                        passwordStrength.color === 'danger' && 'text-danger-600 dark:text-danger-400',
+                        passwordStrength.color === 'warning' && 'text-warning-600 dark:text-warning-400',
+                        passwordStrength.color === 'yellow' && 'text-yellow-600 dark:text-yellow-400',
+                        passwordStrength.color === 'success' && 'text-success-600 dark:text-success-400'
                       )}>
                         {passwordStrength.label}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className={clsx(
                           'h-full rounded-full transition-all',
@@ -527,7 +527,7 @@ function EmployeeProfile() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                   >
                     {showPasswords.confirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -544,19 +544,19 @@ function EmployeeProfile() {
               </div>
 
               {/* Password Requirements */}
-              <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300">
                 <p className="font-medium mb-2">Password requirements:</p>
                 <ul className="space-y-1">
                   <li className={clsx('flex items-center gap-2', passwordData.new_password.length >= 8 && 'text-success-600')}>
-                    {passwordData.new_password.length >= 8 ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300" />}
+                    {passwordData.new_password.length >= 8 ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
                     At least 8 characters
                   </li>
                   <li className={clsx('flex items-center gap-2', /[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) && 'text-success-600')}>
-                    {/[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300" />}
+                    {/[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
                     Upper and lowercase letters
                   </li>
                   <li className={clsx('flex items-center gap-2', /\d/.test(passwordData.new_password) && 'text-success-600')}>
-                    {/\d/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300" />}
+                    {/\d/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
                     At least one number
                   </li>
                 </ul>
@@ -582,20 +582,20 @@ function EmployeeProfile() {
         <div className="space-y-6">
           {/* Account Info Card */}
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary-600" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary-600 dark:text-primary-400" />
               Account Info
             </h2>
 
             <div className="space-y-4">
               {/* Role */}
               <div>
-                <p className="text-sm text-gray-500 mb-1">Role</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Role</p>
                 <span className={clsx(
                   'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
-                  profile?.role === 'EMPLOYEE' && 'bg-primary-100 text-primary-700',
-                  profile?.role === 'COMPANY_ADMIN' && 'bg-purple-100 text-purple-700',
-                  profile?.role === 'SUPER_ADMIN' && 'bg-danger-100 text-danger-700'
+                  profile?.role === 'EMPLOYEE' && 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300',
+                  profile?.role === 'COMPANY_ADMIN' && 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
+                  profile?.role === 'SUPER_ADMIN' && 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300'
                 )}>
                   <Shield className="h-3 w-3" />
                   {profile?.role?.replace('_', ' ') || 'Employee'}
@@ -604,8 +604,8 @@ function EmployeeProfile() {
 
               {/* Company */}
               <div>
-                <p className="text-sm text-gray-500 mb-1">Company</p>
-                <p className="font-medium text-gray-900 flex items-center gap-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Company</p>
+                <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-gray-400" />
                   {profile?.company?.name || 'N/A'}
                 </p>
@@ -613,8 +613,8 @@ function EmployeeProfile() {
 
               {/* Member Since */}
               <div>
-                <p className="text-sm text-gray-500 mb-1">Member Since</p>
-                <p className="font-medium text-gray-900 flex items-center gap-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Member Since</p>
+                <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-400" />
                   {formatDate(profile?.date_joined || profile?.created_at)}
                 </p>
@@ -622,8 +622,8 @@ function EmployeeProfile() {
 
               {/* Account Status */}
               <div>
-                <p className="text-sm text-gray-500 mb-1">Account Status</p>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-success-100 text-success-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Account Status</p>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-success-100 dark:bg-success-900/20 text-success-700 dark:text-success-300">
                   <CheckCircle className="h-3 w-3" />
                   Active
                 </span>
@@ -633,8 +633,8 @@ function EmployeeProfile() {
 
           {/* Quick Language Switch */}
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary-600" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary-600 dark:text-primary-400" />
               Quick Language Switch
             </h2>
             <div className="flex gap-2">
@@ -643,8 +643,8 @@ function EmployeeProfile() {
                 className={clsx(
                   'flex-1 px-3 py-2 rounded-lg border-2 transition-colors text-sm',
                   i18n.language === 'en'
-                    ? 'border-primary-600 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
                 )}
               >
                 English
@@ -654,14 +654,14 @@ function EmployeeProfile() {
                 className={clsx(
                   'flex-1 px-3 py-2 rounded-lg border-2 transition-colors text-sm',
                   i18n.language === 'ar'
-                    ? 'border-primary-600 bg-primary-50 text-primary-700'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
                 )}
               >
                 Arabic
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               This only changes the UI. Save your preference in profile settings for persistence.
             </p>
           </div>

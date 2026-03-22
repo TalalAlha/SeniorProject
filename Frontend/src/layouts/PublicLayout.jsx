@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X, Globe, Mail, ExternalLink } from 'lucide-react';
 import Logo from '../components/Logo';
+import ThemeToggle from '../components/common/ThemeToggle';
 import { useState } from 'react';
 import { changeLanguage } from '../i18n';
 import { useAuth } from '../contexts';
@@ -32,7 +33,7 @@ function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/50 sticky top-0 z-50 transition-colors">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -48,18 +49,21 @@ function PublicLayout() {
                   to={link.path}
                   className={`transition-colors font-medium ${
                     isActive(link.path)
-                      ? 'text-primary-600'
-                      : 'text-gray-600 hover:text-primary-600'
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
                 >
                   {link.name}
                 </Link>
               ))}
 
+              {/* Theme Toggle */}
+              <ThemeToggle variant="icon" />
+
               {/* Language Switcher */}
               <button
                 onClick={toggleLanguage}
-                className="flex items-center gap-1 text-gray-600 hover:text-primary-600 transition-colors"
+                className="flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 <Globe className="h-5 w-5" />
                 <span>{i18n.language === 'en' ? 'العربية' : 'English'}</span>
@@ -74,7 +78,7 @@ function PublicLayout() {
                 <div className="flex items-center gap-3">
                   <Link
                     to="/login"
-                    className="text-gray-600 hover:text-primary-600 transition-colors"
+                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   >
                     {t('auth.login')}
                   </Link>
@@ -91,16 +95,16 @@ function PublicLayout() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-gray-600" />
+                <X className="h-6 w-6 text-gray-600 dark:text-gray-300" />
               ) : (
-                <Menu className="h-6 w-6 text-gray-600" />
+                <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
               )}
             </button>
           </div>
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-100">
+            <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-700">
               <div className="flex flex-col gap-4">
                 {navLinks.map((link) => (
                   <Link
@@ -108,8 +112,8 @@ function PublicLayout() {
                     to={link.path}
                     className={`transition-colors ${
                       isActive(link.path)
-                        ? 'text-primary-600 font-medium'
-                        : 'text-gray-600 hover:text-primary-600'
+                        ? 'text-primary-600 dark:text-primary-400 font-medium'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -117,15 +121,17 @@ function PublicLayout() {
                   </Link>
                 ))}
 
+                <ThemeToggle variant="icon" />
+
                 <button
                   onClick={toggleLanguage}
-                  className="flex items-center gap-1 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   <Globe className="h-5 w-5" />
                   <span>{i18n.language === 'en' ? 'العربية' : 'English'}</span>
                 </button>
 
-                <hr className="border-gray-100" />
+                <hr className="border-gray-100 dark:border-gray-700" />
 
                 {isAuthenticated ? (
                   <Link
@@ -139,7 +145,7 @@ function PublicLayout() {
                   <>
                     <Link
                       to="/login"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
+                      className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {t('auth.login')}

@@ -58,8 +58,8 @@ function EmployeeList() {
     <div className="fade-in space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('employee.title')}</h1>
-          <p className="text-gray-600 mt-1">Manage your organization's employees</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('employee.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your organization's employees</p>
         </div>
         <button onClick={() => setShowInviteModal(true)} className="btn-primary">
           <UserPlus className="h-5 w-5 mr-2" />
@@ -69,7 +69,7 @@ function EmployeeList() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
           placeholder={`${t('common.search')} employees...`}
@@ -83,31 +83,31 @@ function EmployeeList() {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 dark:bg-gray-700 border-b">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('common.name')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('common.email')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('employee.department')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('employee.riskLevel')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('common.status')}</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">{t('common.actions')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('common.name')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('common.email')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('employee.department')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('employee.riskLevel')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('common.status')}</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('common.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredEmployees.map((employee) => {
                 const risk = getRiskBadge(employee.riskScore);
                 return (
-                  <tr key={employee.id} className="hover:bg-gray-50">
+                  <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium">
                           {employee.name.split(' ').map(n => n[0]).join('')}
                         </div>
-                        <span className="font-medium text-gray-900">{employee.name}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{employee.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{employee.email}</td>
-                    <td className="px-6 py-4 text-gray-600">{employee.department}</td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{employee.email}</td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{employee.department}</td>
                     <td className="px-6 py-4">
                       <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', risk.color)}>
                         {employee.riskScore}% - {risk.label}
@@ -116,7 +116,7 @@ function EmployeeList() {
                     <td className="px-6 py-4">
                       <span className={clsx(
                         'text-xs font-medium px-2 py-1 rounded-full',
-                        employee.status === 'active' ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-700'
+                        employee.status === 'active' ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
                       )}>
                         {employee.status}
                       </span>
@@ -137,8 +137,8 @@ function EmployeeList() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('employee.inviteEmployee')}</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t('employee.inviteEmployee')}</h2>
             <div className="space-y-4">
               <div>
                 <label className="label">{t('common.email')}</label>

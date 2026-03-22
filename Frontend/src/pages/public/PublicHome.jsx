@@ -25,14 +25,14 @@ function PublicHome() {
       value: '70%',
       label: t('public.stats.phishingAttempts'),
       color: 'text-warning-500',
-      bgColor: 'bg-warning-50',
+      bgColor: 'bg-warning-50 dark:bg-warning-900/20',
     },
     {
       icon: TrendingUp,
       value: '150%',
       label: t('public.stats.smsIncrease'),
       color: 'text-danger-500',
-      bgColor: 'bg-danger-50',
+      bgColor: 'bg-danger-50 dark:bg-danger-900/20',
     },
     {
       icon: Users,
@@ -50,8 +50,8 @@ function PublicHome() {
       description: t('public.topics.phishing.description'),
       examples: t('public.topics.phishing.examples'),
       link: '/training/phishing',
-      color: 'from-blue-500 to-blue-600',
-      iconBg: 'bg-blue-100 text-blue-600',
+      color: 'from-blue-500 to-blue-600 dark:from-blue-800 dark:to-blue-900',
+      iconBg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
     },
     {
       icon: Smartphone,
@@ -59,8 +59,8 @@ function PublicHome() {
       description: t('public.topics.smishing.description'),
       examples: t('public.topics.smishing.examples'),
       link: '/training/smishing',
-      color: 'from-emerald-500 to-emerald-600',
-      iconBg: 'bg-emerald-100 text-emerald-600',
+      color: 'from-emerald-500 to-emerald-600 dark:from-emerald-800 dark:to-emerald-900',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
     },
     {
       icon: Phone,
@@ -68,8 +68,8 @@ function PublicHome() {
       description: t('public.topics.vishing.description'),
       examples: t('public.topics.vishing.examples'),
       link: '/training/vishing',
-      color: 'from-purple-500 to-purple-600',
-      iconBg: 'bg-purple-100 text-purple-600',
+      color: 'from-purple-500 to-purple-600 dark:from-purple-800 dark:to-purple-900',
+      iconBg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
     },
   ];
 
@@ -81,8 +81,8 @@ function PublicHome() {
       questions: 10,
       time: '10',
       difficulty: t('public.quiz.beginner'),
-      color: 'border-blue-200 hover:border-blue-400',
-      iconColor: 'text-blue-600 bg-blue-50',
+      color: 'border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600',
+      iconColor: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400',
     },
     {
       icon: Smartphone,
@@ -91,8 +91,8 @@ function PublicHome() {
       questions: 10,
       time: '10',
       difficulty: t('public.quiz.beginner'),
-      color: 'border-emerald-200 hover:border-emerald-400',
-      iconColor: 'text-emerald-600 bg-emerald-50',
+      color: 'border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600',
+      iconColor: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400',
     },
     {
       icon: Phone,
@@ -101,17 +101,17 @@ function PublicHome() {
       questions: 10,
       time: '10',
       difficulty: t('public.quiz.beginner'),
-      color: 'border-purple-200 hover:border-purple-400',
-      iconColor: 'text-purple-600 bg-purple-50',
+      color: 'border-purple-200 dark:border-purple-800 hover:border-purple-400 dark:hover:border-purple-600',
+      iconColor: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400',
     },
   ];
 
   return (
-    <div className="fade-in">
+    <div className="fade-in transition-colors">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 dark:from-primary-900 dark:via-primary-950 dark:to-gray-900 text-white overflow-hidden">
         {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 dark:opacity-5">
           <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-300 rounded-full blur-3xl" />
         </div>
@@ -150,13 +150,13 @@ function PublicHome() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               {t('public.stats.title')}
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               {t('public.stats.subtitle')}
             </p>
           </div>
@@ -175,26 +175,26 @@ function PublicHome() {
                   <div className={`text-4xl font-bold ${stat.color} mb-2`}>
                     {stat.value}
                   </div>
-                  <p className="text-gray-600">{stat.label}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{stat.label}</p>
                 </div>
               );
             })}
           </div>
 
-          <p className="text-center text-sm text-gray-400 mt-6">
+          <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-6">
             {t('public.stats.source')}
           </p>
         </div>
       </section>
 
       {/* Training Topics Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               {t('public.topics.title')}
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               {t('public.topics.subtitle')}
             </p>
           </div>
@@ -205,7 +205,7 @@ function PublicHome() {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-gray-900/50 border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all duration-300 group"
                 >
                   {/* Card header with gradient */}
                   <div className={`bg-gradient-to-r ${topic.color} p-6 text-white`}>
@@ -217,15 +217,15 @@ function PublicHome() {
 
                   {/* Card body */}
                   <div className="p-6">
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
                       {topic.description}
                     </p>
 
-                    <div className="bg-gray-50 rounded-lg p-3 mb-6">
-                      <p className="text-sm text-gray-500 font-medium mb-1">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 mb-6">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">
                         {t('public.topics.examplesLabel')}
                       </p>
-                      <p className="text-sm text-gray-700">{topic.examples}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-200">{topic.examples}</p>
                     </div>
 
                     <Link
@@ -244,13 +244,13 @@ function PublicHome() {
       </section>
 
       {/* Quiz Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               {t('public.quiz.title')}
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               {t('public.quiz.subtitle')}
             </p>
           </div>
@@ -268,16 +268,16 @@ function PublicHome() {
                       <Icon className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
                         {quiz.title}
                       </h3>
-                      <span className="inline-block text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                      <span className="inline-block text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
                         {quiz.difficulty}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <BookOpen className="h-4 w-4" />
                       {quiz.questions} {t('public.quiz.questions')}
@@ -303,21 +303,21 @@ function PublicHome() {
       </section>
 
       {/* Safety Tips Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
               {t('public.tips.title')}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((num) => (
-              <div key={num} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-gray-100">
-                <div className="w-8 h-8 rounded-full bg-success-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <CheckCircle className="h-5 w-5 text-success-600" />
+              <div key={num} className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+                <div className="w-8 h-8 rounded-full bg-success-50 dark:bg-success-900/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-5 w-5 text-success-600 dark:text-success-400" />
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed">
                   {t(`public.tips.tip${num}`)}
                 </p>
               </div>
@@ -327,7 +327,7 @@ function PublicHome() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-800 text-white">
+      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-800 dark:from-primary-900 dark:to-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
             {t('public.cta.title')}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   TrendingDown,
   TrendingUp,
@@ -71,17 +72,17 @@ const ROWS_PER_PAGE = 10;
 // ── Helpers ────────────────────────────────────────────────
 
 function getRiskColor(score) {
-  if (score < 30) return 'text-success-600';
-  if (score < 60) return 'text-warning-600';
-  if (score < 80) return 'text-orange-600';
-  return 'text-danger-600';
+  if (score < 30) return 'text-success-600 dark:text-success-400';
+  if (score < 60) return 'text-warning-600 dark:text-warning-400';
+  if (score < 80) return 'text-orange-600 dark:text-orange-400';
+  return 'text-danger-600 dark:text-danger-400';
 }
 
 function getRiskBg(score) {
-  if (score < 30) return 'bg-success-50 text-success-700';
-  if (score < 60) return 'bg-warning-50 text-warning-700';
-  if (score < 80) return 'bg-orange-100 text-orange-700';
-  return 'bg-danger-50 text-danger-700';
+  if (score < 30) return 'bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300';
+  if (score < 60) return 'bg-warning-50 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300';
+  if (score < 80) return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300';
+  return 'bg-danger-50 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300';
 }
 
 function getRiskBarColor(score) {
@@ -135,19 +136,19 @@ function downloadCSV(rows, headers, filename) {
 
 function MetricCard({ label, value, icon: Icon, color = 'primary', trend, trendValue, subtitle }) {
   const iconBg = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
-    orange: 'bg-orange-100 text-orange-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/30 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/30 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400',
+    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
   };
 
   return (
     <div className="card">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className={clsx('text-3xl font-bold mt-1', color === 'danger' ? 'text-danger-600' : 'text-gray-900')}>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+          <p className={clsx('text-3xl font-bold mt-1', color === 'danger' ? 'text-danger-600' : 'text-gray-900 dark:text-white')}>
             {value}
           </p>
           {trend && (
@@ -162,7 +163,7 @@ function MetricCard({ label, value, icon: Icon, color = 'primary', trend, trendV
               </span>
             </div>
           )}
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>}
         </div>
         <div className={clsx('p-3 rounded-lg', iconBg[color])}>
           <Icon className="h-6 w-6" />
@@ -176,14 +177,14 @@ function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
   const active = currentSort === sortKey;
   return (
     <th
-      className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+      className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-600"
       onClick={() => onSort(sortKey)}
     >
       <div className="flex items-center gap-1">
         {label}
         <span className="inline-flex flex-col">
-          <ChevronUp className={clsx('h-3 w-3 -mb-1', active && currentDir === 'asc' ? 'text-primary-600' : 'text-gray-300')} />
-          <ChevronDown className={clsx('h-3 w-3', active && currentDir === 'desc' ? 'text-primary-600' : 'text-gray-300')} />
+          <ChevronUp className={clsx('h-3 w-3 -mb-1', active && currentDir === 'asc' ? 'text-primary-600' : 'text-gray-300 dark:text-gray-600')} />
+          <ChevronDown className={clsx('h-3 w-3', active && currentDir === 'desc' ? 'text-primary-600' : 'text-gray-300 dark:text-gray-600')} />
         </span>
       </div>
     </th>
@@ -193,22 +194,22 @@ function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
 function Pagination({ page, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
-      <p className="text-sm text-gray-500">
+    <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
         Page {page} of {totalPages}
       </p>
       <div className="flex gap-2">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="p-1 rounded hover:bg-gray-100 disabled:opacity-40"
+          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-40"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="p-1 rounded hover:bg-gray-100 disabled:opacity-40"
+          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-40"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
@@ -220,8 +221,8 @@ function Pagination({ page, totalPages, onPageChange }) {
 function ChartTooltip({ active, payload, label, formatter }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
-      <p className="font-medium text-gray-900 mb-1">{label}</p>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border dark:border-gray-700 p-3 text-sm">
+      <p className="font-medium text-gray-900 dark:text-white mb-1">{label}</p>
       {payload.map((entry, i) => (
         <p key={i} style={{ color: entry.color || entry.stroke }}>
           {entry.name}: {formatter ? formatter(entry.value) : entry.value}
@@ -235,6 +236,7 @@ function ChartTooltip({ active, payload, label, formatter }) {
 
 function PlatformAnalytics() {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -386,8 +388,8 @@ function PlatformAnalytics() {
         description: `Campaign ${campaign.status?.toLowerCase() || 'created'} - ${campaign.assigned_count || campaign.total_employees || 0} employees`,
         timestamp: campaign.created_at,
         icon: Target,
-        iconBg: 'bg-primary-100',
-        iconText: 'text-primary-600',
+        iconBg: 'bg-primary-100 dark:bg-primary-900/30',
+        iconText: 'text-primary-600 dark:text-primary-400',
       });
     }
 
@@ -398,8 +400,8 @@ function PlatformAnalytics() {
         description: `Simulation ${sim.status?.toLowerCase() || 'created'} - ${sim.target_count || sim.total_sent || 0} targets`,
         timestamp: sim.created_at,
         icon: Mail,
-        iconBg: 'bg-warning-50',
-        iconText: 'text-warning-600',
+        iconBg: 'bg-warning-50 dark:bg-warning-900/30',
+        iconText: 'text-warning-600 dark:text-warning-400',
       });
     }
 
@@ -410,8 +412,8 @@ function PlatformAnalytics() {
         description: `Company registered - ${company.total_users || 0} users`,
         timestamp: company.created_at,
         icon: Building2,
-        iconBg: 'bg-success-50',
-        iconText: 'text-success-600',
+        iconBg: 'bg-success-50 dark:bg-success-900/30',
+        iconText: 'text-success-600 dark:text-success-400',
       });
     }
 
@@ -546,7 +548,7 @@ function PlatformAnalytics() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">{t('admin.analytics.loadingAnalytics')}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('admin.analytics.loadingAnalytics')}</p>
         </div>
       </div>
     );
@@ -558,7 +560,7 @@ function PlatformAnalytics() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchAnalytics} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           {t('admin.common.tryAgain')}
@@ -587,8 +589,8 @@ function PlatformAnalytics() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('admin.analytics.title')}</h1>
-          <p className="text-gray-600 mt-1">{period !== 'all' ? t('admin.analytics.subtitlePeriod', { period: periodLabel }) : t('admin.analytics.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.analytics.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{period !== 'all' ? t('admin.analytics.subtitlePeriod', { period: periodLabel }) : t('admin.analytics.subtitle')}</p>
         </div>
         <button
           onClick={fetchAnalytics}
@@ -609,7 +611,7 @@ function PlatformAnalytics() {
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               period === p.key
                 ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border hover:bg-gray-50'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             )}
           >
             {p.label}
@@ -653,13 +655,13 @@ function PlatformAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Risk Score Trend */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.riskScoreTrends')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.analytics.riskScoreTrends')}</h3>
           {trendLineData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendLineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
                 <Tooltip content={<ChartTooltip />} />
                 <Line
                   type="monotone"
@@ -673,7 +675,7 @@ function PlatformAnalytics() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               {t('admin.analytics.noTrendData')}
             </div>
           )}
@@ -681,7 +683,7 @@ function PlatformAnalytics() {
 
         {/* Chart 2: Risk Distribution Donut */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.riskLevelDistribution')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.analytics.riskLevelDistribution')}</h3>
           {riskDistData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -706,24 +708,24 @@ function PlatformAnalytics() {
                     const d = payload[0].payload;
                     const pct = riskDistTotal > 0 ? ((d.value / riskDistTotal) * 100).toFixed(1) : 0;
                     return (
-                      <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
-                        <p className="font-medium">{d.name}</p>
-                        <p>{d.value} {t('admin.analytics.employees')} ({pct}%)</p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border dark:border-gray-700 p-3 text-sm">
+                        <p className="font-medium text-gray-900 dark:text-white">{d.name}</p>
+                        <p className="text-gray-600 dark:text-gray-300">{d.value} {t('admin.analytics.employees')} ({pct}%)</p>
                       </div>
                     );
                   }}
                 />
-                <Legend />
-                <text x="50%" y="47%" textAnchor="middle" className="fill-gray-900 text-2xl font-bold">
+                <Legend wrapperStyle={{ color: isDark ? '#d1d5db' : '#374151' }} />
+                <text x="50%" y="47%" textAnchor="middle" className="fill-gray-900 dark:fill-white text-2xl font-bold">
                   {riskDistTotal}
                 </text>
-                <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 text-xs">
+                <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 dark:fill-gray-400 text-xs">
                   {t('admin.analytics.employees')}
                 </text>
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               {t('admin.analytics.noDistributionData')}
             </div>
           )}
@@ -731,21 +733,21 @@ function PlatformAnalytics() {
 
         {/* Chart 3: Campaign vs Simulation Activity */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.campaignVsSimulation')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.analytics.campaignVsSimulation')}</h3>
           {activityBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={activityBarData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
+                <YAxis tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
                 <Tooltip content={<ChartTooltip />} />
-                <Legend />
+                <Legend wrapperStyle={{ color: isDark ? '#d1d5db' : '#374151' }} />
                 <Bar dataKey="completions" name={t('admin.analytics.campaignCompletions')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="clicks" name={t('admin.analytics.simulationClicks')} fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               {t('admin.analytics.noActivityData')}
             </div>
           )}
@@ -753,22 +755,22 @@ function PlatformAnalytics() {
 
         {/* Chart 4: Top Performing Companies (Horizontal Bar) */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.topPerformingCompanies')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.analytics.topPerformingCompanies')}</h3>
           {topCompaniesData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topCompaniesData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-                <YAxis dataKey="name" type="category" width={130} tick={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
+                <YAxis dataKey="name" type="category" width={130} tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const d = payload[0].payload;
                     return (
-                      <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
-                        <p className="font-medium">{d.fullName}</p>
-                        <p>Risk Score: {d.score}</p>
-                        <p>Users: {d.users}</p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border dark:border-gray-700 p-3 text-sm">
+                        <p className="font-medium text-gray-900 dark:text-white">{d.fullName}</p>
+                        <p className="text-gray-600 dark:text-gray-300">Risk Score: {d.score}</p>
+                        <p className="text-gray-600 dark:text-gray-300">Users: {d.users}</p>
                       </div>
                     );
                   }}
@@ -784,7 +786,7 @@ function PlatformAnalytics() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               {t('admin.analytics.noCompanyData')}
             </div>
           )}
@@ -794,7 +796,7 @@ function PlatformAnalytics() {
       {/* ── Data Tables ── */}
       <div className="card p-0">
         {/* Tab Navigation */}
-        <div className="flex border-b">
+        <div className="flex border-b dark:border-gray-700">
           {[
             { key: 'companies', label: t('admin.analytics.companiesOverview') },
             { key: 'risk', label: t('admin.analytics.riskInsights') },
@@ -807,7 +809,7 @@ function PlatformAnalytics() {
                 'px-6 py-3 text-sm font-medium transition-colors border-b-2 -mb-px',
                 activeTab === tab.key
                   ? 'text-primary-600 border-primary-600'
-                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               )}
             >
               {tab.label}
@@ -816,9 +818,9 @@ function PlatformAnalytics() {
         </div>
 
         {/* Search & Export Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b dark:border-gray-700">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder={t('admin.analytics.search')}
@@ -849,41 +851,41 @@ function PlatformAnalytics() {
           {/* ── Tab 1: Companies Overview ── */}
           {activeTab === 'companies' && (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
                   <SortHeader label="Company" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Users" sortKey="total_users" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.analytics.avgRiskScore')}</th>
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">{t('admin.common.industry')}</th>
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">{t('admin.common.status')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('admin.analytics.avgRiskScore')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">{t('admin.common.industry')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">{t('admin.common.status')}</th>
                   <SortHeader label="Created" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.common.details')}</th>
+                  <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('admin.common.details')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y dark:divide-gray-700">
                 {pagedData.length > 0 ? (
                   pagedData.map((c) => {
                     const risk = c.average_risk_score ?? c.avg_risk_score ?? null;
                     return (
-                      <tr key={c.id} className="hover:bg-gray-50">
+                      <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                              <Building2 className="h-4 w-4 text-primary-600" />
+                            <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                              <Building2 className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-medium text-gray-900 truncate">{c.name}</p>
-                              <p className="text-xs text-gray-400 truncate">{c.email}</p>
+                              <p className="font-medium text-gray-900 dark:text-white truncate">{c.name}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{c.email}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="font-medium text-gray-900">{c.total_users || 0}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{c.total_users || 0}</span>
                         </td>
                         <td className="px-4 py-3">
                           {risk != null ? (
                             <div className="flex items-center gap-2">
-                              <div className="w-20 bg-gray-200 rounded-full h-2">
+                              <div className="w-20 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                                 <div
                                   className={clsx('h-2 rounded-full transition-all', getRiskBarColor(risk))}
                                   style={{ width: `${Math.min(risk, 100)}%` }}
@@ -894,21 +896,21 @@ function PlatformAnalytics() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-gray-400 text-sm">N/A</span>
+                            <span className="text-gray-400 dark:text-gray-500 text-sm">N/A</span>
                           )}
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell">
-                          <span className="text-sm text-gray-600">{c.industry || '—'}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">{c.industry || '—'}</span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
                           <span className={clsx(
                             'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
-                            c.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+                            c.is_active ? 'bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                           )}>
                             {c.is_active ? t('admin.common.active') : t('admin.common.inactive')}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(c.created_at)}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{formatDate(c.created_at)}</td>
                         <td className="px-4 py-3">
                           <a
                             href="/admin/companies"
@@ -923,7 +925,7 @@ function PlatformAnalytics() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       {searchQuery ? t('admin.analytics.noMatchSearch') : t('admin.analytics.noCompaniesFound')}
                     </td>
                   </tr>
@@ -936,73 +938,73 @@ function PlatformAnalytics() {
           {activeTab === 'risk' && (
             <>
               {/* Risk summary cards */}
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 border-b">
-                <div className="p-3 bg-danger-50 rounded-lg">
-                  <p className="text-xs text-danger-600 font-medium">{t('admin.analytics.highRiskCompanies')}</p>
-                  <p className="text-xl font-bold text-danger-700 mt-1">
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 border-b dark:border-gray-700">
+                <div className="p-3 bg-danger-50 dark:bg-danger-900/30 rounded-lg">
+                  <p className="text-xs text-danger-600 dark:text-danger-400 font-medium">{t('admin.analytics.highRiskCompanies')}</p>
+                  <p className="text-xl font-bold text-danger-700 dark:text-danger-300 mt-1">
                     {companies.filter((c) => (c.average_risk_score ?? 0) > 60).length}
                   </p>
-                  <p className="text-xs text-danger-500 mt-0.5">{t('admin.analytics.avgRiskAbove60')}</p>
+                  <p className="text-xs text-danger-500 dark:text-danger-400 mt-0.5">{t('admin.analytics.avgRiskAbove60')}</p>
                 </div>
-                <div className="p-3 bg-orange-50 rounded-lg">
-                  <p className="text-xs text-orange-600 font-medium">{t('admin.analytics.criticalRiskEmployees')}</p>
-                  <p className="text-xl font-bold text-orange-700 mt-1">
+                <div className="p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+                  <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">{t('admin.analytics.criticalRiskEmployees')}</p>
+                  <p className="text-xl font-bold text-orange-700 dark:text-orange-400 mt-1">
                     {overview?.critical_risk_count || 0}
                   </p>
-                  <p className="text-xs text-orange-500 mt-0.5">{t('admin.analytics.riskAbove80')}</p>
+                  <p className="text-xs text-orange-500 dark:text-orange-400 mt-0.5">{t('admin.analytics.riskAbove80')}</p>
                 </div>
-                <div className="p-3 bg-warning-50 rounded-lg">
-                  <p className="text-xs text-warning-600 font-medium">{t('admin.analytics.highRiskEmployees')}</p>
-                  <p className="text-xl font-bold text-warning-700 mt-1">
+                <div className="p-3 bg-warning-50 dark:bg-warning-900/30 rounded-lg">
+                  <p className="text-xs text-warning-600 dark:text-warning-400 font-medium">{t('admin.analytics.highRiskEmployees')}</p>
+                  <p className="text-xl font-bold text-warning-700 dark:text-warning-300 mt-1">
                     {overview?.high_risk_count || 0}
                   </p>
-                  <p className="text-xs text-warning-500 mt-0.5">{t('admin.analytics.riskRange6080')}</p>
+                  <p className="text-xs text-warning-500 dark:text-warning-400 mt-0.5">{t('admin.analytics.riskRange6080')}</p>
                 </div>
-                <div className="p-3 bg-success-50 rounded-lg">
-                  <p className="text-xs text-success-600 font-medium">{t('admin.analytics.lowRiskEmployees')}</p>
-                  <p className="text-xl font-bold text-success-700 mt-1">
+                <div className="p-3 bg-success-50 dark:bg-success-900/30 rounded-lg">
+                  <p className="text-xs text-success-600 dark:text-success-400 font-medium">{t('admin.analytics.lowRiskEmployees')}</p>
+                  <p className="text-xl font-bold text-success-700 dark:text-success-300 mt-1">
                     {overview?.low_risk_count || 0}
                   </p>
-                  <p className="text-xs text-success-500 mt-0.5">{t('admin.analytics.riskBelow30')}</p>
+                  <p className="text-xs text-success-500 dark:text-success-400 mt-0.5">{t('admin.analytics.riskBelow30')}</p>
                 </div>
               </div>
 
               {/* High risk employees table */}
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
                     <SortHeader label="Employee" sortKey="employee_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.common.email')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('admin.common.email')}</th>
                     <SortHeader label={t('admin.common.riskScore')} sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden md:table-cell">{t('admin.analytics.phishingClicks')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">{t('admin.analytics.credentialsEntered')}</th>
-                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 uppercase">{t('admin.analytics.needsTraining')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">{t('admin.analytics.phishingClicks')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden lg:table-cell">{t('admin.analytics.credentialsEntered')}</th>
+                    <th className="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('admin.analytics.needsTraining')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y dark:divide-gray-700">
                   {pagedData.length > 0 ? (
                     pagedData.map((emp, idx) => (
-                      <tr key={emp.employee_id || emp.id || idx} className="hover:bg-gray-50">
+                      <tr key={emp.employee_id || emp.id || idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-danger-50 flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-danger-50 dark:bg-danger-900/30 flex items-center justify-center flex-shrink-0">
                               <AlertTriangle className="h-4 w-4 text-danger-500" />
                             </div>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-gray-900 dark:text-white">
                               {emp.employee_name || `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || '—'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 text-sm">{emp.employee_email || emp.email || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{emp.employee_email || emp.email || '—'}</td>
                         <td className="px-4 py-3">
                           <span className={clsx('inline-flex px-2 py-0.5 rounded-full text-xs font-medium', getRiskBg(emp.risk_score))}>
                             {emp.risk_score} - {emp.risk_level || (emp.risk_score >= 80 ? 'CRITICAL' : 'HIGH')}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300 hidden md:table-cell">
                           {emp.phishing_emails_missed || 0}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300 hidden lg:table-cell">
                           {emp.credentials_entered || 0}
                         </td>
                         <td className="px-4 py-3">
@@ -1016,7 +1018,7 @@ function PlatformAnalytics() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                         {searchQuery ? t('admin.analytics.noEmployeesMatch') : t('admin.analytics.noHighRiskFound')}
                       </td>
                     </tr>
@@ -1028,37 +1030,37 @@ function PlatformAnalytics() {
 
           {/* ── Tab 3: Platform Activity ── */}
           {activeTab === 'activity' && (
-            <div className="divide-y">
+            <div className="divide-y dark:divide-gray-700">
               {pagedData.length > 0 ? (
                 pagedData.map((item, idx) => {
                   const Icon = item.icon || Activity;
                   return (
-                    <div key={idx} className="flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors">
-                      <div className={clsx('p-2 rounded-lg flex-shrink-0', item.iconBg || 'bg-gray-100')}>
-                        <Icon className={clsx('h-4 w-4', item.iconText || 'text-gray-600')} />
+                    <div key={idx} className="flex items-start gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <div className={clsx('p-2 rounded-lg flex-shrink-0', item.iconBg || 'bg-gray-100 dark:bg-gray-700')}>
+                        <Icon className={clsx('h-4 w-4', item.iconText || 'text-gray-600 dark:text-gray-300')} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.title}</p>
                           <span className={clsx(
                             'text-xs px-2 py-0.5 rounded-full font-medium',
-                            item.type === 'CAMPAIGN' ? 'bg-primary-50 text-primary-700' :
-                            item.type === 'SIMULATION' ? 'bg-warning-50 text-warning-700' :
-                            'bg-success-50 text-success-700'
+                            item.type === 'CAMPAIGN' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' :
+                            item.type === 'SIMULATION' ? 'bg-warning-50 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300' :
+                            'bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300'
                           )}>
                             {item.type}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.description}</p>
                       </div>
-                      <div className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
+                      <div className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0">
                         {item.timestamp ? formatDistanceToNow(new Date(item.timestamp), { addSuffix: true }) : '—'}
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="px-4 py-8 text-center text-gray-500">
+                <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                   {searchQuery ? t('admin.analytics.noActivityMatch') : t('admin.analytics.noRecentActivity')}
                 </div>
               )}
@@ -1072,7 +1074,7 @@ function PlatformAnalytics() {
 
       {/* ── Export Reports Section ── */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.analytics.exportReports')}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.analytics.exportReports')}</h3>
         <div className="flex flex-wrap gap-3">
           {[
             { key: 'companies', label: t('admin.analytics.exportCompanies'), handler: handleExportCompanies },

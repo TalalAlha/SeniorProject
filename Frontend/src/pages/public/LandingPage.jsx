@@ -31,7 +31,7 @@ function LandingPage() {
   return (
     <div className="fade-in">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-20 lg:py-32">
+      <section className="bg-gradient-to-br from-primary-600 to-primary-800 dark:from-primary-900 dark:to-gray-900 text-white py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-balance">
@@ -43,7 +43,7 @@ function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/register"
-                className="btn bg-white text-primary-700 hover:bg-gray-100 px-8 py-3 text-lg"
+                className="btn bg-white dark:bg-gray-800 text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-8 py-3 text-lg"
               >
                 {t('landing.hero.cta')}
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -60,9 +60,9 @@ function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
             {t('landing.features.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -71,15 +71,15 @@ function LandingPage() {
               return (
                 <div
                   key={index}
-                  className="text-center p-6 rounded-xl hover:shadow-lg transition-shadow duration-300"
+                  className="text-center p-6 rounded-xl hover:shadow-lg dark:hover:shadow-gray-900/50 transition-shadow duration-300"
                 >
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-100 text-primary-600 mb-4">
                     <Icon className="h-7 w-7" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
                 </div>
               );
             })}
@@ -88,7 +88,7 @@ function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {[
@@ -101,7 +101,7 @@ function LandingPage() {
                 <div className="text-4xl font-bold text-primary-600 mb-2">
                   {stat.value}
                 </div>
-                <div className="text-gray-600">{stat.label}</div>
+                <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -119,7 +119,7 @@ function LandingPage() {
           </p>
           <Link
             to="/register"
-            className="btn bg-white text-primary-700 hover:bg-gray-100 px-8 py-3 text-lg"
+            className="btn bg-white dark:bg-gray-800 text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-600 px-8 py-3 text-lg"
           >
             Get Started Today
             <ArrowRight className="ml-2 h-5 w-5" />

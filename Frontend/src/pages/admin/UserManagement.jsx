@@ -50,10 +50,10 @@ const ROLE_LABELS = {
 };
 
 const ROLE_COLORS = {
-  SUPER_ADMIN: 'bg-purple-100 text-purple-800',
-  COMPANY_ADMIN: 'bg-primary-100 text-primary-800',
-  EMPLOYEE: 'bg-gray-100 text-gray-700',
-  PUBLIC_USER: 'bg-orange-100 text-orange-700',
+  SUPER_ADMIN: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300',
+  COMPANY_ADMIN: 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300',
+  EMPLOYEE: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200',
+  PUBLIC_USER: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
 };
 
 const ROLE_OPTIONS = [
@@ -66,11 +66,11 @@ const ITEMS_PER_PAGE = 20;
 // ── Helpers ────────────────────────────────────────────────
 
 function getRiskBg(score) {
-  if (score == null) return 'bg-gray-100 text-gray-500';
-  if (score < 30) return 'bg-success-50 text-success-700';
-  if (score < 60) return 'bg-warning-50 text-warning-700';
-  if (score < 80) return 'bg-orange-100 text-orange-700';
-  return 'bg-danger-50 text-danger-700';
+  if (score == null) return 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400';
+  if (score < 30) return 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400';
+  if (score < 60) return 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400';
+  if (score < 80) return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400';
+  return 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400';
 }
 
 function getRiskBarColor(score) {
@@ -124,11 +124,11 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className={clsx('relative bg-white rounded-xl shadow-xl w-full', sizeClasses[size])}>
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
+        <div className={clsx('relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full', sizeClasses[size])}>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">{children}</div>
@@ -145,9 +145,9 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-4">{message}</p>
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">{message}</p>
           {children}
           <div className="flex gap-3 justify-end mt-6">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
@@ -188,7 +188,7 @@ function DropdownMenu({ trigger, items }) {
 
   return (
     <div className="relative">
-      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
         {trigger}
       </button>
       {isOpen && createPortal(
@@ -196,7 +196,7 @@ function DropdownMenu({ trigger, items }) {
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div
             ref={menuRef}
-            className="fixed w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            className="fixed w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-50"
             style={{ top: pos.top, left: pos.left }}
           >
             {items.map((item, index) =>
@@ -212,7 +212,7 @@ function DropdownMenu({ trigger, items }) {
                   disabled={item.disabled}
                   className={clsx(
                     'w-full px-4 py-2 text-start text-sm flex items-center gap-2 transition-colors',
-                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
+                    item.danger ? 'text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -231,11 +231,11 @@ function DropdownMenu({ trigger, items }) {
 
 function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
-    purple: 'bg-purple-100 text-purple-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
+    purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
   };
 
   return (
@@ -246,9 +246,9 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-        {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+        <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        {subtext && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtext}</p>}
       </div>
     </div>
   );
@@ -268,23 +268,23 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-xl font-bold flex-shrink-0">
+          <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-bold flex-shrink-0">
             {(user.first_name?.[0] || user.email?.[0] || '?').toUpperCase()}
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
               {user.first_name || user.last_name
                 ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
                 : user.email}
             </h3>
-            <p className="text-gray-500 text-sm">{user.email}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', ROLE_COLORS[user.role])}>
                 {ROLE_LABELS[user.role] || user.role}
               </span>
               <span className={clsx(
                 'text-xs font-medium px-2 py-1 rounded-full',
-                user.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+                user.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
               )}>
                 {user.is_active ? t('admin.common.active') : t('admin.common.inactive')}
               </span>
@@ -295,83 +295,83 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
         {/* User Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-2 text-sm">
-            <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">{user._companyName || t('admin.common.noCompany')}</span>
+            <Building2 className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">{user._companyName || t('admin.common.noCompany')}</span>
           </div>
           {user.phone_number && (
             <div className="flex items-center gap-2 text-sm">
-              <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              <span className="text-gray-600">{user.phone_number}</span>
+              <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+              <span className="text-gray-600 dark:text-gray-300">{user.phone_number}</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">{t('admin.users.joined', { date: formatDate(user.date_joined) })}</span>
+            <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">{t('admin.users.joined', { date: formatDate(user.date_joined) })}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-gray-600">{t('admin.users.lastLoginTime', { time: formatRelativeTime(user.last_login) })}</span>
+            <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <span className="text-gray-600 dark:text-gray-300">{t('admin.users.lastLoginTime', { time: formatRelativeTime(user.last_login) })}</span>
           </div>
         </div>
 
         {/* Account Status */}
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('admin.users.accountStatus')}</h4>
+        <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{t('admin.users.accountStatus')}</h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="text-center">
               <div className={clsx(
                 'w-8 h-8 rounded-full mx-auto flex items-center justify-center mb-1',
-                user.is_active ? 'bg-success-100' : 'bg-gray-200'
+                user.is_active ? 'bg-success-100 dark:bg-success-900/30' : 'bg-gray-200 dark:bg-gray-600'
               )}>
-                <CheckCircle className={clsx('h-4 w-4', user.is_active ? 'text-success-600' : 'text-gray-400')} />
+                <CheckCircle className={clsx('h-4 w-4', user.is_active ? 'text-success-600 dark:text-success-400' : 'text-gray-400 dark:text-gray-500')} />
               </div>
-              <p className="text-xs text-gray-500">{t('admin.common.active')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.common.active')}</p>
             </div>
             <div className="text-center">
               <div className={clsx(
                 'w-8 h-8 rounded-full mx-auto flex items-center justify-center mb-1',
-                user.is_verified ? 'bg-success-100' : 'bg-gray-200'
+                user.is_verified ? 'bg-success-100 dark:bg-success-900/30' : 'bg-gray-200 dark:bg-gray-600'
               )}>
-                <Shield className={clsx('h-4 w-4', user.is_verified ? 'text-success-600' : 'text-gray-400')} />
+                <Shield className={clsx('h-4 w-4', user.is_verified ? 'text-success-600 dark:text-success-400' : 'text-gray-400 dark:text-gray-500')} />
               </div>
-              <p className="text-xs text-gray-500">{t('admin.users.verified')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.users.verified')}</p>
             </div>
             <div className="text-center">
               <div className={clsx(
                 'w-8 h-8 rounded-full mx-auto flex items-center justify-center mb-1',
-                user.last_login ? 'bg-primary-100' : 'bg-gray-200'
+                user.last_login ? 'bg-primary-100 dark:bg-primary-900/30' : 'bg-gray-200 dark:bg-gray-600'
               )}>
-                <Activity className={clsx('h-4 w-4', user.last_login ? 'text-primary-600' : 'text-gray-400')} />
+                <Activity className={clsx('h-4 w-4', user.last_login ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500')} />
               </div>
-              <p className="text-xs text-gray-500">{t('admin.users.loggedIn')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.users.loggedIn')}</p>
             </div>
             <div className="text-center">
               <div className={clsx(
                 'w-8 h-8 rounded-full mx-auto flex items-center justify-center mb-1',
-                user.company ? 'bg-primary-100' : 'bg-gray-200'
+                user.company ? 'bg-primary-100 dark:bg-primary-900/30' : 'bg-gray-200 dark:bg-gray-600'
               )}>
-                <Building2 className={clsx('h-4 w-4', user.company ? 'text-primary-600' : 'text-gray-400')} />
+                <Building2 className={clsx('h-4 w-4', user.company ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500')} />
               </div>
-              <p className="text-xs text-gray-500">{t('admin.common.company')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.common.company')}</p>
             </div>
           </div>
         </div>
 
         {/* Activity Summary (employees only) */}
         {user.role === 'EMPLOYEE' && riskScore && (
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('admin.users.activitySummary')}</h4>
+          <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{t('admin.users.activitySummary')}</h4>
 
             {/* Risk Score Bar */}
             {riskValue != null && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">{t('admin.common.riskScore')}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">{t('admin.common.riskScore')}</span>
                   <span className={clsx('text-sm font-medium px-2 py-0.5 rounded-full', getRiskBg(riskValue))}>
                     {Math.round(riskValue)} - {riskScore.risk_level || 'N/A'}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
                   <div
                     className={clsx('h-2.5 rounded-full transition-all', getRiskBarColor(riskValue))}
                     style={{ width: `${Math.min(riskValue, 100)}%` }}
@@ -381,38 +381,38 @@ function UserDetailsModal({ isOpen, onClose, user, onEdit }) {
             )}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              <div className="p-2 bg-white rounded-lg">
-                <Target className="h-4 w-4 text-primary-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{riskScore.total_quizzes_taken || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.users.quizzesTaken')}</p>
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+                <Target className="h-4 w-4 text-primary-600 dark:text-primary-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{riskScore.total_quizzes_taken || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.users.quizzesTaken')}</p>
               </div>
-              <div className="p-2 bg-white rounded-lg">
-                <Mail className="h-4 w-4 text-warning-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{riskScore.total_simulations_received || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.users.simsReceived')}</p>
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+                <Mail className="h-4 w-4 text-warning-600 dark:text-warning-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{riskScore.total_simulations_received || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.users.simsReceived')}</p>
               </div>
-              <div className="p-2 bg-white rounded-lg">
-                <BookOpen className="h-4 w-4 text-success-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{riskScore.trainings_completed || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.users.trainingDone')}</p>
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+                <BookOpen className="h-4 w-4 text-success-600 dark:text-success-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{riskScore.trainings_completed || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.users.trainingDone')}</p>
               </div>
-              <div className="p-2 bg-white rounded-lg">
-                <AlertTriangle className="h-4 w-4 text-danger-600 mx-auto mb-1" />
-                <p className="text-lg font-bold text-gray-900">{riskScore.simulations_clicked || 0}</p>
-                <p className="text-xs text-gray-500">{t('admin.users.phishClicked')}</p>
+              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+                <AlertTriangle className="h-4 w-4 text-danger-600 dark:text-danger-400 mx-auto mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{riskScore.simulations_clicked || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('admin.users.phishClicked')}</p>
               </div>
             </div>
 
             {riskScore.requires_remediation && (
-              <div className="mt-3 p-2 bg-danger-50 rounded-lg text-center">
-                <p className="text-xs text-danger-700 font-medium">{t('admin.users.requiresRemediation')}</p>
+              <div className="mt-3 p-2 bg-danger-50 dark:bg-danger-900/20 rounded-lg text-center">
+                <p className="text-xs text-danger-700 dark:text-danger-400 font-medium">{t('admin.users.requiresRemediation')}</p>
               </div>
             )}
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.close')}</button>
           <button
             onClick={() => { onClose(); onEdit(user); }}
@@ -515,9 +515,9 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
             type="email"
             value={user.email || ''}
             disabled
-            className="input bg-gray-50 text-gray-500 cursor-not-allowed"
+            className="input bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 cursor-not-allowed"
           />
-          <p className="text-xs text-gray-400 mt-1">{t('admin.users.emailCannotChange')}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.users.emailCannotChange')}</p>
         </div>
 
         {/* Names */}
@@ -560,7 +560,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
             ))}
           </select>
           {user.role === 'SUPER_ADMIN' && (
-            <p className="text-xs text-gray-400 mt-1">{t('admin.users.superAdminRoleNote')}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.users.superAdminRoleNote')}</p>
           )}
           {errors.role && <p className="text-xs text-danger-600 mt-1">{errors.role}</p>}
         </div>
@@ -572,7 +572,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
             type="text"
             value={user._companyName || t('admin.common.noCompany')}
             disabled
-            className="input bg-gray-50 text-gray-500 cursor-not-allowed"
+            className="input bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 cursor-not-allowed"
           />
         </div>
 
@@ -589,10 +589,10 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
         </div>
 
         {/* Status Toggle */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <div>
-            <p className="text-sm font-medium text-gray-900">{t('admin.users.accountStatus')}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('admin.users.accountStatus')}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {formData.is_active ? t('admin.users.hasAccess') : t('admin.users.noAccess')}
             </p>
           </div>
@@ -601,12 +601,12 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
             onClick={() => updateField('is_active', !formData.is_active)}
             className={clsx(
               'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-              formData.is_active ? 'bg-success-500' : 'bg-gray-300'
+              formData.is_active ? 'bg-success-500' : 'bg-gray-300 dark:bg-gray-600'
             )}
           >
             <span
               className={clsx(
-                'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                'inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-200 transition-transform',
                 formData.is_active ? 'translate-x-6' : 'translate-x-1'
               )}
             />
@@ -614,7 +614,7 @@ function EditUserModal({ isOpen, onClose, user, companies, onSuccess }) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button onClick={onClose} className="btn-secondary flex-1">{t('admin.common.cancel')}</button>
           <button
             onClick={handleSubmit}
@@ -887,7 +887,7 @@ function UserManagement() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">{t('admin.users.loadingUsers')}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('admin.users.loadingUsers')}</p>
         </div>
       </div>
     );
@@ -899,7 +899,7 @@ function UserManagement() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           {t('admin.common.tryAgain')}
@@ -913,8 +913,8 @@ function UserManagement() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('admin.users.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('admin.users.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.users.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('admin.users.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
@@ -964,7 +964,7 @@ function UserManagement() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t('admin.users.searchPlaceholder')}
@@ -993,12 +993,12 @@ function UserManagement() {
           {showCompanyMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeMenus} />
-              <div className="absolute end-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 max-h-60 overflow-y-auto">
+              <div className="absolute end-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20 max-h-60 overflow-y-auto">
                 <button
                   onClick={() => { setCompanyFilter('ALL'); setShowCompanyMenu(false); setCurrentPage(1); }}
                   className={clsx(
-                    'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
-                    companyFilter === 'ALL' && 'bg-primary-50 text-primary-700'
+                    'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                    companyFilter === 'ALL' && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   )}
                 >
                   {t('admin.common.allCompanies')}
@@ -1008,8 +1008,8 @@ function UserManagement() {
                     key={c.id}
                     onClick={() => { setCompanyFilter(String(c.id)); setShowCompanyMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 truncate',
-                      String(companyFilter) === String(c.id) && 'bg-primary-50 text-primary-700'
+                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 dark:hover:bg-gray-700 truncate',
+                      String(companyFilter) === String(c.id) && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                     )}
                   >
                     {c.name}
@@ -1035,14 +1035,14 @@ function UserManagement() {
           {showRoleMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeMenus} />
-              <div className="absolute end-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute end-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
                 {['ALL', 'SUPER_ADMIN', 'COMPANY_ADMIN', 'EMPLOYEE'].map((role) => (
                   <button
                     key={role}
                     onClick={() => { setRoleFilter(role); setShowRoleMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
-                      roleFilter === role && 'bg-primary-50 text-primary-700'
+                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                      roleFilter === role && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                     )}
                   >
                     {role === 'ALL' ? t('admin.common.allRoles') : ROLE_LABELS[role]}
@@ -1068,14 +1068,14 @@ function UserManagement() {
           {showStatusMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeMenus} />
-              <div className="absolute end-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute end-0 mt-1 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
                 {['ALL', 'ACTIVE', 'INACTIVE'].map((status) => (
                   <button
                     key={status}
                     onClick={() => { setStatusFilter(status); setShowStatusMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50',
-                      statusFilter === status && 'bg-primary-50 text-primary-700'
+                      'w-full px-4 py-2 text-start text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                      statusFilter === status && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                     )}
                   >
                     {status === 'ALL' ? t('admin.common.allStatus') : status === 'ACTIVE' ? t('admin.common.active') : t('admin.common.inactive')}
@@ -1090,10 +1090,10 @@ function UserManagement() {
       {/* Active filters indicator */}
       {(companyFilter !== 'ALL' || roleFilter !== 'ALL' || statusFilter !== 'ALL' || searchQuery) && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-gray-500">{t('admin.users.showingFiltered', { filtered: filteredUsers.length, total: allUsers.length })}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{t('admin.users.showingFiltered', { filtered: filteredUsers.length, total: allUsers.length })}</span>
           <button
             onClick={() => { setCompanyFilter('ALL'); setRoleFilter('ALL'); setStatusFilter('ALL'); setSearchQuery(''); setCurrentPage(1); }}
-            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
           >
             {t('admin.users.clearAllFilters')}
           </button>
@@ -1104,10 +1104,10 @@ function UserManagement() {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
               <tr>
                 <th
-                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
@@ -1116,7 +1116,7 @@ function UserManagement() {
                   </div>
                 </th>
                 <th
-                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden lg:table-cell"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 hidden lg:table-cell"
                   onClick={() => handleSort('company')}
                 >
                   <div className="flex items-center gap-1">
@@ -1125,7 +1125,7 @@ function UserManagement() {
                   </div>
                 </th>
                 <th
-                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('role')}
                 >
                   <div className="flex items-center gap-1">
@@ -1133,14 +1133,14 @@ function UserManagement() {
                     <SortIndicator column="role" />
                   </div>
                 </th>
-                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase hidden md:table-cell">
                   {t('admin.common.riskScore')}
                 </th>
-                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   {t('admin.common.status')}
                 </th>
                 <th
-                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 hidden sm:table-cell"
+                  className="text-start px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 hidden sm:table-cell"
                   onClick={() => handleSort('last_login')}
                 >
                   <div className="flex items-center gap-1">
@@ -1148,32 +1148,32 @@ function UserManagement() {
                     <SortIndicator column="last_login" />
                   </div>
                 </th>
-                <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-end px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   {t('admin.common.actions')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {paginatedUsers.length > 0 ? (
                 paginatedUsers.map((user) => {
                   const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
                   const riskValue = user.risk_score?.score ?? user.risk_score?.risk_score ?? null;
 
                   return (
-                    <tr key={`${user._companyId}-${user.id}`} className="hover:bg-gray-50 transition-colors">
+                    <tr key={`${user._companyId}-${user.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                       {/* User Name + Email */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-bold text-primary-600">
+                          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
                               {(user.first_name?.[0] || user.email?.[0] || '?').toUpperCase()}
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium text-gray-900 truncate">
+                            <p className="font-medium text-gray-900 dark:text-white truncate">
                               {fullName || user.email}
                             </p>
-                            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{user.email}</p>
                           </div>
                         </div>
                       </td>
@@ -1181,8 +1181,8 @@ function UserManagement() {
                       {/* Company */}
                       <td className="px-4 py-3 hidden lg:table-cell">
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="text-sm text-gray-600 truncate max-w-[150px]">
+                          <Building2 className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          <span className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[150px]">
                             {user._companyName || '—'}
                           </span>
                         </div>
@@ -1192,7 +1192,7 @@ function UserManagement() {
                       <td className="px-4 py-3">
                         <span className={clsx(
                           'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
-                          ROLE_COLORS[user.role] || 'bg-gray-100 text-gray-700'
+                          ROLE_COLORS[user.role] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
                         )}>
                           {ROLE_LABELS[user.role] || user.role}
                         </span>
@@ -1202,7 +1202,7 @@ function UserManagement() {
                       <td className="px-4 py-3 hidden md:table-cell">
                         {user.role === 'EMPLOYEE' && riskValue != null ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                            <div className="w-16 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
                               <div
                                 className={clsx('h-1.5 rounded-full transition-all', getRiskBarColor(riskValue))}
                                 style={{ width: `${Math.min(riskValue, 100)}%` }}
@@ -1213,7 +1213,7 @@ function UserManagement() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
                             {user.role === 'EMPLOYEE' ? 'N/A' : '—'}
                           </span>
                         )}
@@ -1223,7 +1223,7 @@ function UserManagement() {
                       <td className="px-4 py-3">
                         <span className={clsx(
                           'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
-                          user.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+                          user.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                         )}>
                           {user.is_active ? t('admin.common.active') : t('admin.common.inactive')}
                         </span>
@@ -1231,7 +1231,7 @@ function UserManagement() {
 
                       {/* Last Login */}
                       <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           {formatRelativeTime(user.last_login)}
                         </span>
                       </td>
@@ -1240,7 +1240,7 @@ function UserManagement() {
                       <td className="px-4 py-3">
                         <div className="flex justify-end">
                           <DropdownMenu
-                            trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
+                            trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
                             items={[
                               { icon: Eye, label: t('admin.common.viewDetails'), onClick: () => setViewingUser(user) },
                               { icon: Edit2, label: t('admin.users.editUser'), onClick: () => setEditingUser(user) },
@@ -1267,9 +1267,9 @@ function UserManagement() {
               ) : (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
-                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.users.noUsersFound')}</h3>
-                    <p className="text-gray-500">
+                    <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('admin.users.noUsersFound')}</h3>
+                    <p className="text-gray-500 dark:text-gray-400">
                       {searchQuery || companyFilter !== 'ALL' || roleFilter !== 'ALL' || statusFilter !== 'ALL'
                         ? t('admin.users.adjustFilters')
                         : t('admin.users.noUsersPlatform')}
@@ -1283,25 +1283,25 @@ function UserManagement() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <div className="text-sm text-gray-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {t('admin.users.showingPagination', { from: ((currentPage - 1) * ITEMS_PER_PAGE) + 1, to: Math.min(currentPage * ITEMS_PER_PAGE, sortedUsers.length), total: sortedUsers.length })}
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 {t('admin.users.pageOf', { current: currentPage, total: totalPages })}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>

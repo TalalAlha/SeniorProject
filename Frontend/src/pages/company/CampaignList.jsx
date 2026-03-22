@@ -31,10 +31,10 @@ import { useAuth } from '../../contexts';
 
 // Status configuration
 const STATUS_CONFIG = {
-  DRAFT: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: Edit2 },
-  ACTIVE: { label: 'Active', color: 'bg-success-50 text-success-700', icon: Play },
-  PAUSED: { label: 'Paused', color: 'bg-warning-50 text-warning-700', icon: Pause },
-  COMPLETED: { label: 'Completed', color: 'bg-primary-50 text-primary-700', icon: Check },
+  DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: Edit2 },
+  ACTIVE: { label: 'Active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', icon: Play },
+  PAUSED: { label: 'Paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', icon: Pause },
+  COMPLETED: { label: 'Completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300', icon: Check },
 };
 
 // Modal Component
@@ -52,11 +52,11 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className={clsx('relative bg-white rounded-xl shadow-xl w-full', sizeClasses[size])}>
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
+        <div className={clsx('relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full', sizeClasses[size])}>
+          <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="p-6">{children}</div>
@@ -74,9 +74,9 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-6">{message}</p>
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
           <div className="flex gap-3 justify-end">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
               Cancel
@@ -102,13 +102,13 @@ function DropdownMenu({ trigger, items }) {
 
   return (
     <div className="relative">
-      <button onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
         {trigger}
       </button>
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
             {items.map((item, index) =>
               item.divider ? (
                 <hr key={index} className="my-1" />
@@ -122,7 +122,7 @@ function DropdownMenu({ trigger, items }) {
                   disabled={item.disabled}
                   className={clsx(
                     'w-full px-4 py-2 text-left text-sm flex items-center gap-2 transition-colors',
-                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
+                    item.danger ? 'text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -236,11 +236,11 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
               max="20"
               value={formData.num_emails}
               onChange={(e) => setFormData({ ...formData, num_emails: parseInt(e.target.value) })}
-              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+              className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-600"
             />
-            <span className="w-12 text-center font-medium text-gray-900">{formData.num_emails}</span>
+            <span className="w-12 text-center font-medium text-gray-900 dark:text-white">{formData.num_emails}</span>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Total emails to be sent per employee</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total emails to be sent per employee</p>
         </div>
 
         {/* Phishing Ratio */}
@@ -254,11 +254,11 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
               step="0.1"
               value={formData.phishing_ratio}
               onChange={(e) => setFormData({ ...formData, phishing_ratio: parseFloat(e.target.value) })}
-              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+              className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-600"
             />
-            <span className="w-12 text-center font-medium text-gray-900">{Math.round(formData.phishing_ratio * 100)}%</span>
+            <span className="w-12 text-center font-medium text-gray-900 dark:text-white">{Math.round(formData.phishing_ratio * 100)}%</span>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Percentage of phishing emails vs legitimate emails</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Percentage of phishing emails vs legitimate emails</p>
         </div>
 
         {/* Language Distribution */}
@@ -272,49 +272,49 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
               step="0.1"
               value={formData.english_ratio}
               onChange={(e) => setFormData({ ...formData, english_ratio: parseFloat(e.target.value) })}
-              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+              className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-600"
             />
-            <span className="w-12 text-center font-medium text-gray-900">{Math.round(formData.english_ratio * 100)}%</span>
+            <span className="w-12 text-center font-medium text-gray-900 dark:text-white">{Math.round(formData.english_ratio * 100)}%</span>
           </div>
-          <div className="flex justify-between text-xs text-gray-400 mt-1 px-0.5">
+          <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1 px-0.5">
             <span>100% Arabic</span>
             <span>50 / 50</span>
             <span>100% English</span>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {Math.round(formData.english_ratio * 100)}% English · {Math.round((1 - formData.english_ratio) * 100)}% Arabic
           </p>
         </div>
 
         {/* Preview */}
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Email Distribution Preview</h4>
+        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">Email Distribution Preview</h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-danger-100 rounded-lg shrink-0">
-                <Mail className="h-5 w-5 text-danger-600" />
+              <div className="p-2 bg-danger-100 dark:bg-danger-900/20 rounded-lg shrink-0">
+                <Mail className="h-5 w-5 text-danger-600 dark:text-danger-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Phishing</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Phishing</p>
                 <p className="text-lg font-semibold text-danger-600">{phishingCount}</p>
-                <p className="text-xs text-gray-400">{phishingEnCount} EN · {phishingArCount} AR</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{phishingEnCount} EN · {phishingArCount} AR</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-success-50 rounded-lg shrink-0">
-                <Mail className="h-5 w-5 text-success-600" />
+              <div className="p-2 bg-success-50 dark:bg-success-900/20 rounded-lg shrink-0">
+                <Mail className="h-5 w-5 text-success-600 dark:text-success-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Legitimate</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Legitimate</p>
                 <p className="text-lg font-semibold text-success-600">{legitimateCount}</p>
-                <p className="text-xs text-gray-400">{legitEnCount} EN · {legitArCount} AR</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{legitEnCount} EN · {legitArCount} AR</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">
             Cancel
           </button>
@@ -421,7 +421,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
           {/* Search and Actions */}
           <div className="flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Search employees..."
@@ -439,8 +439,8 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
           </div>
 
           {/* Selected Count */}
-          <div className="flex items-center justify-between px-4 py-2 bg-primary-50 rounded-lg">
-            <span className="text-sm text-primary-700">
+          <div className="flex items-center justify-between px-4 py-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+            <span className="text-sm text-primary-700 dark:text-primary-300">
               <strong>{assignedIds.size}</strong> new employee(s) selected
             </span>
           </div>
@@ -456,8 +456,8 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
                     className={clsx(
                       'flex items-center gap-4 p-4',
                       isAlready
-                        ? 'bg-gray-50 opacity-60 cursor-not-allowed'
-                        : 'hover:bg-gray-50 cursor-pointer'
+                        ? 'bg-gray-50 dark:bg-gray-700 opacity-60 cursor-not-allowed'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
                     )}
                   >
                     <input
@@ -465,20 +465,20 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
                       checked={isAlready || assignedIds.has(employee.id)}
                       disabled={isAlready}
                       onChange={() => toggleEmployee(employee.id)}
-                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className={clsx('font-medium', isAlready ? 'text-gray-400' : 'text-gray-900')}>
+                      <p className={clsx('font-medium', isAlready ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white')}>
                         {employee.first_name} {employee.last_name}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">{employee.email}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{employee.email}</p>
                     </div>
                     {isAlready ? (
-                      <span className="shrink-0 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                      <span className="shrink-0 text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">
                         Already Assigned
                       </span>
                     ) : employee.department ? (
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">
+                      <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
                         {employee.department}
                       </span>
                     ) : null}
@@ -486,15 +486,15 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
                 );
               })
             ) : (
-              <div className="p-8 text-center text-gray-500">
-                <Users className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <Users className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-500" />
                 <p>No employees found</p>
               </div>
             )}
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
             <button onClick={onClose} className="btn-secondary flex-1">
               Cancel
             </button>
@@ -535,8 +535,8 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
   return (
     <div className="card group cursor-pointer" onClick={() => navigate(`/company/campaigns/${campaign.id}`)}>
       <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-lg bg-primary-100">
-          <Target className="h-6 w-6 text-primary-600" />
+        <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+          <Target className="h-6 w-6 text-primary-600 dark:text-primary-400" />
         </div>
         <div className="flex items-center gap-2">
           <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full', status.color)}>
@@ -545,7 +545,7 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
           </span>
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu
-              trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
+              trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
               items={menuItems}
             />
           </div>
@@ -553,12 +553,12 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
       </div>
 
       <Link to={`/company/campaigns/${campaign.id}`} className="block">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 transition-colors">
           {campaign.name}
         </h3>
       </Link>
 
-      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
         <span className="flex items-center gap-1">
           <Users className="h-4 w-4" />
           {campaign.total_participants || 0} assigned
@@ -571,7 +571,7 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
 
       {campaign.average_score !== undefined && campaign.average_score !== null && (
         <div className="flex items-center gap-2 text-sm mb-4">
-          <span className="text-gray-500">Avg Score:</span>
+          <span className="text-gray-500 dark:text-gray-400">Avg Score:</span>
           <span className={clsx(
             'font-medium',
             campaign.average_score >= 70 ? 'text-success-600' : campaign.average_score >= 50 ? 'text-warning-600' : 'text-danger-600'
@@ -583,10 +583,10 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
 
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">{t('training.progress')}</span>
+          <span className="text-gray-500 dark:text-gray-400">{t('training.progress')}</span>
           <span className="font-medium">{campaign.completed_participants || 0}/{campaign.total_participants || 0}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
+        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
           <div
             className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -595,7 +595,7 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
       </div>
 
       {campaign.created_at && (
-        <p className="text-xs text-gray-400 mt-4">
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
           Created {formatDistanceToNow(new Date(campaign.created_at), { addSuffix: true })}
         </p>
       )}
@@ -672,7 +672,7 @@ function CampaignList() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading campaigns...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading campaigns...</p>
         </div>
       </div>
     );
@@ -682,7 +682,7 @@ function CampaignList() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchCampaigns} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -696,8 +696,8 @@ function CampaignList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('campaign.title')}</h1>
-          <p className="text-gray-600 mt-1">Manage your security awareness campaigns</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your security awareness campaigns</p>
         </div>
         <div className="flex gap-3">
           <button onClick={fetchCampaigns} className="btn-secondary flex items-center gap-2">
@@ -714,7 +714,7 @@ function CampaignList() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={`${t('common.search')} campaigns...`}
@@ -739,12 +739,12 @@ function CampaignList() {
           {showFilterMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
-              <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
                 <button
                   onClick={() => { setStatusFilter('ALL'); setShowFilterMenu(false); }}
                   className={clsx(
-                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
-                    statusFilter === 'ALL' && 'bg-primary-50 text-primary-700'
+                    'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
+                    statusFilter === 'ALL' && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   )}
                 >
                   All Status
@@ -754,8 +754,8 @@ function CampaignList() {
                     key={key}
                     onClick={() => { setStatusFilter(key); setShowFilterMenu(false); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2',
-                      statusFilter === key && 'bg-primary-50 text-primary-700'
+                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2',
+                      statusFilter === key && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                     )}
                   >
                     <config.icon className="h-4 w-4" />
@@ -783,9 +783,9 @@ function CampaignList() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns found</h3>
-          <p className="text-gray-500 mb-4">
+          <Target className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No campaigns found</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             {searchQuery || statusFilter !== 'ALL'
               ? 'Try adjusting your filters'
               : 'Get started by creating your first campaign'}

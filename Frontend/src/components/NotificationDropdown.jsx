@@ -114,7 +114,7 @@ export default function NotificationDropdown() {
       {/* Bell button */}
       <button
         onClick={() => setIsOpen((v) => !v)}
-        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 relative"
+        className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 relative"
         aria-label={t('notifications.title')}
       >
         <Bell className="h-5 w-5" />
@@ -127,10 +127,10 @@ export default function NotificationDropdown() {
 
       {/* Dropdown panel */}
       {isOpen && (
-        <div className="absolute end-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 flex flex-col max-h-[580px]">
+        <div className="absolute end-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 z-50 flex flex-col max-h-[580px]">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">{t('notifications.title')}</h3>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white">{t('notifications.title')}</h3>
             <div className="flex items-center gap-3">
               {unreadCount > 0 && (
                 <button
@@ -154,14 +154,14 @@ export default function NotificationDropdown() {
           </div>
 
           {/* Body */}
-          <div className="overflow-y-auto flex-1 divide-y divide-gray-100">
+          <div className="overflow-y-auto flex-1 divide-y divide-gray-100 dark:divide-gray-700">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3" />
                 <p className="text-sm">{t('common.loading')}</p>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400 dark:text-gray-500">
                 <Bell className="w-10 h-10 mb-3 opacity-30" />
                 <p className="text-sm">{t('notifications.noNotifications')}</p>
               </div>
@@ -172,7 +172,7 @@ export default function NotificationDropdown() {
                   onClick={() => handleNotificationClick(n)}
                   className={[
                     'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors',
-                    !n.is_read ? 'bg-blue-50 hover:bg-blue-100' : 'hover:bg-gray-50',
+                    !n.is_read ? 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700',
                     PRIORITY_STYLES[n.priority] ?? PRIORITY_STYLES.MEDIUM,
                   ].join(' ')}
                 >
@@ -184,11 +184,11 @@ export default function NotificationDropdown() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${!n.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
+                    <p className={`text-sm font-medium truncate ${!n.is_read ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                       {n.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">{n.time_ago}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{n.time_ago}</p>
                   </div>
 
                   {!n.is_read && (

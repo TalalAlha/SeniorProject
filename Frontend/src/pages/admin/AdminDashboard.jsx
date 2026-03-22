@@ -28,30 +28,30 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 // Risk level configuration (consistent with CompanyDashboard)
 const RISK_CONFIG = {
-  LOW: { label: 'Low Risk', color: 'bg-success-500', textColor: 'text-success-600', bgLight: 'bg-success-100' },
-  MEDIUM: { label: 'Medium Risk', color: 'bg-warning-500', textColor: 'text-warning-600', bgLight: 'bg-warning-100' },
-  HIGH: { label: 'High Risk', color: 'bg-orange-500', textColor: 'text-orange-600', bgLight: 'bg-orange-100' },
-  CRITICAL: { label: 'Critical Risk', color: 'bg-danger-500', textColor: 'text-danger-600', bgLight: 'bg-danger-100' },
+  LOW: { label: 'Low Risk', color: 'bg-success-500', textColor: 'text-success-600 dark:text-success-400', bgLight: 'bg-success-100 dark:bg-success-900/30' },
+  MEDIUM: { label: 'Medium Risk', color: 'bg-warning-500', textColor: 'text-warning-600 dark:text-warning-400', bgLight: 'bg-warning-100 dark:bg-warning-900/30' },
+  HIGH: { label: 'High Risk', color: 'bg-orange-500', textColor: 'text-orange-600 dark:text-orange-400', bgLight: 'bg-orange-100 dark:bg-orange-900/30' },
+  CRITICAL: { label: 'Critical Risk', color: 'bg-danger-500', textColor: 'text-danger-600 dark:text-danger-400', bgLight: 'bg-danger-100 dark:bg-danger-900/30' },
 };
 
 // --- Reusable Components ---
 
 function StatCard({ title, value, icon: Icon, color = 'primary', subtitle, trend, trendValue }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
-    orange: 'bg-orange-100 text-orange-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
+    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
   };
 
   return (
-    <div className="card">
+    <div className="card transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+          {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>}
           {trend && (
             <div className="flex items-center mt-2">
               {trend === 'up' ? (
@@ -75,18 +75,18 @@ function StatCard({ title, value, icon: Icon, color = 'primary', subtitle, trend
 
 function RiskScoreBadge({ score }) {
   const getRiskConfig = (s) => {
-    if (s == null) return { label: 'N/A', bg: 'bg-gray-100', text: 'text-gray-500' };
-    if (s <= 30) return { label: 'Low', bg: 'bg-success-100', text: 'text-success-700' };
-    if (s <= 60) return { label: 'Medium', bg: 'bg-warning-100', text: 'text-warning-700' };
-    if (s <= 80) return { label: 'High', bg: 'bg-orange-100', text: 'text-orange-700' };
-    return { label: 'Critical', bg: 'bg-danger-100', text: 'text-danger-700' };
+    if (s == null) return { label: 'N/A', bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-500 dark:text-gray-400' };
+    if (s <= 30) return { label: 'Low', bg: 'bg-success-100 dark:bg-success-900/30', text: 'text-success-700 dark:text-success-300' };
+    if (s <= 60) return { label: 'Medium', bg: 'bg-warning-100 dark:bg-warning-900/30', text: 'text-warning-700 dark:text-warning-300' };
+    if (s <= 80) return { label: 'High', bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300' };
+    return { label: 'Critical', bg: 'bg-danger-100 dark:bg-danger-900/30', text: 'text-danger-700 dark:text-danger-300' };
   };
 
   const config = getRiskConfig(score);
 
   return (
     <div className="flex items-center gap-2">
-      <div className="w-full bg-gray-100 rounded-full h-2 flex-1 min-w-[60px]">
+      <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 flex-1 min-w-[60px]">
         <div
           className={clsx(
             'h-2 rounded-full transition-all duration-500',
@@ -108,7 +108,7 @@ function StatusBadge({ isActive }) {
     <span
       className={clsx(
         'inline-flex items-center text-xs font-medium px-2 py-1 rounded-full',
-        isActive ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+        isActive ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
       )}
     >
       {isActive ? t('admin.common.active') : t('admin.common.inactive')}
@@ -118,23 +118,23 @@ function StatusBadge({ isActive }) {
 
 function ActivityItem({ activity }) {
   const iconMap = {
-    CAMPAIGN: { icon: Target, bg: 'bg-primary-100', text: 'text-primary-600' },
-    SIMULATION: { icon: Mail, bg: 'bg-warning-50', text: 'text-warning-600' },
-    COMPANY: { icon: Building2, bg: 'bg-success-50', text: 'text-success-600' },
-    USER: { icon: Users, bg: 'bg-purple-100', text: 'text-purple-600' },
+    CAMPAIGN: { icon: Target, bg: 'bg-primary-100 dark:bg-primary-900/30', text: 'text-primary-600 dark:text-primary-400' },
+    SIMULATION: { icon: Mail, bg: 'bg-warning-50 dark:bg-warning-900/20', text: 'text-warning-600 dark:text-warning-400' },
+    COMPANY: { icon: Building2, bg: 'bg-success-50 dark:bg-success-900/20', text: 'text-success-600 dark:text-success-400' },
+    USER: { icon: Users, bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400' },
   };
 
   const config = iconMap[activity.type] || iconMap.CAMPAIGN;
   const Icon = config.icon;
 
   return (
-    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+    <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
       <div className={clsx('p-2 rounded-lg flex-shrink-0', config.bg)}>
         <Icon className={clsx('h-4 w-4', config.text)} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900 font-medium truncate">{activity.title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{activity.description}</p>
+        <p className="text-sm text-gray-900 dark:text-white font-medium truncate">{activity.title}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{activity.description}</p>
         {activity.timestamp && (
           <p className="text-xs text-gray-400 mt-1">
             {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
@@ -232,7 +232,7 @@ function AdminDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('admin.dashboard.loadingDashboard')}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('admin.dashboard.loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -242,7 +242,7 @@ function AdminDashboard() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           {t('admin.common.tryAgain')}
@@ -264,10 +264,10 @@ function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
           </h1>
-          <p className="text-gray-600 mt-1">{t('admin.dashboard.subtitle')}</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('admin.dashboard.subtitle')}</p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
@@ -311,12 +311,12 @@ function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/admin/companies/create" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary-100">
-              <Plus className="h-6 w-6 text-primary-600" />
+            <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+              <Plus className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('admin.dashboard.createCompany')}</p>
-              <p className="text-sm text-gray-500">{t('admin.dashboard.onboardNewOrg')}</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('admin.dashboard.createCompany')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('admin.dashboard.onboardNewOrg')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -324,12 +324,12 @@ function AdminDashboard() {
 
         <Link to="/admin/companies" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-success-50">
-              <Building2 className="h-6 w-6 text-success-600" />
+            <div className="p-3 rounded-lg bg-success-50 dark:bg-success-900/20">
+              <Building2 className="h-6 w-6 text-success-600 dark:text-success-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('admin.dashboard.viewCompanies')}</p>
-              <p className="text-sm text-gray-500">{t('admin.dashboard.manageAllOrgs')}</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('admin.dashboard.viewCompanies')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('admin.dashboard.manageAllOrgs')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -337,12 +337,12 @@ function AdminDashboard() {
 
         <Link to="/admin/analytics" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-warning-50">
-              <BarChart3 className="h-6 w-6 text-warning-600" />
+            <div className="p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20">
+              <BarChart3 className="h-6 w-6 text-warning-600 dark:text-warning-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('admin.dashboard.platformAnalytics')}</p>
-              <p className="text-sm text-gray-500">{t('admin.dashboard.viewDetailedReports')}</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('admin.dashboard.platformAnalytics')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('admin.dashboard.viewDetailedReports')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -350,12 +350,12 @@ function AdminDashboard() {
 
         <Link to="/admin/users" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-purple-100">
-              <Users className="h-6 w-6 text-purple-600" />
+            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('admin.dashboard.userManagement')}</p>
-              <p className="text-sm text-gray-500">{t('admin.dashboard.manageUsersPerCompany')}</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('admin.dashboard.userManagement')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('admin.dashboard.manageUsersPerCompany')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors rtl:rotate-180" />
@@ -367,7 +367,7 @@ function AdminDashboard() {
         {/* Recent Companies Table */}
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.recentCompanies')}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.dashboard.recentCompanies')}</h2>
             <Link
               to="/admin/companies"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
@@ -381,25 +381,25 @@ function AdminDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-start py-3 px-2 text-gray-500 font-medium">{t('admin.common.company')}</th>
-                    <th className="text-start py-3 px-2 text-gray-500 font-medium">{t('admin.common.users')}</th>
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium hidden md:table-cell">{t('admin.common.industry')}</th>
-                    <th className="text-start py-3 px-2 text-gray-500 font-medium">{t('admin.common.status')}</th>
-                    <th className="text-left py-3 px-2 text-gray-500 font-medium hidden sm:table-cell">{t('admin.common.created')}</th>
-                    <th className="text-end py-3 px-2 text-gray-500 font-medium">{t('admin.common.actions')}</th>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-start py-3 px-2 text-gray-500 dark:text-gray-400 font-medium">{t('admin.common.company')}</th>
+                    <th className="text-start py-3 px-2 text-gray-500 dark:text-gray-400 font-medium">{t('admin.common.users')}</th>
+                    <th className="text-left py-3 px-2 text-gray-500 dark:text-gray-400 font-medium hidden md:table-cell">{t('admin.common.industry')}</th>
+                    <th className="text-start py-3 px-2 text-gray-500 dark:text-gray-400 font-medium">{t('admin.common.status')}</th>
+                    <th className="text-left py-3 px-2 text-gray-500 dark:text-gray-400 font-medium hidden sm:table-cell">{t('admin.common.created')}</th>
+                    <th className="text-end py-3 px-2 text-gray-500 dark:text-gray-400 font-medium">{t('admin.common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {companies.map((company) => (
-                    <tr key={company.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr key={company.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                       <td className="py-3 px-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                            <Building2 className="h-4 w-4 text-primary-600" />
+                          <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium text-gray-900 truncate">{company.name}</p>
+                            <p className="font-medium text-gray-900 dark:text-white truncate">{company.name}</p>
                             {company.email && (
                               <p className="text-xs text-gray-400 truncate">{company.email}</p>
                             )}
@@ -407,11 +407,11 @@ function AdminDashboard() {
                         </div>
                       </td>
                       <td className="py-3 px-2">
-                        <p className="text-gray-900 font-medium">{company.total_users || 0}</p>
+                        <p className="text-gray-900 dark:text-white font-medium">{company.total_users || 0}</p>
                         <p className="text-xs text-gray-400">{company.total_employees || 0} {t('admin.dashboard.emp')}</p>
                       </td>
                       <td className="py-3 px-2 hidden md:table-cell">
-                        <span className="text-gray-600 text-xs">{company.industry || '-'}</span>
+                        <span className="text-gray-600 dark:text-gray-300 text-xs">{company.industry || '-'}</span>
                       </td>
                       <td className="py-3 px-2">
                         <StatusBadge isActive={company.is_active} />
@@ -453,7 +453,7 @@ function AdminDashboard() {
         {/* Platform Activity */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.recentActivity')}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.dashboard.recentActivity')}</h2>
             <Activity className="h-5 w-5 text-gray-400" />
           </div>
 
@@ -474,58 +474,58 @@ function AdminDashboard() {
 
       {/* Platform Overview Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card bg-gradient-to-br from-primary-50 to-white">
+        <div className="card bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/20 dark:to-gray-800">
           <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="h-5 w-5 text-primary-600" />
-            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.quizCampaigns')}</p>
+            <CheckCircle className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t('admin.dashboard.quizCampaigns')}</p>
           </div>
-          <p className="text-xl font-bold text-gray-900">{stats?.total_campaigns || 0}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats?.total_campaigns || 0}</p>
           <p className="text-xs text-gray-500 mt-1">
             {t('admin.dashboard.completedActive', { completed: stats?.completed_campaigns || 0, active: stats?.active_campaigns || 0 })}
           </p>
           {stats?.average_quiz_score != null && (
-            <p className="text-xs text-primary-600 mt-1">{t('admin.dashboard.avgScore', { score: Math.round(stats.average_quiz_score) })}</p>
+            <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">{t('admin.dashboard.avgScore', { score: Math.round(stats.average_quiz_score) })}</p>
           )}
         </div>
 
-        <div className="card bg-gradient-to-br from-warning-50 to-white">
+        <div className="card bg-gradient-to-br from-warning-50 to-white dark:from-warning-900/20 dark:to-gray-800">
           <div className="flex items-center gap-3 mb-2">
-            <Mail className="h-5 w-5 text-warning-600" />
-            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.simulations')}</p>
+            <Mail className="h-5 w-5 text-warning-600 dark:text-warning-400" />
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t('admin.dashboard.simulations')}</p>
           </div>
-          <p className="text-xl font-bold text-gray-900">{stats?.total_simulations || 0}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats?.total_simulations || 0}</p>
           <p className="text-xs text-gray-500 mt-1">
             {t('admin.dashboard.completedActive', { completed: stats?.completed_simulations || 0, active: stats?.active_simulations || 0 })}
           </p>
           {stats?.overall_click_rate != null && (
-            <p className="text-xs text-warning-600 mt-1">{t('admin.dashboard.clickRate', { rate: Math.round(stats.overall_click_rate) })}</p>
+            <p className="text-xs text-warning-600 dark:text-warning-400 mt-1">{t('admin.dashboard.clickRate', { rate: Math.round(stats.overall_click_rate) })}</p>
           )}
         </div>
 
-        <div className="card bg-gradient-to-br from-success-50 to-white">
+        <div className="card bg-gradient-to-br from-success-50 to-white dark:from-success-900/20 dark:to-gray-800">
           <div className="flex items-center gap-3 mb-2">
-            <Shield className="h-5 w-5 text-success-600" />
-            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.training')}</p>
+            <Shield className="h-5 w-5 text-success-600 dark:text-success-400" />
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t('admin.dashboard.training')}</p>
           </div>
-          <p className="text-xl font-bold text-gray-900">{stats?.total_trainings_assigned || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats?.total_trainings_assigned || 0}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {t('admin.dashboard.completedPassed', { completed: stats?.trainings_completed || 0, passed: stats?.trainings_passed || 0 })}
           </p>
           {stats?.training_completion_rate != null && (
-            <p className="text-xs text-success-600 mt-1">{t('admin.dashboard.completion', { rate: Math.round(stats.training_completion_rate) })}</p>
+            <p className="text-xs text-success-600 dark:text-success-400 mt-1">{t('admin.dashboard.completion', { rate: Math.round(stats.training_completion_rate) })}</p>
           )}
         </div>
 
-        <div className="card bg-gradient-to-br from-purple-50 to-white">
+        <div className="card bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-gray-800">
           <div className="flex items-center gap-3 mb-2">
-            <AlertTriangle className="h-5 w-5 text-purple-600" />
-            <p className="text-sm font-medium text-gray-700">{t('admin.dashboard.riskDistribution')}</p>
+            <AlertTriangle className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t('admin.dashboard.riskDistribution')}</p>
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs px-1.5 py-0.5 rounded bg-success-100 text-success-700">{stats?.low_risk_count || 0} {t('admin.dashboard.low')}</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-warning-100 text-warning-700">{stats?.medium_risk_count || 0} {t('admin.dashboard.med')}</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">{stats?.high_risk_count || 0} {t('admin.dashboard.high')}</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-danger-100 text-danger-700">{stats?.critical_risk_count || 0} {t('admin.dashboard.crit')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400">{stats?.low_risk_count || 0} {t('admin.dashboard.low')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400">{stats?.medium_risk_count || 0} {t('admin.dashboard.med')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">{stats?.high_risk_count || 0} {t('admin.dashboard.high')}</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400">{stats?.critical_risk_count || 0} {t('admin.dashboard.crit')}</span>
           </div>
           {stats?.active_users_30_days != null && (
             <p className="text-xs text-gray-500 mt-2">{t('admin.dashboard.activeUsers30Days', { count: stats.active_users_30_days })}</p>

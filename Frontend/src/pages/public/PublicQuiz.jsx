@@ -116,25 +116,25 @@ function PublicQuiz() {
       id: 'phishing',
       icon: Mail,
       title: t('public.quiz.phishingQuiz'),
-      color: 'border-blue-200 hover:border-blue-400 hover:shadow-lg',
-      iconColor: 'text-blue-600 bg-blue-50',
-      activeColor: 'border-blue-500 bg-blue-50',
+      color: 'border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg dark:hover:shadow-gray-900/50',
+      iconColor: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400',
+      activeColor: 'border-blue-500 bg-blue-50 dark:bg-blue-900/20',
     },
     {
       id: 'smishing',
       icon: Smartphone,
       title: t('public.quiz.smishingQuiz'),
-      color: 'border-emerald-200 hover:border-emerald-400 hover:shadow-lg',
-      iconColor: 'text-emerald-600 bg-emerald-50',
-      activeColor: 'border-emerald-500 bg-emerald-50',
+      color: 'border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg dark:hover:shadow-gray-900/50',
+      iconColor: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400',
+      activeColor: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20',
     },
     {
       id: 'vishing',
       icon: Phone,
       title: t('public.quiz.vishingQuiz'),
-      color: 'border-purple-200 hover:border-purple-400 hover:shadow-lg',
-      iconColor: 'text-purple-600 bg-purple-50',
-      activeColor: 'border-purple-500 bg-purple-50',
+      color: 'border-purple-200 dark:border-purple-800 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-lg dark:hover:shadow-gray-900/50',
+      iconColor: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400',
+      activeColor: 'border-purple-500 bg-purple-50 dark:bg-purple-900/20',
     },
   ];
 
@@ -179,7 +179,7 @@ function PublicQuiz() {
   if (!selectedTopic) {
     return (
       <div className="fade-in">
-        <section className="bg-gradient-to-br from-primary-700 to-primary-900 text-white py-16">
+        <section className="bg-gradient-to-br from-primary-700 to-primary-900 dark:from-primary-900 dark:to-gray-900 text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
               <Shield className="h-5 w-5 text-blue-300" />
@@ -194,7 +194,7 @@ function PublicQuiz() {
           </div>
         </section>
 
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="space-y-4">
               {quizTopics.map((topic) => {
@@ -210,8 +210,8 @@ function PublicQuiz() {
                         <Icon className="h-7 w-7" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900">{topic.title}</h3>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{topic.title}</h3>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 dark:text-gray-400">
                           <span className="flex items-center gap-1">
                             <BookOpen className="h-4 w-4" />
                             10 {t('public.quiz.questions')}
@@ -220,12 +220,12 @@ function PublicQuiz() {
                             <Clock className="h-4 w-4" />
                             10 {t('public.quiz.minutes')}
                           </span>
-                          <span className="inline-block text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                          <span className="inline-block text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
                             {t('public.quiz.beginner')}
                           </span>
                         </div>
                       </div>
-                      <ArrowRight className={`h-5 w-5 text-gray-400 ${isRTL ? 'rotate-180' : ''}`} />
+                      <ArrowRight className={`h-5 w-5 text-gray-400 dark:text-gray-500 ${isRTL ? 'rotate-180' : ''}`} />
                     </div>
                   </button>
                 );
@@ -243,14 +243,14 @@ function PublicQuiz() {
     const passed = percentage >= 70;
 
     return (
-      <div className="fade-in py-16 bg-gray-50 min-h-[80vh]">
+      <div className="fade-in py-16 bg-gray-50 dark:bg-gray-900 min-h-[80vh]">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="card text-center p-8">
-            <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${passed ? 'bg-success-50' : 'bg-warning-50'}`}>
+            <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${passed ? 'bg-success-50 dark:bg-success-900/20' : 'bg-warning-50 dark:bg-warning-900/20'}`}>
               <Trophy className={`h-10 w-10 ${passed ? 'text-success-600' : 'text-warning-500'}`} />
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {passed
                 ? (i18n.language === 'ar' ? 'أحسنت!' : 'Great Job!')
                 : (i18n.language === 'ar' ? 'حاول مرة أخرى!' : 'Keep Learning!')
@@ -261,11 +261,11 @@ function PublicQuiz() {
               {percentage}%
             </div>
 
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-600 dark:text-gray-300 mb-2">
               {score} / {questions.length} {i18n.language === 'ar' ? 'إجابات صحيحة' : 'correct answers'}
             </p>
 
-            <p className="text-gray-500 text-sm mb-8">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
               {passed
                 ? (i18n.language === 'ar' ? 'لديك وعي جيد بالتهديدات السيبرانية!' : 'You have good awareness of cyber threats!')
                 : (i18n.language === 'ar' ? 'راجع مواد التدريب وحاول مرة أخرى' : 'Review the training materials and try again')
@@ -301,22 +301,22 @@ function PublicQuiz() {
 
   // Quiz Question Screen
   return (
-    <div className="fade-in py-8 sm:py-16 bg-gray-50 min-h-[80vh]">
+    <div className="fade-in py-8 sm:py-16 bg-gray-50 dark:bg-gray-900 min-h-[80vh]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <button
               onClick={handleBackToTopics}
-              className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 transition-colors"
             >
               {i18n.language === 'ar' ? 'العودة للاختبارات' : 'Back to quizzes'}
             </button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {currentQuestion + 1} / {questions.length}
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
             <div
               className="bg-primary-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
@@ -326,7 +326,7 @@ function PublicQuiz() {
 
         {/* Question card */}
         <div className="card p-6 sm:p-8">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 leading-relaxed">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-6 leading-relaxed">
             {currentQ.q}
           </h2>
 
@@ -336,14 +336,14 @@ function PublicQuiz() {
 
               if (!showResult) {
                 buttonClass += selectedAnswer === index
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50';
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700';
               } else if (index === currentQ.correct) {
-                buttonClass += 'border-green-500 bg-green-50';
+                buttonClass += 'border-green-500 dark:border-green-600 bg-green-50 dark:bg-green-900/20';
               } else if (index === selectedAnswer && index !== currentQ.correct) {
                 buttonClass += 'border-danger-500 bg-danger-50';
               } else {
-                buttonClass += 'border-gray-200 opacity-60';
+                buttonClass += 'border-gray-200 dark:border-gray-700 opacity-60';
               }
 
               return (
@@ -361,15 +361,15 @@ function PublicQuiz() {
                         <XCircle className="h-5 w-5 text-danger-500" />
                       ) : (
                         <div className={`w-5 h-5 rounded-full border-2 ${
-                          selectedAnswer === index ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
+                          selectedAnswer === index ? 'border-primary-500 bg-primary-500' : 'border-gray-300 dark:border-gray-600'
                         }`}>
                           {selectedAnswer === index && !showResult && (
-                            <div className="w-full h-full rounded-full bg-white scale-50" />
+                            <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 scale-50" />
                           )}
                         </div>
                       )}
                     </div>
-                    <span className="text-gray-800">{option}</span>
+                    <span className="text-gray-800 dark:text-gray-100">{option}</span>
                   </div>
                 </button>
               );

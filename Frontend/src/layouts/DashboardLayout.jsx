@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import NotificationDropdown from '../components/NotificationDropdown';
+import ThemeToggle from '../components/common/ThemeToggle';
 import { useAuth, USER_ROLES } from '../contexts';
 import { changeLanguage } from '../i18n';
 import clsx from 'clsx';
@@ -82,11 +83,11 @@ function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-x-hidden transition-colors">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:start-0 bg-white border-e border-gray-200">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:start-0 bg-white dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700">
         {/* Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
+        <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
           <Link to="/">
             <Logo variant="horizontal" className="h-10 w-auto" />
           </Link>
@@ -106,8 +107,8 @@ function DashboardLayout() {
                     className={clsx(
                       'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                       isActive
-                        ? 'bg-primary-50 text-primary-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                     )}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
@@ -120,10 +121,10 @@ function DashboardLayout() {
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 w-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
           >
             <LogOut className="h-5 w-5" />
             <span>{t('auth.logout')}</span>
@@ -141,7 +142,7 @@ function DashboardLayout() {
           />
 
           {/* Sidebar */}
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800">
             <div className="absolute top-0 end-0 -me-12 pt-2">
               <button
                 className="ms-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
@@ -152,7 +153,7 @@ function DashboardLayout() {
             </div>
 
             {/* Logo */}
-            <div className="h-16 flex items-center px-6 border-b border-gray-200">
+            <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
               <Link to="/">
                 <Logo variant="horizontal" className="h-10 w-auto" />
               </Link>
@@ -173,8 +174,8 @@ function DashboardLayout() {
                         className={clsx(
                           'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                           isActive
-                            ? 'bg-primary-50 text-primary-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium'
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                         )}
                       >
                         <Icon className="h-5 w-5 flex-shrink-0" />
@@ -187,10 +188,10 @@ function DashboardLayout() {
             </nav>
 
             {/* User section */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2.5 w-full text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+                className="flex items-center gap-3 px-3 py-2.5 w-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors"
               >
                 <LogOut className="h-5 w-5" />
                 <span>{t('auth.logout')}</span>
@@ -203,26 +204,30 @@ function DashboardLayout() {
       {/* Main Content */}
       <div className="lg:ps-64 flex flex-col flex-1 min-w-0">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
+        <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40 transition-colors">
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-6 w-6" />
           </button>
 
           {/* Page title - can be dynamic */}
-          <h1 className="text-lg font-semibold text-gray-900 hidden lg:block">
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white hidden lg:block">
             {t('dashboard.welcome')}, {user?.first_name || user?.email}
           </h1>
 
           {/* Right side actions */}
           <div className="flex items-center gap-4">
             {/* Language Switcher */}
+            {/* Theme Toggle */}
+            <ThemeToggle variant="icon" />
+
+            {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1 text-gray-600 hover:text-primary-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
+              className="flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <Globe className="h-5 w-5" />
               <span className="hidden sm:inline">
@@ -237,12 +242,12 @@ function DashboardLayout() {
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100"
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary-600" />
+                <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                  <User className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-600 hidden sm:block" />
+                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400 hidden sm:block" />
               </button>
 
               {userMenuOpen && (
@@ -251,16 +256,16 @@ function DashboardLayout() {
                     className="fixed inset-0 z-10"
                     onClick={() => setUserMenuOpen(false)}
                   />
-                  <div className="absolute end-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">
+                  <div className="absolute end-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {user?.first_name} {user?.last_name}
                       </p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
                     </div>
                     <Link
                       to={`/${user?.role === USER_ROLES.SUPER_ADMIN ? 'admin' : user?.role === USER_ROLES.COMPANY_ADMIN ? 'company' : 'employee'}/profile`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       <User className="h-4 w-4" />
@@ -268,7 +273,7 @@ function DashboardLayout() {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full"
                     >
                       <LogOut className="h-4 w-4" />
                       {t('auth.logout')}

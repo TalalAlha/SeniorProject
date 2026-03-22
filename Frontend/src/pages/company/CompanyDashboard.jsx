@@ -28,29 +28,29 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 // Risk level configuration
 const RISK_CONFIG = {
-  LOW: { label: 'Low Risk', color: 'bg-success-500', textColor: 'text-success-600', bgLight: 'bg-success-100' },
-  MEDIUM: { label: 'Medium Risk', color: 'bg-warning-500', textColor: 'text-warning-600', bgLight: 'bg-warning-100' },
-  HIGH: { label: 'High Risk', color: 'bg-orange-500', textColor: 'text-orange-600', bgLight: 'bg-orange-100' },
-  CRITICAL: { label: 'Critical Risk', color: 'bg-danger-500', textColor: 'text-danger-600', bgLight: 'bg-danger-100' },
+  LOW: { label: 'Low Risk', color: 'bg-success-500', textColor: 'text-success-600 dark:text-success-400', bgLight: 'bg-success-100 dark:bg-success-900/30' },
+  MEDIUM: { label: 'Medium Risk', color: 'bg-warning-500', textColor: 'text-warning-600 dark:text-warning-400', bgLight: 'bg-warning-100 dark:bg-warning-900/30' },
+  HIGH: { label: 'High Risk', color: 'bg-orange-500', textColor: 'text-orange-600 dark:text-orange-400', bgLight: 'bg-orange-100 dark:bg-orange-900/30' },
+  CRITICAL: { label: 'Critical Risk', color: 'bg-danger-500', textColor: 'text-danger-600 dark:text-danger-400', bgLight: 'bg-danger-100 dark:bg-danger-900/30' },
 };
 
 // Stat Card Component
 function StatCard({ title, value, icon: Icon, trend, trendValue, color = 'primary', subtitle }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
-    orange: 'bg-orange-100 text-orange-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
+    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
   };
 
   return (
-    <div className="card">
+    <div className="card transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+          {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>}
           {trend && (
             <div className="flex items-center mt-2">
               {trend === 'up' ? (
@@ -75,10 +75,10 @@ function StatCard({ title, value, icon: Icon, trend, trendValue, color = 'primar
 // Risk Score Gauge Component
 function RiskScoreGauge({ score, size = 'large' }) {
   const getColor = () => {
-    if (score <= 30) return { stroke: '#22c55e', bg: 'bg-success-100', text: 'text-success-600', label: 'Low' };
-    if (score <= 60) return { stroke: '#eab308', bg: 'bg-warning-100', text: 'text-warning-600', label: 'Medium' };
-    if (score <= 80) return { stroke: '#f97316', bg: 'bg-orange-100', text: 'text-orange-600', label: 'High' };
-    return { stroke: '#ef4444', bg: 'bg-danger-100', text: 'text-danger-600', label: 'Critical' };
+    if (score <= 30) return { stroke: '#22c55e', bg: 'bg-success-100 dark:bg-success-900/30', text: 'text-success-600 dark:text-success-400', label: 'Low' };
+    if (score <= 60) return { stroke: '#eab308', bg: 'bg-warning-100 dark:bg-warning-900/30', text: 'text-warning-600 dark:text-warning-400', label: 'Medium' };
+    if (score <= 80) return { stroke: '#f97316', bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', label: 'High' };
+    return { stroke: '#ef4444', bg: 'bg-danger-100 dark:bg-danger-900/30', text: 'text-danger-600 dark:text-danger-400', label: 'Critical' };
   };
 
   const config = getColor();
@@ -93,7 +93,7 @@ function RiskScoreGauge({ score, size = 'large' }) {
       <div className="relative">
         <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
           <circle
-            stroke="#e5e7eb"
+            stroke="currentColor" className="text-gray-200 dark:text-gray-700"
             fill="transparent"
             strokeWidth={strokeWidth}
             r={normalizedRadius}
@@ -140,16 +140,16 @@ function RiskDistributionChart({ data }) {
         return (
           <div key={level} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">{config.label}</span>
-              <span className="font-medium text-gray-900">{count} employees</span>
+              <span className="text-gray-600 dark:text-gray-300">{config.label}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{count} employees</span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-3">
+            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
               <div
                 className={clsx('h-3 rounded-full transition-all duration-500', config.color)}
                 style={{ width: `${Math.max(percentage, count > 0 ? 2 : 0)}%` }}
               />
             </div>
-            <p className="text-xs text-gray-400">{percentage.toFixed(1)}% of employees</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{percentage.toFixed(1)}% of employees</p>
           </div>
         );
       })}
@@ -160,11 +160,11 @@ function RiskDistributionChart({ data }) {
 // Campaign Status Badge
 function CampaignStatusBadge({ status }) {
   const statusConfig = {
-    ACTIVE: { label: 'Active', color: 'bg-success-50 text-success-700', icon: Play },
-    DRAFT: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: Clock },
-    PAUSED: { label: 'Paused', color: 'bg-warning-50 text-warning-700', icon: Pause },
-    COMPLETED: { label: 'Completed', color: 'bg-primary-50 text-primary-700', icon: CheckCircle2 },
-    SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 text-blue-700', icon: Calendar },
+    ACTIVE: { label: 'Active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400', icon: Play },
+    DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300', icon: Clock },
+    PAUSED: { label: 'Paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', icon: Pause },
+    COMPLETED: { label: 'Completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400', icon: CheckCircle2 },
+    SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Calendar },
   };
 
   const config = statusConfig[status] || statusConfig.DRAFT;
@@ -187,17 +187,17 @@ function CampaignCard({ campaign }) {
   return (
     <Link
       to={`/company/campaigns/${campaign.id}`}
-      className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+      className="block p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
     >
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-medium text-gray-900 truncate flex-1 mr-2">{campaign.name}</h3>
+        <h3 className="font-medium text-gray-900 dark:text-white truncate flex-1 mr-2">{campaign.name}</h3>
         <CampaignStatusBadge status={campaign.status} />
       </div>
-      <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
         <span>{employeeCount} employees</span>
         <span>{Math.round(progress)}% complete</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-1.5">
+      <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
         <div
           className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
           style={{ width: `${Math.min(progress, 100)}%` }}
@@ -211,20 +211,20 @@ function CampaignCard({ campaign }) {
 function SimulationCard({ simulation }) {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-success-50 text-success-700';
-      case 'COMPLETED': return 'bg-primary-50 text-primary-700';
-      case 'SCHEDULED': return 'bg-blue-50 text-blue-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'ACTIVE': return 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400';
+      case 'COMPLETED': return 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400';
+      case 'SCHEDULED': return 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400';
+      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
     }
   };
 
   return (
     <Link
       to="/company/simulations"
-      className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+      className="block p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
     >
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-medium text-gray-900 truncate flex-1 mr-2">{simulation.name}</h3>
+        <h3 className="font-medium text-gray-900 dark:text-white truncate flex-1 mr-2">{simulation.name}</h3>
         <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', getStatusColor(simulation.status))}>
           {simulation.status}
         </span>
@@ -317,7 +317,7 @@ function CompanyDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -327,7 +327,7 @@ function CompanyDashboard() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -353,10 +353,10 @@ function CompanyDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
           </h1>
-          <p className="text-gray-600 mt-1">Company overview and security metrics</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Company overview and security metrics</p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
@@ -401,7 +401,7 @@ function CompanyDashboard() {
         {/* Risk Distribution Chart */}
         <div className="card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Risk Distribution</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Risk Distribution</h2>
             <RiskScoreGauge score={avgRiskScore} size="small" />
           </div>
           <RiskDistributionChart data={riskDistribution} />
@@ -410,7 +410,7 @@ function CompanyDashboard() {
         {/* Recent Campaigns */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.activeCampaigns')}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.activeCampaigns')}</h2>
             <Link
               to="/company/campaigns"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
@@ -443,7 +443,7 @@ function CompanyDashboard() {
         {/* Recent Simulations */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Simulations</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Simulations</h2>
             <Link
               to="/company/simulations"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
@@ -478,12 +478,12 @@ function CompanyDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/company/campaigns/create" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary-100">
-              <Target className="h-6 w-6 text-primary-600" />
+            <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+              <Target className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('campaign.createCampaign')}</p>
-              <p className="text-sm text-gray-500">Launch awareness campaign</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('campaign.createCampaign')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Launch awareness campaign</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -491,12 +491,12 @@ function CompanyDashboard() {
 
         <Link to="/company/simulations/create" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-warning-50">
-              <Mail className="h-6 w-6 text-warning-600" />
+            <div className="p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20">
+              <Mail className="h-6 w-6 text-warning-600 dark:text-warning-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('simulation.createSimulation')}</p>
-              <p className="text-sm text-gray-500">Test employee awareness</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('simulation.createSimulation')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Test employee awareness</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -504,12 +504,12 @@ function CompanyDashboard() {
 
         <Link to="/company/employees" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-purple-100">
-              <UserPlus className="h-6 w-6 text-purple-600" />
+            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <UserPlus className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Manage Employees</p>
-              <p className="text-sm text-gray-500">Invite and manage team</p>
+              <p className="font-medium text-gray-900 dark:text-white">Manage Employees</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Invite and manage team</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -517,12 +517,12 @@ function CompanyDashboard() {
 
         <Link to="/company/analytics" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-success-50">
-              <BarChart3 className="h-6 w-6 text-success-600" />
+            <div className="p-3 rounded-lg bg-success-50 dark:bg-success-900/20">
+              <BarChart3 className="h-6 w-6 text-success-600 dark:text-success-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{t('nav.analytics')}</p>
-              <p className="text-sm text-gray-500">View detailed reports</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('nav.analytics')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">View detailed reports</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />

@@ -38,7 +38,7 @@ import { useAuth } from '../../contexts';
 
 // Role configuration
 const ROLE_CONFIG = {
-  EMPLOYEE: { label: 'Employee', color: 'bg-gray-100 text-gray-700' },
+  EMPLOYEE: { label: 'Employee', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' },
   COMPANY_ADMIN: { label: 'Admin', color: 'bg-primary-100 text-primary-700' },
 };
 
@@ -64,11 +64,11 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className={clsx('relative bg-white rounded-xl shadow-xl w-full', sizeClasses[size])}>
+        <div className={clsx('relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full', sizeClasses[size])}>
           <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-5 w-5 text-gray-500" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">{children}</div>
@@ -86,9 +86,9 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-6">{message}</p>
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
           <div className="flex gap-3 justify-end">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
               Cancel
@@ -129,7 +129,7 @@ function DropdownMenu({ trigger, items }) {
 
   return (
     <div className="relative">
-      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button ref={btnRef} onClick={() => setIsOpen(!isOpen)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
         {trigger}
       </button>
       {isOpen && createPortal(
@@ -137,7 +137,7 @@ function DropdownMenu({ trigger, items }) {
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div
             ref={menuRef}
-            className="fixed w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+            className="fixed w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-50"
             style={{ top: pos.top, left: pos.left }}
           >
             {items.map((item, index) =>
@@ -153,7 +153,7 @@ function DropdownMenu({ trigger, items }) {
                   disabled={item.disabled}
                   className={clsx(
                     'w-full px-4 py-2 text-start text-sm flex items-center gap-2 transition-colors',
-                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 hover:bg-gray-50',
+                    item.danger ? 'text-danger-600 hover:bg-danger-50' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
                     item.disabled && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -196,9 +196,9 @@ function StatCard({ icon: Icon, label, value, color = 'primary', trend, subtext 
         )}
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-        {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+        <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        {subtext && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtext}</p>}
       </div>
     </div>
   );
@@ -389,9 +389,9 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
             type="email"
             value={employee.email}
             disabled
-            className="input bg-gray-50 text-gray-500"
+            className="input bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
           />
-          <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
         </div>
 
         <div>
@@ -404,7 +404,7 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
                   'flex-1 flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors',
                   formData.role === key
                     ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 )}
               >
                 <input
@@ -454,17 +454,17 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
             {employee.first_name?.[0]}{employee.last_name?.[0]}
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
               {employee.first_name} {employee.last_name}
             </h3>
-            <p className="text-gray-500">{employee.email}</p>
+            <p className="text-gray-500 dark:text-gray-400">{employee.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', ROLE_CONFIG[employee.role]?.color)}>
                 {ROLE_CONFIG[employee.role]?.label || employee.role}
               </span>
               <span className={clsx(
                 'text-xs font-medium px-2 py-1 rounded-full',
-                employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-700'
+                employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
               )}>
                 {employee.is_active ? 'Active' : 'Inactive'}
               </span>
@@ -473,76 +473,76 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
         </div>
 
         {/* Risk Score */}
-        <div className="p-4 bg-gray-50 rounded-lg">
+        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-gray-700">Risk Score</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Risk Score</span>
             <span className={clsx('text-sm font-medium px-2 py-1 rounded-full', riskConfig.color)}>
               {riskConfig.label}
             </span>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                 <div
                   className={clsx('h-3 rounded-full transition-all', riskConfig.bgColor)}
                   style={{ width: `${employee.risk_score?.score || 0}%` }}
                 />
               </div>
             </div>
-            <span className="text-2xl font-bold text-gray-900">{employee.risk_score?.score || 0}</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{employee.risk_score?.score || 0}</span>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <BookOpen className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{employee.risk_score?.total_quizzes_taken || 0}</p>
-            <p className="text-sm text-gray-500">Quizzes Taken</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{employee.risk_score?.total_quizzes_taken || 0}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Quizzes Taken</p>
             {employee.risk_score?.quiz_accuracy != null && (
-              <p className="text-xs text-gray-400 mt-1">{Math.round(employee.risk_score.quiz_accuracy)}% accuracy</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{Math.round(employee.risk_score.quiz_accuracy)}% accuracy</p>
             )}
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <Mail className="h-6 w-6 text-warning-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{employee.risk_score?.total_simulations_received || 0}</p>
-            <p className="text-sm text-gray-500">Simulations Received</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{employee.risk_score?.total_simulations_received || 0}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Simulations Received</p>
             {employee.risk_score?.simulations_clicked > 0 && (
               <p className="text-xs text-danger-500 mt-1">{employee.risk_score.simulations_clicked} clicked</p>
             )}
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <Award className="h-6 w-6 text-success-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {employee.risk_score?.trainings_completed || 0}/{employee.risk_score?.trainings_assigned || 0}
             </p>
-            <p className="text-sm text-gray-500">Training Completed</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Training Completed</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <AlertTriangle className={clsx(
               'h-6 w-6 mx-auto mb-2',
               employee.risk_score?.requires_remediation ? 'text-danger-600' : 'text-success-600'
             )} />
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {employee.risk_score?.requires_remediation ? 'Yes' : 'No'}
             </p>
-            <p className="text-sm text-gray-500">Needs Remediation</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Needs Remediation</p>
           </div>
         </div>
 
         {/* Additional Info */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-500">Joined</span>
-            <p className="font-medium text-gray-900">
+            <span className="text-gray-500 dark:text-gray-400">Joined</span>
+            <p className="font-medium text-gray-900 dark:text-white">
               {employee.date_joined
                 ? format(new Date(employee.date_joined), 'MMM d, yyyy')
                 : 'N/A'}
             </p>
           </div>
           <div>
-            <span className="text-gray-500">Last Active</span>
-            <p className="font-medium text-gray-900">
+            <span className="text-gray-500 dark:text-gray-400">Last Active</span>
+            <p className="font-medium text-gray-900 dark:text-white">
               {employee.last_login
                 ? formatDistanceToNow(new Date(employee.last_login), { addSuffix: true })
                 : 'Never'}
@@ -818,7 +818,7 @@ function CompanyEmployees() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading employees...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading employees...</p>
         </div>
       </div>
     );
@@ -828,7 +828,7 @@ function CompanyEmployees() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchEmployees} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -842,8 +842,8 @@ function CompanyEmployees() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
-          <p className="text-gray-600 mt-1">Manage your organization's employees</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Employees</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your organization's employees</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -865,19 +865,19 @@ function CompanyEmployees() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setActiveTab('employees')}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
             activeTab === 'employees'
               ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
           )}
         >
           <Users className="h-4 w-4" />
           Active Employees
-          <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+          <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full">
             {employees.length}
           </span>
         </button>
@@ -887,7 +887,7 @@ function CompanyEmployees() {
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
             activeTab === 'pending'
               ? 'border-warning-500 text-warning-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
           )}
         >
           <Clock className="h-4 w-4" />
@@ -933,7 +933,7 @@ function CompanyEmployees() {
       {activeTab === 'employees' && <>
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search by name or email..."
@@ -958,13 +958,13 @@ function CompanyEmployees() {
           {showFilterMenu && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
-              <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+              <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 py-1 z-20">
                 {['ALL', 'ACTIVE', 'INACTIVE'].map((status) => (
                   <button
                     key={status}
                     onClick={() => { setStatusFilter(status); setShowFilterMenu(false); setCurrentPage(1); }}
                     className={clsx(
-                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50',
+                      'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700',
                       statusFilter === status && 'bg-primary-50 text-primary-700'
                     )}
                   >
@@ -981,18 +981,18 @@ function CompanyEmployees() {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 dark:bg-gray-700 border-b">
               <tr>
                 <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
                     checked={selectedEmployees.size === paginatedEmployees.length && paginatedEmployees.length > 0}
                     onChange={toggleSelectAll}
-                    className="h-4 w-4 rounded border-gray-300 text-primary-600"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600"
                   />
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('first_name')}
                 >
                   <div className="flex items-center gap-1">
@@ -1000,14 +1000,14 @@ function CompanyEmployees() {
                     <SortIndicator column="first_name" />
                   </div>
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Email
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Role
                 </th>
                 <th
-                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('risk_score')}
                 >
                   <div className="flex items-center gap-1">
@@ -1015,35 +1015,35 @@ function CompanyEmployees() {
                     <SortIndicator column="risk_score" />
                   </div>
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Quizzes
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Training
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Badges
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Status
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {paginatedEmployees.length > 0 ? (
                 paginatedEmployees.map((employee) => {
                   const riskConfig = getRiskConfig(employee.risk_score?.score || 0);
                   return (
-                    <tr key={employee.id} className="hover:bg-gray-50">
+                    <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
                           checked={selectedEmployees.has(employee.id)}
                           onChange={() => toggleSelectEmployee(employee.id)}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600"
+                          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600"
                         />
                       </td>
                       <td className="px-4 py-3">
@@ -1051,12 +1051,12 @@ function CompanyEmployees() {
                           <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium">
                             {employee.first_name?.[0]}{employee.last_name?.[0]}
                           </div>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 dark:text-white">
                             {employee.first_name} {employee.last_name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{employee.email}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{employee.email}</td>
                       <td className="px-4 py-3">
                         <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', ROLE_CONFIG[employee.role]?.color)}>
                           {ROLE_CONFIG[employee.role]?.label || employee.role}
@@ -1064,7 +1064,7 @@ function CompanyEmployees() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div className="w-16 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                             <div
                               className={clsx('h-2 rounded-full', riskConfig.bgColor)}
                               style={{ width: `${employee.risk_score?.score || 0}%` }}
@@ -1075,19 +1075,19 @@ function CompanyEmployees() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                      <td className="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-300">
                         {employee.quizzes_completed || 0}
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                      <td className="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-300">
                         {employee.trainings_completed || 0}
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                      <td className="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-300">
                         {employee.badges_earned || 0}
                       </td>
                       <td className="px-4 py-3">
                         <span className={clsx(
                           'text-xs font-medium px-2 py-1 rounded-full',
-                          employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+                          employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                         )}>
                           {employee.is_active ? 'Active' : 'Inactive'}
                         </span>
@@ -1095,7 +1095,7 @@ function CompanyEmployees() {
                       <td className="px-4 py-3">
                         <div className="flex justify-end">
                           <DropdownMenu
-                            trigger={<MoreVertical className="h-5 w-5 text-gray-400" />}
+                            trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
                             items={[
                               { icon: Eye, label: 'View Details', onClick: () => setViewingEmployee(employee) },
                               { icon: Edit2, label: 'Edit', onClick: () => setEditingEmployee(employee) },
@@ -1123,9 +1123,9 @@ function CompanyEmployees() {
               ) : (
                 <tr>
                   <td colSpan={10} className="px-4 py-12 text-center">
-                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No employees found</h3>
-                    <p className="text-gray-500">
+                    <Users className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No employees found</h3>
+                    <p className="text-gray-500 dark:text-gray-400">
                       {searchQuery || statusFilter !== 'ALL'
                         ? 'Try adjusting your filters'
                         : 'Get started by inviting employees to your organization'}
@@ -1140,24 +1140,24 @@ function CompanyEmployees() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredAndSortedEmployees.length)} of {filteredAndSortedEmployees.length} employees
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -1176,38 +1176,38 @@ function CompanyEmployees() {
             </div>
           ) : pendingInvitations.length === 0 ? (
             <div className="p-12 text-center">
-              <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No pending invitations</h3>
-              <p className="text-gray-500">All invitations have been accepted or cancelled.</p>
+              <Clock className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No pending invitations</h3>
+              <p className="text-gray-500 dark:text-gray-400">All invitations have been accepted or cancelled.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-gray-50 dark:bg-gray-700 border-b">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Invited</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Invited</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {pendingInvitations.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-gray-50">
+                    <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center text-warning-600 font-medium text-sm">
                             {(inv.first_name?.[0] || inv.email[0]).toUpperCase()}
                           </div>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-gray-900 dark:text-white">
                             {(inv.first_name || inv.last_name)
                               ? `${inv.first_name} ${inv.last_name}`.trim()
                               : '—'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{inv.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{inv.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                         {inv.invitation_sent_at
                           ? formatDistanceToNow(new Date(inv.invitation_sent_at), { addSuffix: true })
                           : '—'}

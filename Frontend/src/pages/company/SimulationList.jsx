@@ -38,8 +38,8 @@ function SimulationList() {
     <div className="fade-in space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('simulation.title')}</h1>
-          <p className="text-gray-600 mt-1">Test employee awareness with phishing simulations</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('simulation.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Test employee awareness with phishing simulations</p>
         </div>
         <Link to="/company/simulations/create" className="btn-primary">
           <Plus className="h-5 w-5 mr-2" />
@@ -57,15 +57,15 @@ function SimulationList() {
                   <Mail className="h-6 w-6 text-warning-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{sim.name}</h3>
-                  <p className="text-sm text-gray-500">{sim.template}</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{sim.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{sim.template}</p>
                 </div>
               </div>
               <span className={clsx(
                 'text-xs font-medium px-2 py-1 rounded-full',
                 sim.status === 'completed' && 'bg-success-50 text-success-700',
                 sim.status === 'active' && 'bg-primary-50 text-primary-700',
-                sim.status === 'draft' && 'bg-gray-100 text-gray-700'
+                sim.status === 'draft' && 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
               )}>
                 {sim.status}
               </span>
@@ -73,17 +73,17 @@ function SimulationList() {
 
             {sim.status !== 'draft' && (
               <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-2xl font-bold text-gray-900">{sim.sent}</p>
-                  <p className="text-xs text-gray-500">Sent</p>
+                <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{sim.sent}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Sent</p>
                 </div>
                 <div className="text-center p-3 bg-danger-50 rounded-lg">
                   <p className="text-2xl font-bold text-danger-600">{sim.clicked}</p>
-                  <p className="text-xs text-gray-500">{t('simulation.clicked')}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('simulation.clicked')}</p>
                 </div>
                 <div className="text-center p-3 bg-success-50 rounded-lg">
                   <p className="text-2xl font-bold text-success-600">{sim.reported}</p>
-                  <p className="text-xs text-gray-500">{t('simulation.reported')}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('simulation.reported')}</p>
                 </div>
               </div>
             )}

@@ -78,7 +78,7 @@ function AcceptInvitation() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (pageState === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
         <Loader2 className="w-10 h-10 animate-spin text-primary-600" />
       </div>
     );
@@ -104,13 +104,13 @@ function AcceptInvitation() {
     const info = messages[errorInfo.type] || messages.invalid;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/50 p-8 text-center">
+          <div className="w-16 h-16 bg-danger-100 dark:bg-danger-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <X className="w-8 h-8 text-danger-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{info.title}</h2>
-          <p className="text-gray-600 mb-6">{info.body}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{info.title}</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{info.body}</p>
           <button
             onClick={() => navigate('/login')}
             className="btn-primary px-6 py-2"
@@ -125,13 +125,13 @@ function AcceptInvitation() {
   // ── Success ───────────────────────────────────────────────────────────────
   if (pageState === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/50 p-8 text-center">
+          <div className="w-16 h-16 bg-success-100 dark:bg-success-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Check className="w-8 h-8 text-success-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Activated!</h2>
-          <p className="text-gray-600">Redirecting you to the login page…</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Account Activated!</h2>
+          <p className="text-gray-600 dark:text-gray-300">Redirecting you to the login page…</p>
         </div>
       </div>
     );
@@ -142,26 +142,26 @@ function AcceptInvitation() {
   const displayName = [first_name, last_name].filter(Boolean).join(' ') || email;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/50 p-8">
         {/* Header */}
         <div className="text-center mb-6">
           <Logo variant="vertical" className="h-20 w-auto mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900">You're Invited!</h2>
-          <p className="text-gray-600 mt-1">
-            Join <span className="font-semibold text-gray-900">{company_name}</span> on PhishAware
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">You're Invited!</h2>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
+            Join <span className="font-semibold text-gray-900 dark:text-white">{company_name}</span> on PhishAware
           </p>
         </div>
 
         {/* Invitation details */}
-        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6 space-y-1">
-          <p className="text-sm text-primary-800">
+        <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6 space-y-1">
+          <p className="text-sm text-primary-800 dark:text-primary-300">
             <span className="font-medium">Name:</span> {displayName}
           </p>
-          <p className="text-sm text-primary-800">
+          <p className="text-sm text-primary-800 dark:text-primary-300">
             <span className="font-medium">Email:</span> {email}
           </p>
-          <p className="text-sm text-primary-800">
+          <p className="text-sm text-primary-800 dark:text-primary-300">
             <span className="font-medium">Company:</span> {company_name}
           </p>
         </div>
@@ -177,12 +177,12 @@ function AcceptInvitation() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input pr-10"
+                className="input pr-10 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 placeholder="At least 8 characters"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 onClick={() => setShowPassword((v) => !v)}
                 tabIndex={-1}
               >
@@ -199,12 +199,12 @@ function AcceptInvitation() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input pr-10"
+                className="input pr-10 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 placeholder="Re-enter password"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 onClick={() => setShowConfirmPassword((v) => !v)}
                 tabIndex={-1}
               >

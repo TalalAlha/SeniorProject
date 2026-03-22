@@ -72,15 +72,15 @@ const ROWS_PER_PAGE = 10;
 function getRiskColor(score) {
   if (score < 30) return 'text-success-600';
   if (score < 60) return 'text-warning-600';
-  if (score < 80) return 'text-orange-600';
+  if (score < 80) return 'text-orange-600 dark:text-orange-400';
   return 'text-danger-600';
 }
 
 function getRiskBg(score) {
-  if (score < 30) return 'bg-success-50 text-success-700';
-  if (score < 60) return 'bg-warning-50 text-warning-700';
-  if (score < 80) return 'bg-orange-100 text-orange-700';
-  return 'bg-danger-50 text-danger-700';
+  if (score < 30) return 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300';
+  if (score < 60) return 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300';
+  if (score < 80) return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400';
+  return 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-300';
 }
 
 function formatPct(value) {
@@ -141,19 +141,19 @@ function downloadBlob(blob, filename) {
 
 function MetricCard({ label, value, icon: Icon, color = 'primary', trend, trendValue }) {
   const iconBg = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
-    orange: 'bg-orange-100 text-orange-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
+    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
   };
 
   return (
     <div className="card">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className={clsx('text-3xl font-bold mt-1', color === 'danger' ? 'text-danger-600' : 'text-gray-900')}>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+          <p className={clsx('text-3xl font-bold mt-1', color === 'danger' ? 'text-danger-600' : 'text-gray-900 dark:text-white')}>
             {value}
           </p>
           {trend && (
@@ -181,14 +181,14 @@ function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
   const active = currentSort === sortKey;
   return (
     <th
-      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-600"
       onClick={() => onSort(sortKey)}
     >
       <div className="flex items-center gap-1">
         {label}
         <span className="inline-flex flex-col">
-          <ChevronUp className={clsx('h-3 w-3 -mb-1', active && currentDir === 'asc' ? 'text-primary-600' : 'text-gray-300')} />
-          <ChevronDown className={clsx('h-3 w-3', active && currentDir === 'desc' ? 'text-primary-600' : 'text-gray-300')} />
+          <ChevronUp className={clsx('h-3 w-3 -mb-1', active && currentDir === 'asc' ? 'text-primary-600' : 'text-gray-300 dark:text-gray-500')} />
+          <ChevronDown className={clsx('h-3 w-3', active && currentDir === 'desc' ? 'text-primary-600' : 'text-gray-300 dark:text-gray-500')} />
         </span>
       </div>
     </th>
@@ -198,22 +198,22 @@ function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
 function Pagination({ page, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
-      <p className="text-sm text-gray-500">
+    <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
+      <p className="text-sm text-gray-500 dark:text-gray-400">
         Page {page} of {totalPages}
       </p>
       <div className="flex gap-2">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="p-1 rounded hover:bg-gray-100 disabled:opacity-40"
+          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-40"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="p-1 rounded hover:bg-gray-100 disabled:opacity-40"
+          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-40"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
@@ -224,19 +224,19 @@ function Pagination({ page, totalPages, onPageChange }) {
 
 // Category config for module icons
 const MODULE_CATEGORY_CONFIG = {
-  EMAIL_SECURITY: { icon: Mail, iconColor: 'text-blue-600', bgColor: 'bg-blue-50', label: 'Email Security' },
-  MOBILE_SECURITY: { icon: Smartphone, iconColor: 'text-green-600', bgColor: 'bg-green-50', label: 'Mobile Security' },
-  SOCIAL_ENGINEERING: { icon: Phone, iconColor: 'text-purple-600', bgColor: 'bg-purple-50', label: 'Social Engineering' },
+  EMAIL_SECURITY: { icon: Mail, iconColor: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20', label: 'Email Security' },
+  MOBILE_SECURITY: { icon: Smartphone, iconColor: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/20', label: 'Mobile Security' },
+  SOCIAL_ENGINEERING: { icon: Phone, iconColor: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/20', label: 'Social Engineering' },
 };
 
 // Status badge config for existing assignments shown inside the modal
 const ASSIGNMENT_STATUS_UI = {
-  ASSIGNED:    { label: 'In queue',    badge: 'bg-blue-100 text-blue-700',    blocked: true  },
-  IN_PROGRESS: { label: 'In progress', badge: 'bg-warning-100 text-warning-700', blocked: true  },
-  COMPLETED:   { label: 'Completed',   badge: 'bg-success-50 text-success-700', blocked: false },
-  PASSED:      { label: 'Passed',      badge: 'bg-success-50 text-success-700', blocked: false },
-  FAILED:      { label: 'Failed',      badge: 'bg-danger-50 text-danger-700',  blocked: false },
-  EXPIRED:     { label: 'Expired',     badge: 'bg-gray-100 text-gray-600',     blocked: false },
+  ASSIGNED:    { label: 'In queue',    badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',    blocked: true  },
+  IN_PROGRESS: { label: 'In progress', badge: 'bg-warning-100 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', blocked: true  },
+  COMPLETED:   { label: 'Completed',   badge: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', blocked: false },
+  PASSED:      { label: 'Passed',      badge: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', blocked: false },
+  FAILED:      { label: 'Failed',      badge: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-300',  blocked: false },
+  EXPIRED:     { label: 'Expired',     badge: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',     blocked: false },
 };
 
 // Modal for assigning training — fetches real modules + employee's existing assignments
@@ -340,22 +340,22 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg">
+        <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/50 w-full max-w-lg">
 
           {/* Header */}
-          <div className="flex items-start justify-between p-6 border-b">
+          <div className="flex items-start justify-between p-6 border-b dark:border-gray-700">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Assign Training</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                <span className="font-medium text-gray-900">{employeeName}</span>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Assign Training</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <span className="font-medium text-gray-900 dark:text-white">{employeeName}</span>
                 {' · '}
                 <span className={clsx('font-semibold', getRiskColor(employee.risk_score))}>
                   Risk Score: {employee.risk_score}
                 </span>
               </p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg ms-4 shrink-0">
-              <X className="h-5 w-5 text-gray-500" />
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg ms-4 shrink-0">
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
@@ -364,13 +364,13 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
             {dataLoading ? (
               <div className="flex items-center justify-center py-10 gap-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
-                <span className="text-sm text-gray-500">Loading modules...</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Loading modules...</span>
               </div>
             ) : loadError ? (
               <div className="text-center py-8">
                 <AlertCircle className="h-10 w-10 text-danger-500 mx-auto mb-3" />
-                <p className="font-medium text-gray-900 mb-1">Failed to load modules</p>
-                <p className="text-sm text-gray-500 mb-4">{loadError}</p>
+                <p className="font-medium text-gray-900 dark:text-white mb-1">Failed to load modules</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{loadError}</p>
                 <button onClick={loadData} className="btn-secondary text-sm">
                   Try Again
                 </button>
@@ -378,8 +378,8 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
             ) : modules.length === 0 ? (
               <div className="text-center py-8">
                 <AlertTriangle className="h-10 w-10 text-warning-500 mx-auto mb-3" />
-                <p className="font-medium text-gray-900 mb-1">No training modules found</p>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="font-medium text-gray-900 dark:text-white mb-1">No training modules found</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                   Seed the database first, then come back to assign training.
                 </p>
                 <button
@@ -410,10 +410,10 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                     className={clsx(
                       'border-2 rounded-lg p-4 transition-all',
                       blocked
-                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-70'
+                        ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 cursor-not-allowed opacity-70'
                         : isSelected
-                          ? 'border-primary-500 bg-primary-50 cursor-pointer'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 cursor-pointer'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -421,10 +421,10 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                       <div className={clsx(
                         'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors',
                         blocked
-                          ? 'border-gray-300 bg-gray-100'
+                          ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700'
                           : isSelected
                             ? 'bg-primary-600 border-primary-600'
-                            : 'border-gray-300 bg-white'
+                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
                       )}>
                         {isSelected && !blocked && <Check className="h-3 w-3 text-white" />}
                       </div>
@@ -437,21 +437,21 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-gray-900 leading-tight">{module.title}</p>
+                          <p className="font-medium text-gray-900 dark:text-white leading-tight">{module.title}</p>
                           {statusUi && (
                             <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', statusUi.badge)}>
                               {statusUi.label}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
                           <span>{cat.label}</span>
                           <span>·</span>
                           <span>{module.duration_minutes} min</span>
                         </div>
                         {/* Contextual hint */}
                         {blocked && (
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                             Cannot assign — already active for this employee
                           </p>
                         )}
@@ -469,7 +469,7 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
           </div>
 
           {/* Footer */}
-          <div className="flex gap-3 p-6 border-t bg-gray-50 rounded-b-xl">
+          <div className="flex gap-3 p-6 border-t dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-b-xl">
             <button onClick={onClose} className="btn-secondary flex-1">
               Cancel
             </button>
@@ -507,8 +507,8 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
 function ChartTooltip({ active, payload, label, formatter }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
-      <p className="font-medium text-gray-900 mb-1">{label}</p>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border p-3 text-sm">
+      <p className="font-medium text-gray-900 dark:text-white mb-1">{label}</p>
       {payload.map((entry, i) => (
         <p key={i} style={{ color: entry.color || entry.stroke }}>
           {entry.name}: {formatter ? formatter(entry.value) : entry.value}
@@ -758,7 +758,7 @@ function CompanyAnalytics() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Loading analytics...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading analytics...</p>
         </div>
       </div>
     );
@@ -770,7 +770,7 @@ function CompanyAnalytics() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle className="h-12 w-12 text-danger-500 mb-4" />
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchAnalytics} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Try Again
@@ -800,8 +800,8 @@ function CompanyAnalytics() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
-          <p className="text-gray-600 mt-1">Last {periodLabel}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics & Reports</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Last {periodLabel}</p>
         </div>
         <button
           onClick={fetchAnalytics}
@@ -822,7 +822,7 @@ function CompanyAnalytics() {
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               period === p.key
                 ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border hover:bg-gray-50'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border hover:bg-gray-50 dark:hover:bg-gray-700'
             )}
           >
             {p.label}
@@ -862,7 +862,7 @@ function CompanyAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Risk Score Trend */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Average Risk Score Over Time</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Average Risk Score Over Time</h3>
           {trendLineData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendLineData}>
@@ -882,7 +882,7 @@ function CompanyAnalytics() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               No trend data available
             </div>
           )}
@@ -890,7 +890,7 @@ function CompanyAnalytics() {
 
         {/* Chart 2: Risk Distribution Donut */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Level Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Risk Level Distribution</h3>
           {riskDistData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -915,7 +915,7 @@ function CompanyAnalytics() {
                     const d = payload[0].payload;
                     const pct = riskDistTotal > 0 ? ((d.value / riskDistTotal) * 100).toFixed(1) : 0;
                     return (
-                      <div className="bg-white rounded-lg shadow-lg border p-3 text-sm">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border p-3 text-sm">
                         <p className="font-medium">{d.name}</p>
                         <p>{d.value} employees ({pct}%)</p>
                       </div>
@@ -933,7 +933,7 @@ function CompanyAnalytics() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               No distribution data available
             </div>
           )}
@@ -941,7 +941,7 @@ function CompanyAnalytics() {
 
         {/* Chart 3: Campaign vs Simulation Activity */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Training Activity</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Security Training Activity</h3>
           {activityBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={activityBarData}>
@@ -955,7 +955,7 @@ function CompanyAnalytics() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               No activity data available
             </div>
           )}
@@ -963,7 +963,7 @@ function CompanyAnalytics() {
 
         {/* Chart 4: Training Effectiveness */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Training Completion Rates</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Training Completion Rates</h3>
           {trainingBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={trainingBarData} layout="vertical">
@@ -984,7 +984,7 @@ function CompanyAnalytics() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
               No training data available
             </div>
           )}
@@ -994,7 +994,7 @@ function CompanyAnalytics() {
       {/* ── Data Tables ── */}
       <div className="card p-0">
         {/* Tab Navigation */}
-        <div className="flex border-b">
+        <div className="flex border-b dark:border-gray-700">
           {[
             { key: 'campaigns', label: 'Recent Campaigns' },
             { key: 'simulations', label: 'Recent Simulations' },
@@ -1007,7 +1007,7 @@ function CompanyAnalytics() {
                 'px-6 py-3 text-sm font-medium transition-colors border-b-2 -mb-px',
                 activeTab === tab.key
                   ? 'text-primary-600 border-primary-600'
-                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               )}
             >
               {tab.label}
@@ -1016,9 +1016,9 @@ function CompanyAnalytics() {
         </div>
 
         {/* Search & Export Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b dark:border-gray-700">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search..."
@@ -1048,35 +1048,35 @@ function CompanyAnalytics() {
         <div className="overflow-x-auto">
           {activeTab === 'campaigns' && (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <SortHeader label="Campaign Name" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Completion</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Score</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Assigned</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Completion</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Avg Score</th>
                   <SortHeader label="Created" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y dark:divide-gray-700">
                 {pagedData.length > 0 ? (
                   pagedData.map((c) => {
                     const progress = c.progress ?? c.completion_rate ?? 0;
                     const progressPct = progress <= 1 ? progress * 100 : progress;
                     const avgScore = c.average_score ?? null;
                     return (
-                      <tr key={c.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
-                        <td className="px-4 py-3 text-gray-600">{c.total_participants ?? '—'}</td>
+                      <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{c.name}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{c.total_participants ?? '—'}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                               <div
                                 className="bg-primary-600 h-2 rounded-full transition-all"
                                 style={{ width: `${Math.min(progressPct, 100)}%` }}
                               />
                             </div>
-                            <span className="text-sm text-gray-600">{Math.round(progressPct)}%</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(progressPct)}%</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -1085,10 +1085,10 @@ function CompanyAnalytics() {
                               {Math.round(avgScore)}
                             </span>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-gray-400 dark:text-gray-500">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(c.created_at)}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{formatDate(c.created_at)}</td>
                         <td className="px-4 py-3">
                           <button
                             onClick={() => window.location.href = `/company/campaigns/${c.id}`}
@@ -1103,7 +1103,7 @@ function CompanyAnalytics() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       {searchQuery ? 'No campaigns match your search' : 'No campaigns found'}
                     </td>
                   </tr>
@@ -1114,17 +1114,17 @@ function CompanyAnalytics() {
 
           {activeTab === 'simulations' && (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <SortHeader label="Simulation Name" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Targets</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Open Rate</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Click Rate</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Targets</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Open Rate</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Click Rate</th>
                   <SortHeader label="Date" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y dark:divide-gray-700">
                 {pagedData.length > 0 ? (
                   pagedData.map((s) => {
                     const cr = s.click_rate ?? 0;
@@ -1132,16 +1132,16 @@ function CompanyAnalytics() {
                     const openR = s.open_rate ?? 0;
                     const openPct = openR <= 1 ? openR * 100 : openR;
                     return (
-                      <tr key={s.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
-                        <td className="px-4 py-3 text-gray-600">{s.target_count ?? s.total_targets ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-600">{Math.round(openPct)}%</td>
+                      <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.name}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{s.target_count ?? s.total_targets ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{Math.round(openPct)}%</td>
                         <td className="px-4 py-3">
-                          <span className={clsx('font-medium', crPct > 30 ? 'text-danger-600' : 'text-gray-900')}>
+                          <span className={clsx('font-medium', crPct > 30 ? 'text-danger-600' : 'text-gray-900 dark:text-white')}>
                             {Math.round(crPct)}%
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(s.created_at)}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{formatDate(s.created_at)}</td>
                         <td className="px-4 py-3">
                           <button
                             onClick={() => window.location.href = `/company/simulations`}
@@ -1156,7 +1156,7 @@ function CompanyAnalytics() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       {searchQuery ? 'No simulations match your search' : 'No simulations found'}
                     </td>
                   </tr>
@@ -1167,30 +1167,30 @@ function CompanyAnalytics() {
 
           {activeTab === 'highrisk' && (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <SortHeader label="Employee Name" sortKey="last_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
                   <SortHeader label="Risk Score" sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Quiz</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Needs Training</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Last Quiz</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Needs Training</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y dark:divide-gray-700">
                 {pagedData.length > 0 ? (
                   pagedData.map((emp) => (
-                    <tr key={emp.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
+                    <tr key={emp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                         {emp.employee_name || `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{emp.employee_email || emp.email}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{emp.employee_email || emp.email}</td>
                       <td className="px-4 py-3">
                         <span className={clsx('inline-flex px-2 py-0.5 rounded-full text-xs font-medium', getRiskBg(emp.risk_score))}>
                           {emp.risk_score} - {emp.risk_level || (emp.risk_score >= 80 ? 'CRITICAL' : 'HIGH')}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{formatDate(emp.last_quiz_date)}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{formatDate(emp.last_quiz_date)}</td>
                       <td className="px-4 py-3">
                         {emp.requires_remediation ? (
                           <span className="text-danger-600 text-sm font-medium">Yes</span>
@@ -1210,7 +1210,7 @@ function CompanyAnalytics() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       {searchQuery ? 'No employees match your search' : 'No high-risk employees found'}
                     </td>
                   </tr>
@@ -1226,7 +1226,7 @@ function CompanyAnalytics() {
 
       {/* ── Export Actions ── */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Export Reports</h3>
         <div className="flex flex-wrap gap-3">
           {[
             { key: 'campaigns', label: 'Export Campaigns' },
