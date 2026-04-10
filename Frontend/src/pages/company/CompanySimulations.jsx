@@ -1,3 +1,31 @@
+/**
+ * CompanySimulations — Phishing simulation management page (/company/simulations).
+ *
+ * Displays a list of all simulation campaigns for the company and allows admins to:
+ *  - View simulation status (Draft / In Progress / Sent / Completed)
+ *  - Launch a new simulation via a 3-step modal wizard:
+ *      Step 1: Select a phishing email template
+ *      Step 2: Choose target employees (individual or all, with optional admin inclusion)
+ *      Step 3: Review summary and confirm launch
+ *  - Send simulations immediately (triggers real email delivery via SendGrid)
+ *  - Navigate to per-simulation analytics (/company/simulations/:id/analytics)
+ *  - Delete simulations with confirmation
+ *
+ * Key behaviour:
+ *  - Simulation emails are sent server-side via simulationsAPI.send(id)
+ *  - After sending, status transitions from DRAFT → IN_PROGRESS
+ *  - Analytics auto-refresh every 15 seconds on the analytics sub-page
+ *
+ * Data sources:
+ *   GET    /api/v1/simulations/campaigns/        → simulation list
+ *   GET    /api/v1/simulations/templates/        → available templates
+ *   GET    /api/v1/employees/                    → employee list for targeting
+ *   POST   /api/v1/simulations/campaigns/        → create simulation
+ *   POST   /api/v1/simulations/campaigns/{id}/send/ → send emails
+ *   DELETE /api/v1/simulations/campaigns/{id}/   → delete simulation
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -173,6 +201,7 @@ function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
 
 // Create Simulation Modal - Multi-step
 function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const companyId = user?.company_id || user?.company;

@@ -1,3 +1,21 @@
+/**
+ * EmployeeQuizzes — Quiz list page for employees (/employee/quizzes).
+ *
+ * Lists all quizzes assigned to the current employee via their active campaigns.
+ * Each quiz card shows:
+ *  - Campaign name, number of questions, estimated time
+ *  - Progress (questions answered / total)
+ *  - Status badge: Not Started / In Progress / Completed
+ *  - Action button: Start Quiz / Continue / View Results
+ *
+ * Clicking Start/Continue navigates to TakeQuiz (/employee/quizzes/:id).
+ * The getButtonText() helper uses t() so labels are fully bilingual.
+ *
+ * Data source:
+ *   GET /api/v1/campaigns/quizzes/   → employee's assigned quizzes
+ *
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

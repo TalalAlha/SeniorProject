@@ -1,3 +1,26 @@
+/**
+ * TakeTraining — Interactive training module page for employees (/employee/training/:id).
+ *
+ * Guides the employee through a remediation training module in three phases:
+ *  1. Content phase — displays the training material (HTML content or video URL).
+ *     Employee must spend minimum time before the quiz becomes available.
+ *     Marks content_viewed=True on the server once the employee proceeds.
+ *  2. Quiz phase — multiple-choice questions (one per screen).
+ *     Answers submitted individually; final submit triggers score calculation.
+ *  3. Results phase — pass/fail, score percentage, per-question review with explanations.
+ *
+ * Passing score is defined per module (training_module.passing_score, default 70%).
+ * Employees may retry failed training (quiz_attempts counter is tracked).
+ *
+ * Training ID is read from the :id URL parameter via useParams().
+ *
+ * API calls:
+ *   GET  /api/v1/training/my-assignments/{id}/         → training + module details
+ *   POST /api/v1/training/my-assignments/{id}/start/   → mark as IN_PROGRESS
+ *   POST /api/v1/training/my-assignments/{id}/submit-quiz/ → submit answers
+ *
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

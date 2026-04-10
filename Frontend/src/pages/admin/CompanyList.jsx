@@ -1,3 +1,24 @@
+/**
+ * CompanyList — Company management page for super-admins (/admin/companies).
+ *
+ * Provides full CRUD over all registered companies:
+ *  - Paginated, searchable, filterable company table
+ *  - Create new company (via CompanyCreate page) and edit inline
+ *  - Activate / deactivate companies
+ *  - Delete company with confirmation (cascades to all company data)
+ *  - View per-company stats (employees, risk score, active campaigns)
+ *
+ * Sub-components rendered via createPortal:
+ *  - EditCompanyModal  — edit company details inline
+ *  - DeleteConfirmModal — destructive delete confirmation
+ *
+ * Data sources:
+ *   GET    /api/v1/companies/         → paginated company list
+ *   PATCH  /api/v1/companies/{id}/    → update company
+ *   DELETE /api/v1/companies/{id}/    → delete company
+ *
+ * Requires SUPER_ADMIN role.
+ */
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';

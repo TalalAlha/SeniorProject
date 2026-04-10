@@ -1,3 +1,17 @@
+/**
+ * ThemeContext — Global dark/light mode state.
+ *
+ * Provides via useTheme():
+ *  - isDark   {boolean}   True when dark mode is active
+ *  - toggleTheme() → void Switches between light and dark mode
+ *
+ * Theme preference is persisted in localStorage under the key 'theme'.
+ * On mount, the saved preference is read; if none exists, the OS preference
+ * (window.matchMedia('prefers-color-scheme: dark')) is used as the default.
+ *
+ * When dark mode is active, the class 'dark' is added to <html> so that
+ * Tailwind's dark: variant utilities take effect.
+ */
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();

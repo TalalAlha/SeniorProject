@@ -1,3 +1,25 @@
+/**
+ * CampaignList — Quiz campaign management page for company admins (/company/campaigns).
+ *
+ * Displays all phishing-awareness quiz campaigns for the company with:
+ *  - Status badges (Draft / Active / Completed / Paused)
+ *  - Completion rate, average score, and participant counts
+ *  - Search and status filter
+ *  - Activate / pause / delete actions per campaign
+ *  - Employee assignment modal — select employees and assign them to a campaign,
+ *    which creates individual Quiz records for each employee
+ *
+ * Campaign lifecycle:
+ *   DRAFT → (assign employees) → ACTIVE → (employees complete quizzes) → COMPLETED
+ *
+ * Data sources:
+ *   GET    /api/v1/campaigns/                         → campaign list
+ *   POST   /api/v1/campaigns/{id}/activate/           → activate campaign
+ *   POST   /api/v1/campaigns/{id}/assign_to_employees/ → assign employees
+ *   DELETE /api/v1/campaigns/{id}/                    → delete campaign
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -330,6 +352,7 @@ function CampaignFormModal({ isOpen, onClose, campaign, onSuccess }) {
 
 // Assign Employees Modal
 function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

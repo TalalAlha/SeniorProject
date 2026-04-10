@@ -1,3 +1,20 @@
+/**
+ * API endpoint functions organised by resource.
+ *
+ * All functions return Axios promises. The base URL (/api/v1/) and
+ * JWT Authorization header are configured in api/axios.js.
+ * Token refresh on 401 is handled automatically by the Axios interceptor.
+ *
+ * Resources:
+ *  - authAPI        — login, register, password reset, email verification, profile
+ *  - companiesAPI   — company CRUD, stats, activity feed
+ *  - employeesAPI   — employee list, invite, update, delete, accept invitation
+ *  - campaignsAPI   — campaign CRUD, activate, assign employees, quiz management
+ *  - simulationsAPI — simulation campaign + template CRUD, send, analytics, feedback
+ *  - trainingAPI    — training modules, assignments, risk scores, leaderboard, badges
+ *  - analyticsAPI   — dashboard stats, campaign/simulation/risk/training analytics
+ *  - notificationsAPI — notifications list and mark-read
+ */
 import api from './axios';
 
 // ============== Authentication ==============

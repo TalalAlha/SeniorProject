@@ -1,3 +1,23 @@
+/**
+ * SimulationCaught — Phishing simulation awareness page (/simulation/caught/:token).
+ *
+ * Public page shown to employees who clicked a phishing simulation link.
+ * The link token (from the simulation email) is used to fetch the red flags
+ * and educational explanation for that specific template.
+ *
+ * Displays:
+ *  - "You've Been Caught!" warning header
+ *  - Explanation of what phishing indicators were present
+ *  - Red flags checklist (sourced from the template's red_flags field)
+ *  - Protective tips for next time
+ *  - CTA buttons: Take Security Training / Back to Dashboard
+ *
+ * The link_token in the URL was previously used to redirect to the landing page;
+ * now it redirects here instead (see track_link_click_view in simulations/views.py).
+ *
+ * API call:
+ *   GET /api/v1/simulations/feedback/{token}/   → red_flags, explanation, language
+ */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AlertTriangle, CheckCircle, BookOpen, ShieldAlert, ArrowRight, Home } from 'lucide-react';

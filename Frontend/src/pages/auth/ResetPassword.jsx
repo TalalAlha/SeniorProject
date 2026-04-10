@@ -1,3 +1,19 @@
+/**
+ * ResetPassword — Password reset form (/reset-password/:token).
+ *
+ * Allows users to set a new password after requesting a reset from ForgotPassword.
+ * The token is extracted from the URL and submitted alongside the new password.
+ *
+ * Validates:
+ *  - Password minimum length (8 characters)
+ *  - New password and confirm password match
+ *
+ * On success, redirects to /login with a success toast.
+ * On invalid/expired token, shows an error with a link back to ForgotPassword.
+ *
+ * API call:
+ *   POST /api/v1/auth/password-reset/confirm/   → { token, new_password }
+ */
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';

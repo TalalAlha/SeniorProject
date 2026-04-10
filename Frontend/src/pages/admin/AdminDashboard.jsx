@@ -1,3 +1,17 @@
+/**
+ * AdminDashboard — Platform-wide overview for super-admins (/admin/dashboard).
+ *
+ * Displays platform health metrics across all companies:
+ *  - Total companies, users, campaigns, and simulations
+ *  - Recent company registrations
+ *  - Platform-wide risk score summary
+ *  - Quick links to CompanyList and UserManagement
+ *
+ * Data source:
+ *   GET /api/v1/analytics/dashboard/   → platform-level stats
+ *
+ * Requires SUPER_ADMIN role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

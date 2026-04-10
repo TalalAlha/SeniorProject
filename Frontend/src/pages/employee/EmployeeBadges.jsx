@@ -1,3 +1,23 @@
+/**
+ * EmployeeBadges — Gamification badges page for employees (/employee/badges).
+ *
+ * Displays the employee's badge collection:
+ *  - Summary stats: earned count, locked count, total available
+ *  - Filter tabs: All / Earned / Locked
+ *  - Badges grouped by rarity (Common → Legendary) using RARITY_CONFIG
+ *  - Each badge card shows rarity, points, earned date or lock state
+ *  - Clicking a badge opens a modal with full details and unlock requirements
+ *  - Sidebar leaderboard showing top badge earners in the company
+ *
+ * Note: RARITY_CONFIG uses the labelKey pattern (not label) so rarity names can be
+ * translated inside the component via t(config.labelKey).
+ *
+ * Data sources:
+ *   GET /api/v1/gamification/my-badges/   → earned and available badges
+ *   GET /api/v1/gamification/leaderboard/ → company badge leaderboard
+ *
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Award, Trophy, Star, Lock, RefreshCw, AlertCircle, X } from 'lucide-react';

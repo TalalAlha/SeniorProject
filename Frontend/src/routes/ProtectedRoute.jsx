@@ -1,3 +1,21 @@
+/**
+ * Route guard components for role-based access control.
+ *
+ * ProtectedRoute — Requires authentication + optional role check.
+ *   @prop {React.ReactNode} children       - Page component to render if access is granted
+ *   @prop {string[]} [allowedRoles=[]]     - Roles permitted to view this route.
+ *                                           Empty array = any authenticated user.
+ *   Redirects unauthenticated users to /login (preserving the intended path in state).
+ *   Redirects wrong-role users to /unauthorized.
+ *
+ * PublicRoute — Redirects already-authenticated users away from auth pages (login, register).
+ *   Sends them to their role-specific dashboard or the path stored in location.state.from.
+ *
+ * GuestRoute — Accessible to both authenticated and unauthenticated users.
+ *   Used for pages like the landing page and community portal.
+ *
+ * All three components show a full-screen loading spinner while the auth state is resolving.
+ */
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts';
 

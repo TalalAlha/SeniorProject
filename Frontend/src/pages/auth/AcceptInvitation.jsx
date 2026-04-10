@@ -1,3 +1,20 @@
+/**
+ * AcceptInvitation — Employee invitation acceptance page (/accept-invitation/:token).
+ *
+ * Public page (no authentication required). Flow:
+ *  1. On mount, fetches invitation details using the UUID token from the URL
+ *  2. Validates token expiry (7-day window)
+ *  3. Employee sets their password and submits
+ *  4. On success: account is activated (is_active=True), invitation_status→ACCEPTED,
+ *     is_verified is set to True (invited users skip email verification)
+ *  5. Redirects to /login with a success message
+ *
+ * Token is read from the :token URL parameter via useParams().
+ *
+ * API calls:
+ *   GET  /api/v1/employees/invite/{token}/         → fetch invitation details
+ *   POST /api/v1/employees/invite/{token}/accept/  → activate account with password
+ */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Check, X, Loader2, Eye, EyeOff } from 'lucide-react';

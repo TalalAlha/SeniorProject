@@ -1,3 +1,15 @@
+/**
+ * CommunityPortal — Public cybersecurity awareness resource hub (/community).
+ *
+ * Accessible to all authenticated users (PUBLIC_USER and above).
+ * Provides curated security awareness content organised into sections:
+ *  - Latest phishing trends and news
+ *  - Best practices articles
+ *  - External resource links (NCSC, SANS, etc.)
+ *  - Tips and quick-reference guides
+ *
+ * Static content — no API calls. All content is hardcoded or translation-keyed.
+ */
 import { useTranslation } from 'react-i18next';
 import { BookOpen, FileText, Lightbulb, ExternalLink } from 'lucide-react';
 

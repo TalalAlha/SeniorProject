@@ -1,3 +1,22 @@
+/**
+ * LoginPage — User authentication page (/login).
+ *
+ * Handles login for all user roles (SUPER_ADMIN, COMPANY_ADMIN, EMPLOYEE, PUBLIC_USER).
+ * After successful login, redirects to the user's role-specific dashboard:
+ *   SUPER_ADMIN    → /admin/dashboard
+ *   COMPANY_ADMIN  → /company/dashboard
+ *   EMPLOYEE       → /employee/dashboard
+ *   PUBLIC_USER    → /
+ *
+ * Special states:
+ *  - If the API returns email_not_verified: true, shows an amber banner with
+ *    a "Resend verification email" button.
+ *  - Supports redirect-after-login via React Router's location.state.from.
+ *
+ * API calls:
+ *   POST /api/v1/auth/login/              → obtain JWT access + refresh tokens
+ *   POST /api/v1/auth/resend-verification/ → resend verification email
+ */
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

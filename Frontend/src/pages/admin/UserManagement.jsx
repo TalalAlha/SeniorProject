@@ -1,3 +1,26 @@
+/**
+ * UserManagement — Platform-wide user management for super-admins (/admin/users).
+ *
+ * Lists all users across all companies with:
+ *  - Search by name or email, filter by role and company
+ *  - Activate / deactivate users
+ *  - Edit user details (name, role, company assignment)
+ *  - Delete users with confirmation
+ *
+ * Roles visible here: SUPER_ADMIN, COMPANY_ADMIN, EMPLOYEE, PUBLIC_USER.
+ * Super-admins can promote/demote any user's role.
+ *
+ * Sub-components rendered via createPortal:
+ *  - EditUserModal   — change name, role, company, status
+ *  - DeleteUserModal — confirmation before permanent deletion
+ *
+ * Data sources:
+ *   GET    /api/v1/accounts/users/        → paginated user list
+ *   PATCH  /api/v1/accounts/users/{id}/   → update user
+ *   DELETE /api/v1/accounts/users/{id}/   → delete user
+ *
+ * Requires SUPER_ADMIN role.
+ */
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';

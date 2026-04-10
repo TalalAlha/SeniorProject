@@ -1,3 +1,20 @@
+/**
+ * SimulationAnalytics — Per-simulation results page (/company/simulations/:id/analytics).
+ *
+ * Displays real-time analytics for a single phishing simulation campaign:
+ *  - Summary cards: total sent, opened, clicked, reported
+ *  - Click rate, report rate, no-action rate
+ *  - Per-employee result table with status (clicked / reported / no action)
+ *  - Filters: search by name/email, filter by result type
+ *
+ * Auto-refreshes every 15 seconds while the simulation is IN_PROGRESS.
+ * Simulation ID is read from the :id URL parameter via useParams().
+ *
+ * Data source:
+ *   GET /api/v1/simulations/campaigns/{id}/analytics/
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {

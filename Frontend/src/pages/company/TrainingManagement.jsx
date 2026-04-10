@@ -1,3 +1,26 @@
+/**
+ * TrainingManagement — Training module and assignment management page (/company/training).
+ *
+ * Allows company admins to:
+ *  - Browse available training modules (Email Security, Mobile Security, Social Engineering)
+ *  - View module details (content type, difficulty, duration, pass rate)
+ *  - Assign modules to individual or multiple employees
+ *  - Track employee training status (Assigned / In Progress / Completed / Passed / Failed)
+ *  - Filter assignments by status, module, and search query
+ *
+ * Sub-components (defined in this file):
+ *  - AssignTrainingModal — employee multi-select with due date picker
+ *
+ * Bulk assignment uses POST /api/v1/training/assign/ with employee_ids + training_module_id.
+ * The server auto-prevents duplicate assignments (already ASSIGNED or IN_PROGRESS).
+ *
+ * Data sources:
+ *   GET  /api/v1/training/modules/          → available training modules
+ *   GET  /api/v1/training/assignments/      → all company training assignments
+ *   POST /api/v1/training/assign/           → bulk assign training
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

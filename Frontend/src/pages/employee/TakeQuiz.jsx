@@ -1,3 +1,27 @@
+/**
+ * TakeQuiz — Interactive phishing quiz page for employees (/employee/quizzes/:id).
+ *
+ * Renders the full quiz experience:
+ *  1. Intro screen — campaign info, estimated time, start button
+ *  2. Question screen — Gmail-style email viewer displaying the email to classify
+ *     - Employee selects PHISHING or LEGITIMATE
+ *     - For PHISHING answers: red-flag checkbox panel (scored separately)
+ *     - Confidence slider (1–5) and time-on-question timer
+ *  3. Results screen — score, accuracy, phishing detection rate, per-question review
+ *
+ * Scoring model (hybrid):
+ *  - PHISHING correct: 50 base + up to 50 from red-flag selections
+ *  - LEGITIMATE correct: 100 (50 base + 50 bonus)
+ *  - Wrong answer: 0
+ *  Flag score and flag_max_score are computed frontend-side and sent with each answer.
+ *
+ * Answer submission: POST /api/v1/campaigns/quizzes/{id}/answer_question/
+ * Quiz finalization: POST /api/v1/campaigns/quizzes/{id}/submit/
+ * Results:           GET  /api/v1/campaigns/quizzes/{id}/result/
+ *
+ * Quiz ID is read from the :id URL parameter via useParams().
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

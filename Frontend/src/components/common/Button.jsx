@@ -1,3 +1,17 @@
+/**
+ * Button — Reusable button component with variant, size, and loading state support.
+ *
+ * @param {React.ReactNode} children    - Button label / content
+ * @param {'primary'|'secondary'|'danger'|'outline'|'ghost'} [variant='primary'] - Visual style
+ * @param {'sm'|'md'|'lg'} [size='md'] - Size preset
+ * @param {boolean} [loading=false]    - Shows a spinner and disables the button
+ * @param {boolean} [disabled=false]   - Disables the button without showing a spinner
+ * @param {string}  [className]        - Extra Tailwind classes to merge
+ * @param {'button'|'submit'|'reset'} [type='button'] - HTML button type
+ *
+ * Uses forwardRef so parent components can access the underlying <button> element.
+ * Supports dark mode via Tailwind dark: variants defined in the variants/sizes maps.
+ */
 import { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import clsx from 'clsx';

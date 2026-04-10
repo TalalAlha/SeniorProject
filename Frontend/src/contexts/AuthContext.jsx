@@ -1,3 +1,23 @@
+/**
+ * AuthContext — Global authentication state and helpers.
+ *
+ * Provides via useAuth():
+ *  - user            {object|null}   Decoded user profile (id, email, role, company, etc.)
+ *  - isAuthenticated {boolean}       True when a valid access token is present
+ *  - loading         {boolean}       True while the initial token-verification call is in flight
+ *  - login(email, password) → void  Obtains JWT pair, stores tokens, sets user state
+ *  - logout()        → void          Clears tokens and user state, redirects to /login
+ *  - refreshUser()   → void          Re-fetches user profile from /api/v1/auth/profile/
+ *  - hasAnyRole(roles[]) → boolean   Returns true if the user's role is in the array
+ *  - getDashboardPath() → string     Returns the role-specific dashboard URL
+ *
+ * Token storage:
+ *  - Access token  → sessionStorage (expires in 15 min per server config)
+ *  - Refresh token → localStorage   (long-lived; used to silently refresh the access token)
+ *
+ * The Axios interceptor in api/index.js handles automatic token refresh on 401 responses.
+ * Language preference is applied from the user profile on login via changeLanguage().
+ */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';

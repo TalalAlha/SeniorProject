@@ -1,3 +1,17 @@
+/**
+ * CompanyProfile — Company settings and profile page (/company/profile).
+ *
+ * Allows company admins to view and edit their organisation's details:
+ *  - Name (English + Arabic), description, contact email, phone, website
+ *  - Location (country, city, address)
+ *  - Industry and company size
+ *  - Subscription status and dates (read-only, managed by super-admin)
+ *
+ * Changes are saved via PATCH /api/v1/companies/{id}/.
+ * The company ID is read from the authenticated user's company field.
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

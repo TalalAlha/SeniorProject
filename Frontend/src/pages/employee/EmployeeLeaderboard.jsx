@@ -1,3 +1,22 @@
+/**
+ * EmployeeLeaderboard — Security awareness leaderboard for employees (/employee/leaderboard).
+ *
+ * Ranks employees within the same company by security points across three periods:
+ *  - Weekly, Monthly, All-Time (selectable via PERIODS config using labelKey pattern)
+ *
+ * Displays:
+ *  - "Your Position" summary card (rank, points, period label)
+ *  - Stats grid: total participants, your rank, your points, current period
+ *  - Top 3 performers podium
+ *  - Full ranked list with (You) highlight for the current user
+ *
+ * PERIODS config uses labelKey (not label) to support translation inside the component.
+ *
+ * Data source:
+ *   GET /api/v1/gamification/leaderboard/?period=weekly|monthly|all_time
+ *
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trophy, Medal, Award, RefreshCw, AlertCircle, TrendingUp, Users, Info } from 'lucide-react';

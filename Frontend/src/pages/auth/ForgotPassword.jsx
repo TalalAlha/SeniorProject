@@ -1,3 +1,15 @@
+/**
+ * ForgotPassword — Password reset request page (/forgot-password).
+ *
+ * Accepts the user's email and triggers a password reset email.
+ * On success, shows a confirmation message (does not reveal whether
+ * the email exists in the system to prevent user enumeration).
+ *
+ * API call:
+ *   POST /api/v1/auth/password-reset/   → send reset email with token link
+ *
+ * The reset email contains a link to /reset-password/:token.
+ */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Loader2 } from 'lucide-react';

@@ -1,3 +1,20 @@
+/**
+ * RegisterCompany — Company self-registration page (/register-company).
+ *
+ * Allows a new organisation to sign up as a company admin. Creates both
+ * the Company record and the first COMPANY_ADMIN user in one request.
+ *
+ * Form fields:
+ *  - Company name, industry, company size
+ *  - Admin first name, last name, email, password
+ *  - Preferred language (English / Arabic)
+ *
+ * On success, shows a verification prompt (email is sent automatically).
+ * The new company starts with an inactive subscription until a super-admin activates it.
+ *
+ * API call:
+ *   POST /api/v1/companies/register/   → create company + admin user + send verification email
+ */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, User, Mail, Lock, Globe, Eye, EyeOff, CheckCircle, RefreshCw } from 'lucide-react';

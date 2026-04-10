@@ -1,3 +1,21 @@
+/**
+ * PlatformAnalytics — Cross-company analytics dashboard for super-admins (/admin/analytics).
+ *
+ * Aggregates metrics across all companies on the platform:
+ *  - Company growth and subscription status trends
+ *  - Platform-wide risk score distributions
+ *  - Quiz campaign performance averages
+ *  - Simulation click rate comparisons across companies
+ *  - Training completion rates
+ *
+ * Charts use Recharts. Heavy data transformations are memoised with useMemo/useCallback.
+ * Respects the active theme (light/dark) via ThemeContext for chart colours.
+ *
+ * Data source:
+ *   GET /api/v1/analytics/platform/   → aggregated cross-company stats
+ *
+ * Requires SUPER_ADMIN role.
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';

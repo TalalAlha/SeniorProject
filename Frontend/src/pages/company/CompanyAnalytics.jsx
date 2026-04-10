@@ -1,3 +1,24 @@
+/**
+ * CompanyAnalytics — Deep-dive analytics page for company admins (/company/analytics).
+ *
+ * Renders four analytics sections selectable via tab:
+ *  1. Risk Overview  — risk score distribution, high-risk employee list, trend chart
+ *  2. Campaigns      — quiz campaign performance, per-employee scores, question breakdown
+ *  3. Simulations    — phishing click/report rates, template comparison, timeline chart
+ *  4. Training       — module completion rates, effectiveness (risk reduction), overdue list
+ *
+ * All charts use Recharts (BarChart, LineChart, PieChart).
+ * Heavy computation (filtering, aggregation) is memoised with useMemo.
+ *
+ * Data sources:
+ *   GET /api/v1/analytics/dashboard/
+ *   GET /api/v1/analytics/campaigns/
+ *   GET /api/v1/analytics/simulations/
+ *   GET /api/v1/analytics/risk/
+ *   GET /api/v1/analytics/training/
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

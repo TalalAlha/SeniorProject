@@ -1,3 +1,25 @@
+/**
+ * EmployeeTraining — Remediation training list page for employees (/employee/training).
+ *
+ * Shows all training modules assigned to the current employee with:
+ *  - Status (Assigned / In Progress / Completed / Passed / Failed)
+ *  - Overdue indicator and due-date formatting
+ *  - Assignment reason badge (High Risk / Phishing Click / Manual / Campaign)
+ *  - Start / Continue / Review action button
+ *
+ * Key helpers:
+ *  - getButtonConfig()        — returns { textKey, icon, style } using textKey pattern
+ *                               so translations work without calling t() outside a component
+ *  - formatDueDate()          — returns localised "Overdue", "Due today", "Due in N days"
+ *  - getAssignmentReasonLabel() — maps ASSIGNMENT_REASON enum values to translated labels
+ *
+ * Clicking Start/Continue navigates to TakeTraining (/employee/training/:id).
+ *
+ * Data source:
+ *   GET /api/v1/training/my-assignments/   → employee's assigned training modules
+ *
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

@@ -1,3 +1,16 @@
+/**
+ * RegisterPage — Public user self-registration page (/register).
+ *
+ * Creates a PUBLIC_USER account (community portal access only).
+ * Company admins register via /register-company.
+ * Employees are onboarded through invitation links (/accept-invitation/:token).
+ *
+ * On successful registration, shows an inline success state prompting the user
+ * to verify their email (no redirect — avoids confusion with unverified state).
+ *
+ * API call:
+ *   POST /api/v1/auth/register/   → create PUBLIC_USER account + send verification email
+ */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';

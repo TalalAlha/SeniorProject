@@ -1,3 +1,21 @@
+/**
+ * CampaignDetails — Detailed view for a single quiz campaign (/company/campaigns/:id).
+ *
+ * Shows full campaign information including:
+ *  - Status, dates, phishing/language ratios
+ *  - Assigned employee list with individual quiz progress
+ *  - Completion rate, average score, risk level distribution
+ *  - Top performers and employees needing follow-up training
+ *
+ * Campaign ID is read from the :id URL parameter via useParams().
+ *
+ * Data sources:
+ *   GET /api/v1/campaigns/{id}/              → campaign details
+ *   GET /api/v1/campaigns/{id}/statistics/   → aggregated stats
+ *   GET /api/v1/campaigns/{id}/assigned_employees/ → employee quiz status
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

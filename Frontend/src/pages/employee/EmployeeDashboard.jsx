@@ -1,3 +1,23 @@
+/**
+ * EmployeeDashboard — Main landing page for employees (/employee/dashboard).
+ *
+ * Displays a personalised security awareness overview:
+ *  - Risk score gauge (0–100) with colour-coded level (Low / Medium / High / Critical)
+ *  - Quick-stat cards: pending quizzes, pending training, badges earned, leaderboard rank
+ *  - Score breakdown: quiz accuracy vs simulation click rate
+ *  - Recent badges earned (up to 3, with link to full badges page)
+ *  - Quick action links to Quizzes, Training, Leaderboard, and Badges pages
+ *
+ * Note: RISK_CONFIG is defined outside the component using the labelKey pattern so that
+ * translation keys can be resolved inside the RiskScoreGauge sub-component via t().
+ *
+ * Data sources:
+ *   GET /api/v1/training/my-risk-score/   → RiskScore (quiz/simulation/training stats)
+ *   GET /api/v1/gamification/my-badges/   → earned badges list
+ *   GET /api/v1/gamification/leaderboard/ → leaderboard position
+ *
+ * Requires EMPLOYEE role.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

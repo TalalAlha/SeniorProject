@@ -1,3 +1,20 @@
+/**
+ * CampaignCreate — New quiz campaign creation form (/company/campaigns/create).
+ *
+ * Collects campaign configuration:
+ *  - Name (English + Arabic), description
+ *  - Number of emails to generate (5–50)
+ *  - Phishing ratio (0.2–0.8) — visualised as a split bar chart
+ *  - English/Arabic language ratio for email templates
+ *  - Optional start and end dates
+ *
+ * Created campaigns default to DRAFT status; admins activate them separately
+ * from CampaignList after assigning employees.
+ *
+ * On submit, calls POST /api/v1/campaigns/ and redirects to CampaignList on success.
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

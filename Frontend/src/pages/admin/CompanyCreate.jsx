@@ -1,3 +1,18 @@
+/**
+ * CompanyCreate — New company registration form for super-admins (/admin/companies/create).
+ *
+ * Multi-step form that collects:
+ *  - Company name (English + Arabic), description
+ *  - Contact info: email, phone, website
+ *  - Location: country, city, address
+ *  - Industry (dropdown) and company size (dropdown)
+ *  - Subscription start and end dates
+ *
+ * On submit, calls POST /api/v1/companies/ and redirects to CompanyList on success.
+ * Uses client-side validation before sending to the API.
+ *
+ * Requires SUPER_ADMIN role.
+ */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

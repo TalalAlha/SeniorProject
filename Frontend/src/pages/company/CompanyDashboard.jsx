@@ -1,3 +1,18 @@
+/**
+ * CompanyDashboard — Main landing page for company admins (/company/dashboard).
+ *
+ * Displays an overview of the company's security posture:
+ * - Employee risk score distribution (low / medium / high / critical)
+ * - Active campaign and simulation counts
+ * - Training completion rates
+ * - Recent activity feed (quiz results, simulation events, training completions)
+ *
+ * Data is fetched from:
+ *   GET /api/v1/companies/{id}/stats/      → overall metrics
+ *   GET /api/v1/companies/{id}/activity/   → recent activity feed
+ *
+ * Requires COMPANY_ADMIN role. Company ID is derived from the authenticated user context.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

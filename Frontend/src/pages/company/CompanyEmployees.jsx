@@ -1,3 +1,28 @@
+/**
+ * CompanyEmployees — Employee management page for company admins (/company/employees).
+ *
+ * Features:
+ *  - Paginated, searchable employee table with role / status / department filters
+ *  - Invite new employee by email (sends invitation link via SendGrid)
+ *  - Edit employee name / department / role / language preference
+ *  - Activate / deactivate employees
+ *  - Resend or cancel pending invitations
+ *  - Delete employees with confirmation dialog
+ *  - Export employee list as CSV
+ *
+ * Sub-components (defined in this file):
+ *  - ConfirmDialog      — generic modal for destructive confirmations
+ *  - InviteEmployeesModal — single-employee invitation form
+ *  - EditEmployeeModal  — edit existing employee details
+ *
+ * Data sources:
+ *   GET    /api/v1/employees/           → paginated employee list
+ *   POST   /api/v1/employees/invite/    → send invitation email
+ *   PATCH  /api/v1/employees/{id}/      → update employee
+ *   DELETE /api/v1/employees/{id}/      → remove employee
+ *
+ * Requires COMPANY_ADMIN role.
+ */
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';

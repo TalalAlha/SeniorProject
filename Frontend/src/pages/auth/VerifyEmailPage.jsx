@@ -1,3 +1,21 @@
+/**
+ * VerifyEmailPage — Email verification landing page (/verify-email/:token).
+ *
+ * Automatically verifies the email address when the user clicks the link
+ * in their registration confirmation email. On mount, sends the token to the API.
+ *
+ * Result states:
+ *  - Loading  — spinner while API call is in flight
+ *  - Success  — green checkmark + redirect to /login after 3 seconds
+ *  - Expired  — token too old (>24 h); shows resend button
+ *  - Invalid  — token not found or already used
+ *
+ * Token is read from the :token URL parameter via useParams().
+ *
+ * API calls:
+ *   POST /api/v1/auth/verify-email/{token}/        → mark email as verified
+ *   POST /api/v1/auth/resend-verification/         → resend verification email
+ */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
