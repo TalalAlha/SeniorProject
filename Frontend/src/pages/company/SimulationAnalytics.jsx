@@ -261,7 +261,7 @@ export default function SimulationAnalytics() {
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-400 dark:text-gray-500">
             <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            <p>No results yet</p>
+            <p>{t('simulation.noResultsYet')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -187,7 +187,7 @@ function CampaignCreate() {
             {/* Visual Bar */}
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
-                <span>Email Distribution</span>
+                <span>{t('campaign.emailDistribution')}</span>
               </div>
               <div className="flex h-4 rounded-full overflow-hidden">
                 <div
@@ -200,20 +200,20 @@ function CampaignCreate() {
                 />
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <span>Phishing ({Math.round(formData.phishing_ratio * 100)}%)</span>
-                <span>Legitimate ({Math.round((1 - formData.phishing_ratio) * 100)}%)</span>
+                <span>{t('campaign.phishing')} ({Math.round(formData.phishing_ratio * 100)}%)</span>
+                <span>{t('campaign.legitimate')} ({Math.round((1 - formData.phishing_ratio) * 100)}%)</span>
               </div>
             </div>
           </div>
 
           {/* Info Box */}
           <div className="p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
-            <h4 className="text-sm font-medium text-primary-800 dark:text-primary-300 mb-2">What happens next?</h4>
+            <h4 className="text-sm font-medium text-primary-800 dark:text-primary-300 mb-2">{t('campaign.whatHappensNext')}</h4>
             <ul className="text-sm text-primary-700 dark:text-primary-400 space-y-1">
-              <li>• Campaign will be created in <strong>Draft</strong> status</li>
-              <li>• You can assign employees to the campaign</li>
-              <li>• Activate the campaign to start sending emails</li>
-              <li>• Track employee responses and quiz results</li>
+              <li>• {t('campaign.draftNote1')}</li>
+              <li>• {t('campaign.draftNote2')}</li>
+              <li>• {t('campaign.draftNote3')}</li>
+              <li>• {t('campaign.draftNote4')}</li>
             </ul>
           </div>
 

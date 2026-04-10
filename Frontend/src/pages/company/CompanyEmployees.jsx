@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import {
   Search,
@@ -38,15 +39,15 @@ import { useAuth } from '../../contexts';
 
 // Role configuration
 const ROLE_CONFIG = {
-  EMPLOYEE: { label: 'Employee', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' },
-  COMPANY_ADMIN: { label: 'Admin', color: 'bg-primary-100 text-primary-700' },
+  EMPLOYEE: { labelKey: 'employee.roleEmployee', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' },
+  COMPANY_ADMIN: { labelKey: 'employee.roleAdmin', color: 'bg-primary-100 text-primary-700' },
 };
 
 // Risk level configuration
 const getRiskConfig = (score) => {
-  if (score <= 30) return { level: 'LOW', label: 'Low Risk', color: 'bg-success-50 text-success-700', bgColor: 'bg-success-500' };
-  if (score <= 70) return { level: 'MEDIUM', label: 'Medium Risk', color: 'bg-warning-50 text-warning-700', bgColor: 'bg-warning-500' };
-  return { level: 'HIGH', label: 'High Risk', color: 'bg-danger-50 text-danger-700', bgColor: 'bg-danger-500' };
+  if (score <= 30) return { level: 'LOW', labelKey: 'employee.riskLevels.low', color: 'bg-success-50 text-success-700', bgColor: 'bg-success-500' };
+  if (score <= 70) return { level: 'MEDIUM', labelKey: 'employee.riskLevels.medium', color: 'bg-warning-50 text-warning-700', bgColor: 'bg-warning-500' };
+  return { level: 'HIGH', labelKey: 'employee.riskLevels.high', color: 'bg-danger-50 text-danger-700', bgColor: 'bg-danger-500' };
 };
 
 // Modal Component
@@ -79,7 +80,8 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }) {
 }
 
 // Confirmation Dialog
-function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirm', danger = false, loading = false }) {
+function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText, danger = false, loading = false }) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -91,7 +93,7 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
           <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
           <div className="flex gap-3 justify-end">
             <button onClick={onClose} className="btn-secondary" disabled={loading}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               onClick={onConfirm}
@@ -99,7 +101,7 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmText
               className={clsx(danger ? 'btn-danger' : 'btn-primary', 'flex items-center gap-2')}
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {confirmText}
+              {confirmText || t('common.confirm')}
             </button>
           </div>
         </div>
@@ -206,6 +208,7 @@ function StatCard({ icon: Icon, label, value, color = 'primary', trend, subtext 
 
 // Invite Employee Modal — sends a token-based invitation email
 function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', first_name: '', last_name: '', department: '' });
   const [errors, setErrors] = useState({});
@@ -219,8 +222,8 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
+    if (!formData.email.trim()) newErrors.email = t('employee.emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('employee.invalidEmailFormat');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -231,11 +234,11 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
     setLoading(true);
     try {
       await employeesAPI.invite(formData);
-      toast.success(`Invitation sent to ${formData.email}`);
+      toast.success(t('employee.invitationSentTo', { email: formData.email }));
       onSuccess();
       onClose();
     } catch (err) {
-      const message = err.response?.data?.error || 'Failed to send invitation';
+      const message = err.response?.data?.error || t('employee.failedToSendInvitation');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -243,10 +246,10 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Invite Employee" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('employee.inviteEmployee')} size="md">
       <div className="space-y-4">
         <div>
-          <label className="label">Email Address *</label>
+          <label className="label">{t('employee.emailAddressLabel')}</label>
           <input
             type="email"
             value={formData.email}
@@ -259,7 +262,7 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">First Name</label>
+            <label className="label">{t('auth.firstName')}</label>
             <input
               type="text"
               value={formData.first_name}
@@ -269,7 +272,7 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
             />
           </div>
           <div>
-            <label className="label">Last Name</label>
+            <label className="label">{t('auth.lastName')}</label>
             <input
               type="text"
               value={formData.last_name}
@@ -281,7 +284,7 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         <div>
-          <label className="label">Department</label>
+          <label className="label">{t('employee.department')}</label>
           <input
             type="text"
             value={formData.department}
@@ -292,23 +295,23 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
-          <h4 className="text-sm font-medium text-primary-800 mb-2">What happens next?</h4>
+          <h4 className="text-sm font-medium text-primary-800 mb-2">{t('employee.whatHappensNext')}</h4>
           <ul className="text-sm text-primary-700 space-y-1 list-disc list-inside">
-            <li>Employee receives an invitation email</li>
-            <li>They click the link to set their password</li>
-            <li>Their account is automatically activated</li>
+            <li>{t('employee.inviteBullet1')}</li>
+            <li>{t('employee.inviteBullet2')}</li>
+            <li>{t('employee.inviteBullet3')}</li>
           </ul>
         </div>
 
         <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+          <button onClick={onClose} className="btn-secondary flex-1">{t('common.cancel')}</button>
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Send Invitation
+            {t('employee.sendInvitation')}
           </button>
         </div>
       </div>
@@ -318,6 +321,7 @@ function InviteEmployeesModal({ isOpen, onClose, onSuccess }) {
 
 // Edit Employee Modal
 function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -337,18 +341,18 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
 
   const handleSubmit = async () => {
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('employee.fillRequiredFields'));
       return;
     }
 
     setLoading(true);
     try {
       await companiesAPI.updateUser(companyId, employee.id, formData);
-      toast.success('Employee updated successfully');
+      toast.success(t('employee.employeeUpdated'));
       onSuccess();
       onClose();
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to update employee';
+      const message = err.response?.data?.detail || t('employee.failedToUpdateEmployee');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -358,11 +362,11 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
   if (!employee) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Employee" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('employee.editEmployeeTitle')} size="md">
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">First Name *</label>
+            <label className="label">{t('auth.firstName')} *</label>
             <input
               type="text"
               value={formData.first_name}
@@ -372,7 +376,7 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
             />
           </div>
           <div>
-            <label className="label">Last Name *</label>
+            <label className="label">{t('auth.lastName')} *</label>
             <input
               type="text"
               value={formData.last_name}
@@ -384,18 +388,18 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
         </div>
 
         <div>
-          <label className="label">Email</label>
+          <label className="label">{t('common.email')}</label>
           <input
             type="email"
             value={employee.email}
             disabled
             className="input bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
           />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('employee.emailCannotChange')}</p>
         </div>
 
         <div>
-          <label className="label">Role</label>
+          <label className="label">{t('employee.roleLabel')}</label>
           <div className="flex gap-4">
             {Object.entries(ROLE_CONFIG).map(([key, config]) => (
               <label
@@ -416,7 +420,7 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
                   className="sr-only"
                 />
                 <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', config.color)}>
-                  {config.label}
+                  {t(config.labelKey)}
                 </span>
               </label>
             ))}
@@ -424,14 +428,14 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
         </div>
 
         <div className="flex gap-3 pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+          <button onClick={onClose} className="btn-secondary flex-1">{t('common.cancel')}</button>
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Changes
+            {t('admin.common.saveChanges')}
           </button>
         </div>
       </div>
@@ -441,12 +445,13 @@ function EditEmployeeModal({ isOpen, onClose, employee, companyId, onSuccess }) 
 
 // Employee Details Modal
 function EmployeeDetailsModal({ isOpen, onClose, employee }) {
+  const { t } = useTranslation();
   if (!employee) return null;
 
   const riskConfig = getRiskConfig(employee.risk_score?.score || 0);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Employee Details" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('employee.employeeDetails')} size="lg">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
@@ -460,13 +465,13 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
             <p className="text-gray-500 dark:text-gray-400">{employee.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', ROLE_CONFIG[employee.role]?.color)}>
-                {ROLE_CONFIG[employee.role]?.label || employee.role}
+                {t(ROLE_CONFIG[employee.role]?.labelKey || 'employee.roleEmployee')}
               </span>
               <span className={clsx(
                 'text-xs font-medium px-2 py-1 rounded-full',
                 employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
               )}>
-                {employee.is_active ? 'Active' : 'Inactive'}
+                {employee.is_active ? t('employee.statusActive') : t('employee.statusInactive')}
               </span>
             </div>
           </div>
@@ -475,9 +480,9 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
         {/* Risk Score */}
         <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Risk Score</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{t('employee.riskScoreLabel')}</span>
             <span className={clsx('text-sm font-medium px-2 py-1 rounded-full', riskConfig.color)}>
-              {riskConfig.label}
+              {t(riskConfig.labelKey)}
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -498,17 +503,17 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <BookOpen className="h-6 w-6 text-primary-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{employee.risk_score?.total_quizzes_taken || 0}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Quizzes Taken</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('employee.quizzesTaken')}</p>
             {employee.risk_score?.quiz_accuracy != null && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{Math.round(employee.risk_score.quiz_accuracy)}% accuracy</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('employee.accuracyLabel', { percent: Math.round(employee.risk_score.quiz_accuracy) })}</p>
             )}
           </div>
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <Mail className="h-6 w-6 text-warning-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{employee.risk_score?.total_simulations_received || 0}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Simulations Received</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('employee.simulationsReceived')}</p>
             {employee.risk_score?.simulations_clicked > 0 && (
-              <p className="text-xs text-danger-500 mt-1">{employee.risk_score.simulations_clicked} clicked</p>
+              <p className="text-xs text-danger-500 mt-1">{employee.risk_score.simulations_clicked} {t('simulation.clicked')}</p>
             )}
           </div>
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -516,7 +521,7 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {employee.risk_score?.trainings_completed || 0}/{employee.risk_score?.trainings_assigned || 0}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Training Completed</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('employee.trainingCompleted')}</p>
           </div>
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <AlertTriangle className={clsx(
@@ -524,16 +529,16 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
               employee.risk_score?.requires_remediation ? 'text-danger-600' : 'text-success-600'
             )} />
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {employee.risk_score?.requires_remediation ? 'Yes' : 'No'}
+              {employee.risk_score?.requires_remediation ? t('common.yes') : t('common.no')}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Needs Remediation</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('employee.needsRemediation')}</p>
           </div>
         </div>
 
         {/* Additional Info */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-500 dark:text-gray-400">Joined</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('employee.joined')}</span>
             <p className="font-medium text-gray-900 dark:text-white">
               {employee.date_joined
                 ? format(new Date(employee.date_joined), 'MMM d, yyyy')
@@ -541,17 +546,17 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
             </p>
           </div>
           <div>
-            <span className="text-gray-500 dark:text-gray-400">Last Active</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('employee.lastActive')}</span>
             <p className="font-medium text-gray-900 dark:text-white">
               {employee.last_login
                 ? formatDistanceToNow(new Date(employee.last_login), { addSuffix: true })
-                : 'Never'}
+                : t('employee.never')}
             </p>
           </div>
         </div>
 
         <div className="pt-4 border-t">
-          <button onClick={onClose} className="btn-secondary w-full">Close</button>
+          <button onClick={onClose} className="btn-secondary w-full">{t('common.close')}</button>
         </div>
       </div>
     </Modal>
@@ -560,6 +565,7 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
 
 // Main Component
 function CompanyEmployees() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const companyId = user?.company_id || user?.company;
 
@@ -627,9 +633,9 @@ function CompanyEmployees() {
   const handleResendInvitation = async (userId, email) => {
     try {
       await employeesAPI.resendInvitation(userId);
-      toast.success(`Invitation resent to ${email}`);
+      toast.success(t('employee.invitationResentTo', { email }));
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to resend invitation');
+      toast.error(err.response?.data?.error || t('employee.failedToResendInvitation'));
     }
   };
 
@@ -638,11 +644,11 @@ function CompanyEmployees() {
     setActionLoading(true);
     try {
       await employeesAPI.cancelInvitation(cancellingInvitation.id);
-      toast.success('Invitation cancelled');
+      toast.success(t('employee.invitationCancelled'));
       setCancellingInvitation(null);
       fetchPendingInvitations();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to cancel invitation');
+      toast.error(err.response?.data?.error || t('employee.failedToCancelInvitation'));
     } finally {
       setActionLoading(false);
     }
@@ -745,11 +751,11 @@ function CompanyEmployees() {
     const newStatus = !deactivatingEmployee.is_active;
     try {
       await companiesAPI.updateUser(companyId, deactivatingEmployee.id, { is_active: newStatus });
-      toast.success(newStatus ? 'Employee activated successfully' : 'Employee deactivated successfully');
+      toast.success(newStatus ? t('employee.employeeActivated') : t('employee.employeeDeactivated'));
       setDeactivatingEmployee(null);
       fetchEmployees();
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to update employee status';
+      const message = err.response?.data?.detail || t('employee.failedToUpdateStatus');
       toast.error(message);
     } finally {
       setActionLoading(false);
@@ -761,11 +767,11 @@ function CompanyEmployees() {
     setActionLoading(true);
     try {
       await companiesAPI.removeUser(companyId, deletingEmployee.id);
-      toast.success(`${deletingEmployee.first_name} ${deletingEmployee.last_name} has been deleted`);
+      toast.success(t('employee.employeeDeleted', { name: `${deletingEmployee.first_name} ${deletingEmployee.last_name}` }));
       setDeletingEmployee(null);
       fetchEmployees();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to delete employee');
+      toast.error(err.response?.data?.detail || t('employee.failedToDeleteEmployee'));
     } finally {
       setActionLoading(false);
     }
@@ -773,7 +779,7 @@ function CompanyEmployees() {
 
   const handleExport = () => {
     if (employees.length === 0) {
-      toast.error('No employees to export');
+      toast.error(t('employee.noEmployeesToExport'));
       return;
     }
 
@@ -782,7 +788,7 @@ function CompanyEmployees() {
       emp.first_name || '',
       emp.last_name || '',
       emp.email || '',
-      ROLE_CONFIG[emp.role]?.label || emp.role || '',
+      emp.role || '',
       emp.is_active ? 'Active' : 'Inactive',
       emp.risk_score?.score ?? 'N/A',
     ]);
@@ -800,7 +806,7 @@ function CompanyEmployees() {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
-    toast.success(`Exported ${employees.length} employees`);
+    toast.success(t('employee.exportedCount', { count: employees.length }));
   };
 
   // Sort indicator
@@ -818,7 +824,7 @@ function CompanyEmployees() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading employees...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('employee.loadingLabel')}</p>
         </div>
       </div>
     );
@@ -831,7 +837,7 @@ function CompanyEmployees() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchEmployees} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -842,8 +848,8 @@ function CompanyEmployees() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Employees</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your organization's employees</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('employee.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('employee.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -851,15 +857,15 @@ function CompanyEmployees() {
             className="btn-primary flex items-center gap-2"
           >
             <UserPlus className="h-4 w-4" />
-            Invite Employee
+            {t('employee.inviteEmployee')}
           </button>
           <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Export
+            {t('employee.export')}
           </button>
           <button onClick={fetchEmployees} className="btn-secondary flex items-center gap-2">
             <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
-            Refresh
+            {t('admin.common.refresh')}
           </button>
         </div>
       </div>
@@ -876,7 +882,7 @@ function CompanyEmployees() {
           )}
         >
           <Users className="h-4 w-4" />
-          Active Employees
+          {t('employee.activeEmployees')}
           <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full">
             {employees.length}
           </span>
@@ -891,7 +897,7 @@ function CompanyEmployees() {
           )}
         >
           <Clock className="h-4 w-4" />
-          Pending Invitations
+          {t('employee.pendingInvitations')}
           {pendingInvitations.length > 0 && (
             <span className="bg-warning-100 text-warning-700 text-xs font-medium px-2 py-0.5 rounded-full">
               {pendingInvitations.length}
@@ -904,26 +910,26 @@ function CompanyEmployees() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
-          label="Total Employees"
+          label={t('employee.totalEmployees')}
           value={stats.total}
           color="primary"
         />
         <StatCard
           icon={UserCheck}
-          label="Active Employees"
+          label={t('employee.activeEmployees')}
           value={stats.active}
           color="success"
         />
         <StatCard
           icon={AlertTriangle}
-          label="High Risk"
+          label={t('employee.highRisk')}
           value={stats.highRisk}
           color="danger"
-          subtext="Score > 70"
+          subtext={t('employee.scoreAbove70')}
         />
         <StatCard
           icon={Shield}
-          label="Avg Risk Score"
+          label={t('employee.avgRiskScore')}
           value={stats.avgRisk}
           color={stats.avgRisk <= 30 ? 'success' : stats.avgRisk <= 70 ? 'warning' : 'danger'}
         />
@@ -936,7 +942,7 @@ function CompanyEmployees() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder={t('employee.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="input pl-10"
@@ -951,7 +957,7 @@ function CompanyEmployees() {
           >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {statusFilter === 'ALL' ? 'All Status' : statusFilter === 'ACTIVE' ? 'Active' : 'Inactive'}
+              {statusFilter === 'ALL' ? t('employee.allStatus') : statusFilter === 'ACTIVE' ? t('employee.statusActive') : t('employee.statusInactive')}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -968,7 +974,7 @@ function CompanyEmployees() {
                       statusFilter === status && 'bg-primary-50 text-primary-700'
                     )}
                   >
-                    {status === 'ALL' ? 'All Status' : status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                    {status === 'ALL' ? t('employee.allStatus') : status === 'ACTIVE' ? t('employee.statusActive') : t('employee.statusInactive')}
                   </button>
                 ))}
               </div>
@@ -996,39 +1002,39 @@ function CompanyEmployees() {
                   onClick={() => handleSort('first_name')}
                 >
                   <div className="flex items-center gap-1">
-                    Name
+                    {t('employee.colName')}
                     <SortIndicator column="first_name" />
                   </div>
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Email
+                  {t('employee.colEmail')}
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Role
+                  {t('employee.colRole')}
                 </th>
                 <th
                   className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={() => handleSort('risk_score')}
                 >
                   <div className="flex items-center gap-1">
-                    Risk Score
+                    {t('employee.colRiskScore')}
                     <SortIndicator column="risk_score" />
                   </div>
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Quizzes
+                  {t('employee.colQuizzes')}
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Training
+                  {t('employee.colTraining')}
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Badges
+                  {t('employee.colBadges')}
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Status
+                  {t('employee.colStatus')}
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                  Actions
+                  {t('employee.colActions')}
                 </th>
               </tr>
             </thead>
@@ -1059,7 +1065,7 @@ function CompanyEmployees() {
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{employee.email}</td>
                       <td className="px-4 py-3">
                         <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', ROLE_CONFIG[employee.role]?.color)}>
-                          {ROLE_CONFIG[employee.role]?.label || employee.role}
+                          {t(ROLE_CONFIG[employee.role]?.labelKey || 'employee.roleEmployee')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -1089,7 +1095,7 @@ function CompanyEmployees() {
                           'text-xs font-medium px-2 py-1 rounded-full',
                           employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                         )}>
-                          {employee.is_active ? 'Active' : 'Inactive'}
+                          {employee.is_active ? t('employee.statusActive') : t('employee.statusInactive')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -1097,19 +1103,19 @@ function CompanyEmployees() {
                           <DropdownMenu
                             trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
                             items={[
-                              { icon: Eye, label: 'View Details', onClick: () => setViewingEmployee(employee) },
-                              { icon: Edit2, label: 'Edit', onClick: () => setEditingEmployee(employee) },
+                              { icon: Eye, label: t('admin.common.viewDetails'), onClick: () => setViewingEmployee(employee) },
+                              { icon: Edit2, label: t('common.edit'), onClick: () => setEditingEmployee(employee) },
                               { divider: true },
                               {
                                 icon: employee.is_active ? UserX : UserCheck,
-                                label: employee.is_active ? 'Deactivate' : 'Activate',
+                                label: employee.is_active ? t('admin.common.deactivate') : t('admin.common.activate'),
                                 onClick: () => setDeactivatingEmployee(employee),
                                 danger: employee.is_active,
                               },
                               { divider: true },
                               {
                                 icon: Trash2,
-                                label: 'Delete',
+                                label: t('common.delete'),
                                 onClick: () => setDeletingEmployee(employee),
                                 danger: true,
                               },
@@ -1124,11 +1130,11 @@ function CompanyEmployees() {
                 <tr>
                   <td colSpan={10} className="px-4 py-12 text-center">
                     <Users className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No employees found</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('employee.noEmployeesFound')}</h3>
                     <p className="text-gray-500 dark:text-gray-400">
                       {searchQuery || statusFilter !== 'ALL'
-                        ? 'Try adjusting your filters'
-                        : 'Get started by inviting employees to your organization'}
+                        ? t('employee.adjustFilters')
+                        : t('employee.inviteToOrg')}
                     </p>
                   </td>
                 </tr>
@@ -1141,7 +1147,7 @@ function CompanyEmployees() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredAndSortedEmployees.length)} of {filteredAndSortedEmployees.length} employees
+              {t('employee.showingResults', { from: ((currentPage - 1) * itemsPerPage) + 1, to: Math.min(currentPage * itemsPerPage, filteredAndSortedEmployees.length), total: filteredAndSortedEmployees.length })}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -1152,7 +1158,7 @@ function CompanyEmployees() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <span className="text-sm text-gray-600 dark:text-gray-300">
-                Page {currentPage} of {totalPages}
+                {t('employee.pageOf', { page: currentPage, total: totalPages })}
               </span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -1177,18 +1183,18 @@ function CompanyEmployees() {
           ) : pendingInvitations.length === 0 ? (
             <div className="p-12 text-center">
               <Clock className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No pending invitations</h3>
-              <p className="text-gray-500 dark:text-gray-400">All invitations have been accepted or cancelled.</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('employee.noPendingInvitations')}</h3>
+              <p className="text-gray-500 dark:text-gray-400">{t('employee.allInvitationsNote')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-700 border-b">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Invited</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('employee.colName')}</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('employee.colEmail')}</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('employee.colInvited')}</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('employee.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -1219,14 +1225,14 @@ function CompanyEmployees() {
                             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
                           >
                             <Send className="h-3.5 w-3.5" />
-                            Resend
+                            {t('employee.resend')}
                           </button>
                           <button
                             onClick={() => setCancellingInvitation(inv)}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-danger-600 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors"
                           >
                             <X className="h-3.5 w-3.5" />
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </div>
                       </td>
@@ -1264,13 +1270,13 @@ function CompanyEmployees() {
         isOpen={!!deactivatingEmployee}
         onClose={() => setDeactivatingEmployee(null)}
         onConfirm={handleDeactivate}
-        title={deactivatingEmployee?.is_active ? 'Deactivate Employee' : 'Activate Employee'}
+        title={deactivatingEmployee?.is_active ? t('employee.deactivateEmployee') : t('employee.activateEmployee')}
         message={
           deactivatingEmployee?.is_active
-            ? `Are you sure you want to deactivate ${deactivatingEmployee?.first_name} ${deactivatingEmployee?.last_name}? They will no longer be able to access the platform.`
-            : `Are you sure you want to activate ${deactivatingEmployee?.first_name} ${deactivatingEmployee?.last_name}?`
+            ? t('employee.deactivateConfirm', { name: `${deactivatingEmployee?.first_name} ${deactivatingEmployee?.last_name}` })
+            : t('employee.activateConfirm', { name: `${deactivatingEmployee?.first_name} ${deactivatingEmployee?.last_name}` })
         }
-        confirmText={deactivatingEmployee?.is_active ? 'Deactivate' : 'Activate'}
+        confirmText={deactivatingEmployee?.is_active ? t('admin.common.deactivate') : t('admin.common.activate')}
         danger={deactivatingEmployee?.is_active}
         loading={actionLoading}
       />
@@ -1279,9 +1285,9 @@ function CompanyEmployees() {
         isOpen={!!cancellingInvitation}
         onClose={() => setCancellingInvitation(null)}
         onConfirm={handleCancelInvitation}
-        title="Cancel Invitation"
-        message={`Cancel the invitation for ${cancellingInvitation?.email}? The invitation link will stop working and this cannot be undone.`}
-        confirmText="Cancel Invitation"
+        title={t('employee.cancelInvitation')}
+        message={t('employee.cancelInvitationConfirm', { email: cancellingInvitation?.email })}
+        confirmText={t('employee.cancelInvitation')}
         danger
         loading={actionLoading}
       />
@@ -1290,9 +1296,9 @@ function CompanyEmployees() {
         isOpen={!!deletingEmployee}
         onClose={() => setDeletingEmployee(null)}
         onConfirm={handleDeleteEmployee}
-        title="Delete Employee"
-        message={`Are you sure you want to permanently delete ${deletingEmployee?.first_name} ${deletingEmployee?.last_name}? This action cannot be undone and all their data will be removed.`}
-        confirmText="Delete"
+        title={t('employee.deleteEmployee')}
+        message={t('employee.deleteEmployeeConfirm', { name: `${deletingEmployee?.first_name} ${deletingEmployee?.last_name}` })}
+        confirmText={t('common.delete')}
         danger
         loading={actionLoading}
       />

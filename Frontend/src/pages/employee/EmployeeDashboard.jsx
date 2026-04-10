@@ -21,14 +21,15 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 // Risk score configuration
 const RISK_CONFIG = {
-  LOW: { min: 0, max: 30, label: 'Low Risk', color: 'success', bgColor: 'bg-success-500', textColor: 'text-success-600' },
-  MEDIUM: { min: 31, max: 60, label: 'Medium Risk', color: 'warning', bgColor: 'bg-warning-500', textColor: 'text-warning-600' },
-  HIGH: { min: 61, max: 80, label: 'High Risk', color: 'orange', bgColor: 'bg-orange-500', textColor: 'text-orange-600' },
-  CRITICAL: { min: 81, max: 100, label: 'Critical Risk', color: 'danger', bgColor: 'bg-danger-500', textColor: 'text-danger-600' },
+  LOW: { min: 0, max: 30, labelKey: 'dashboard.riskLevels.low', color: 'success', bgColor: 'bg-success-500', textColor: 'text-success-600' },
+  MEDIUM: { min: 31, max: 60, labelKey: 'dashboard.riskLevels.medium', color: 'warning', bgColor: 'bg-warning-500', textColor: 'text-warning-600' },
+  HIGH: { min: 61, max: 80, labelKey: 'dashboard.riskLevels.high', color: 'orange', bgColor: 'bg-orange-500', textColor: 'text-orange-600' },
+  CRITICAL: { min: 81, max: 100, labelKey: 'dashboard.riskLevels.critical', color: 'danger', bgColor: 'bg-danger-500', textColor: 'text-danger-600' },
 };
 
 // Circular Progress Gauge Component
 function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const radius = 80;
   const strokeWidth = 12;
@@ -83,7 +84,7 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
       <div className="mt-4 text-center">
         {isNewUser ? (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-            Not yet established
+            {t('dashboard.notYetEstablished')}
           </span>
         ) : (
           <span className={clsx('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
@@ -93,19 +94,19 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
             riskLevel === 'CRITICAL' && 'bg-danger-100 text-danger-700'
           )}>
             <AlertTriangle className="h-4 w-4" />
-            {config.label}
+            {t(config.labelKey)}
           </span>
         )}
       </div>
       {isNewUser && (
         <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 text-center">
-          Complete your first quiz to establish your risk score
+          {t('dashboard.completeFirstQuiz')}
         </p>
       )}
       {requiresRemediation && !isNewUser && (
         <div className="mt-3 p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700 flex items-start gap-2">
           <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span>Action required: Complete pending training to improve your score</span>
+          <span>{t('dashboard.actionRequired')}</span>
         </div>
       )}
     </div>
@@ -212,7 +213,7 @@ function EmployeeDashboard() {
         leaderboardPosition: positionRes.data,
       });
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to load dashboard data';
+      const message = err.response?.data?.detail || t('dashboard.loadingDashboard');
       setError(message);
       toast.error(message);
     } finally {
@@ -237,7 +238,7 @@ function EmployeeDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('dashboard.loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -250,7 +251,7 @@ function EmployeeDashboard() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -269,12 +270,12 @@ function EmployeeDashboard() {
             {t('dashboard.welcome')}, {user?.first_name || 'there'}!
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Here's an overview of your security awareness progress.
+            {t('dashboard.subtitle')}
           </p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -304,13 +305,13 @@ function EmployeeDashboard() {
           {!riskScore?.is_new_user && (
             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 space-y-3">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Quiz Accuracy</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('analytics.quizAccuracy') || 'Quiz Accuracy'}</span>
                 <span className="font-medium text-gray-900 dark:text-white">
                   {Math.round(riskScore?.quiz_accuracy || 0)}%
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Simulation Click Rate</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('analytics.simulationClickRate') || 'Simulation Click Rate'}</span>
                 <span className="font-medium text-gray-900 dark:text-white">
                   {Math.round(riskScore?.simulation_click_rate || 0)}%
                 </span>
@@ -322,52 +323,52 @@ function EmployeeDashboard() {
         {/* Quick Stats - 2x2 Grid */}
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           <QuickStatCard
-            title="Pending Quizzes"
+            title={t('dashboard.pendingQuizzes')}
             value={pendingQuizzes + inProgressQuizzes}
-            subtitle={inProgressQuizzes > 0 ? `${inProgressQuizzes} in progress` : null}
+            subtitle={inProgressQuizzes > 0 ? t('dashboard.inProgressCount', { count: inProgressQuizzes }) : null}
             icon={BookOpen}
             color="primary"
             linkTo="/employee/quizzes"
-            linkText="Take Quiz"
+            linkText={t('quiz.takeQuiz')}
           />
           <QuickStatCard
-            title="Pending Training"
+            title={t('dashboard.pendingTraining')}
             value={pendingTraining}
-            subtitle="Modules assigned"
+            subtitle={t('dashboard.modulesAssigned')}
             icon={Target}
             color="success"
             linkTo="/employee/training"
-            linkText="Start Training"
+            linkText={t('training.startTraining')}
           />
           <QuickStatCard
-            title="Badges Earned"
+            title={t('dashboard.badgesEarned')}
             value={earnedBadges.length}
-            subtitle="achievements unlocked"
+            subtitle={t('dashboard.achievementsUnlocked')}
             icon={Award}
             color="warning"
             linkTo="/employee/badges"
-            linkText="View All"
+            linkText={t('admin.common.viewAll')}
           />
           <QuickStatCard
-            title="Leaderboard Rank"
+            title={t('dashboard.leaderboardRank')}
             value={weeklyRank ? `#${weeklyRank}` : '-'}
-            subtitle={`${weeklyPoints} points this week`}
+            subtitle={t('dashboard.pointsThisWeek', { count: weeklyPoints })}
             icon={Trophy}
             color="purple"
             linkTo="/employee/leaderboard"
-            linkText="View Leaderboard"
+            linkText={t('dashboard.viewRankings')}
           />
         </div>
 
         {/* Recent Badges */}
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Badges</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.recentBadges')}</h2>
             <Link
               to="/employee/badges"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
             >
-              View All
+              {t('admin.common.viewAll')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -385,7 +386,7 @@ function EmployeeDashboard() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 dark:text-white truncate">{badge.name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {item.awarded_at ? `Earned ${formatDate(item.awarded_at)}` : 'Recently earned'}
+                        {item.awarded_at ? t('dashboard.earnedOn', { date: formatDate(item.awarded_at) }) : t('dashboard.recentlyEarned')}
                       </p>
                     </div>
                   </div>
@@ -395,8 +396,8 @@ function EmployeeDashboard() {
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Award className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-              <p>No badges earned yet</p>
-              <p className="text-sm">Complete quizzes and training to earn badges!</p>
+              <p>{t('dashboard.noBadgesYet')}</p>
+              <p className="text-sm">{t('dashboard.completeForBadges')}</p>
             </div>
           )}
         </div>
@@ -416,8 +417,8 @@ function EmployeeDashboard() {
               <p className="font-medium text-gray-900 dark:text-white">{t('quiz.takeQuiz')}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {pendingQuizzes + inProgressQuizzes > 0
-                  ? `${pendingQuizzes + inProgressQuizzes} quizzes available`
-                  : 'No quizzes pending'}
+                  ? t('dashboard.quizzesAvailable', { count: pendingQuizzes + inProgressQuizzes })
+                  : t('dashboard.noQuizzesPending')}
               </p>
             </div>
           </div>
@@ -436,8 +437,8 @@ function EmployeeDashboard() {
               <p className="font-medium text-gray-900 dark:text-white">{t('training.continueTraining')}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {pendingTraining > 0
-                  ? `${pendingTraining} modules pending`
-                  : 'All training complete'}
+                  ? t('dashboard.modulesPending', { count: pendingTraining })
+                  : t('dashboard.allTrainingComplete')}
               </p>
             </div>
           </div>
@@ -455,7 +456,7 @@ function EmployeeDashboard() {
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{t('nav.leaderboard')}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {weeklyRank ? `Rank #${weeklyRank} this week` : 'View rankings'}
+                {weeklyRank ? t('dashboard.rankThisWeek', { rank: weeklyRank }) : t('dashboard.viewRankings')}
               </p>
             </div>
           </div>

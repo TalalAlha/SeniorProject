@@ -23,19 +23,19 @@ const STATUS_COLORS = {
 
 const CATEGORY_CONFIG = {
   EMAIL_SECURITY: {
-    label: 'Email Security',
+    labelKey: 'training.categoryEmailSecurity',
     icon: Mail,
     iconColor: 'text-blue-600 dark:text-blue-400',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
   },
   MOBILE_SECURITY: {
-    label: 'Mobile Security',
+    labelKey: 'training.categoryMobileSecurity',
     icon: Smartphone,
     iconColor: 'text-green-600 dark:text-green-400',
     bgColor: 'bg-green-50 dark:bg-green-900/20',
   },
   SOCIAL_ENGINEERING: {
-    label: 'Social Engineering',
+    labelKey: 'training.categorySocialEngineering',
     icon: Phone,
     iconColor: 'text-purple-600 dark:text-purple-400',
     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
@@ -53,12 +53,14 @@ function TrainingCard({ module, onViewDetails, onAssign, isAr }) {
   const passRate = completed > 0 ? Math.round((passed / completed) * 100) : 0;
 
   const cat = CATEGORY_CONFIG[module.category] || {
+    labelKey: null,
     label: module.category || 'Training',
     icon: BookOpen,
     iconColor: 'text-primary-600',
     bgColor: 'bg-primary-50',
   };
   const CategoryIcon = cat.icon;
+  const catLabel = cat.labelKey ? t(cat.labelKey) : cat.label;
   const title = isAr && module.title_ar ? module.title_ar : module.title;
 
   return (
@@ -87,7 +89,7 @@ function TrainingCard({ module, onViewDetails, onAssign, isAr }) {
       </button>
 
       {/* Category subtitle */}
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{cat.label}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{catLabel}</p>
 
       {/* Stats — 2-column grid (mirrors sent/clicked) */}
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -341,7 +343,7 @@ function TrainingManagement() {
         <div className="flex gap-3">
           <button onClick={fetchData} className="btn-secondary flex items-center gap-2">
             <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
-            {t('common.view') === 'View' ? 'Refresh' : t('admin.common.refresh')}
+            {t('admin.common.refresh')}
           </button>
           <button onClick={() => openAssignModal()} className="btn-primary flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
@@ -356,7 +358,7 @@ function TrainingManagement() {
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder={t('training.noModules') ? 'Search modules...' : 'Search modules...'}
+            placeholder={t('training.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input ps-10 w-full"
@@ -372,8 +374,8 @@ function TrainingManagement() {
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               {categoryFilter === 'ALL'
-                ? 'All Categories'
-                : CATEGORY_CONFIG[categoryFilter]?.label || categoryFilter}
+                ? t('training.allCategories')
+                : (CATEGORY_CONFIG[categoryFilter]?.labelKey ? t(CATEGORY_CONFIG[categoryFilter].labelKey) : categoryFilter)}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -388,7 +390,7 @@ function TrainingManagement() {
                     categoryFilter === 'ALL' && 'bg-primary-50 text-primary-700'
                   )}
                 >
-                  All Categories
+                  {t('training.allCategories')}
                 </button>
                 {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
                   const Icon = config.icon;
@@ -402,7 +404,7 @@ function TrainingManagement() {
                       )}
                     >
                       <Icon className="h-4 w-4" />
-                      {config.label}
+                      {t(config.labelKey)}
                     </button>
                   );
                 })}
@@ -431,8 +433,8 @@ function TrainingManagement() {
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('training.noModules')}</h3>
           <p className="text-gray-500 dark:text-gray-400">
             {searchQuery || categoryFilter !== 'ALL'
-              ? 'Try adjusting your filters'
-              : 'Run the seed command to create training modules.'}
+              ? t('training.adjustFilters')
+              : t('training.seedCommand')}
           </p>
         </div>
       )}
@@ -470,7 +472,7 @@ function TrainingManagement() {
                         'text-xs font-medium px-2 py-1 rounded-full',
                         STATUS_COLORS[a.status] || STATUS_COLORS.ASSIGNED
                       )}>
-                        {a.status?.replace('_', ' ')}
+                        {a.status === 'ASSIGNED' ? t('training.statusAssigned') : a.status === 'IN_PROGRESS' ? t('training.statusInProgress') : a.status === 'COMPLETED' ? t('training.statusCompleted') : a.status === 'PASSED' ? t('training.statusPassed') : a.status === 'FAILED' ? t('training.statusFailed') : a.status === 'EXPIRED' ? t('training.statusExpired') : a.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm">
@@ -507,12 +509,14 @@ function TrainingManagement() {
           (a) => a.training_module === detailsModule.id || a.module === detailsModule.id
         );
         const cat = CATEGORY_CONFIG[detailsModule.category] || {
+          labelKey: null,
           label: detailsModule.category || 'Training',
           icon: BookOpen,
           iconColor: 'text-primary-600',
           bgColor: 'bg-primary-50',
         };
         const CatIcon = cat.icon;
+        const catLabelDetail = cat.labelKey ? t(cat.labelKey) : cat.label;
 
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -528,7 +532,7 @@ function TrainingManagement() {
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
                       {isAr && detailsModule.title_ar ? detailsModule.title_ar : detailsModule.title}
                     </h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{cat.label}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{catLabelDetail}</p>
                   </div>
                 </div>
                 <button
@@ -631,7 +635,7 @@ function TrainingManagement() {
                                   'text-xs font-medium px-2 py-1 rounded-full',
                                   STATUS_COLORS[a.status] || STATUS_COLORS.ASSIGNED
                                 )}>
-                                  {a.status?.replace('_', ' ')}
+                                  {a.status === 'ASSIGNED' ? t('training.statusAssigned') : a.status === 'IN_PROGRESS' ? t('training.statusInProgress') : a.status === 'COMPLETED' ? t('training.statusCompleted') : a.status === 'PASSED' ? t('training.statusPassed') : a.status === 'FAILED' ? t('training.statusFailed') : a.status === 'EXPIRED' ? t('training.statusExpired') : a.status}
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-sm">
@@ -772,19 +776,19 @@ function TrainingManagement() {
                           </div>
                           {isPending && (
                             <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full font-medium whitespace-nowrap">
-                              {isAr ? 'قيد التنفيذ' : 'In Progress'}
+                              {t('training.statusInProgress')}
                             </span>
                           )}
                           {isCompleted && (
                             <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium whitespace-nowrap">
-                              {isAr ? 'مكتمل' : 'Completed'}
+                              {t('training.statusCompleted')}
                             </span>
                           )}
                         </label>
                       );
                     })}
                     {employees.length === 0 && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No employees found</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">{t('training.noEmployeesLabel')}</p>
                     )}
                   </div>
                 )}
@@ -810,9 +814,7 @@ function TrainingManagement() {
             {pendingWarning && warningEmployees.length > 0 && (
               <div className="mx-6 mb-2 rounded-lg border border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 p-4">
                 <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
-                  {isAr
-                    ? `⚠️ ${warningEmployees.length} موظف(ين) لديهم تدريب غير مكتمل`
-                    : `⚠️ ${warningEmployees.length} employee(s) have this training in progress`}
+                  {t('training.warningInProgress', { count: warningEmployees.length })}
                 </p>
                 <ul className="text-xs text-yellow-700 dark:text-yellow-400 space-y-1 mb-3 max-h-24 overflow-y-auto">
                   {warningEmployees.map((emp) => (
@@ -820,9 +822,7 @@ function TrainingManagement() {
                   ))}
                 </ul>
                 <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-3">
-                  {isAr
-                    ? 'هل تريد إعادة التعيين على أي حال؟ سيتم إنشاء تعيين جديد.'
-                    : 'Assign anyway? A new assignment will be created alongside the existing one.'}
+                  {t('training.warningMessage')}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -833,7 +833,7 @@ function TrainingManagement() {
                     {assignLoading
                       ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
                       : <UserPlus className="h-3.5 w-3.5" />}
-                    {isAr ? 'تعيين على أي حال' : 'Assign Anyway'}
+                    {t('training.assignAnyway')}
                   </button>
                   <button
                     onClick={() => { setPendingWarning(false); setWarningEmployees([]); }}

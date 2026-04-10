@@ -29,12 +29,12 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { campaignsAPI, companiesAPI } from '../../api';
 import { useAuth } from '../../contexts';
 
-// Status configuration
+// Status configuration (labelKey used for i18n)
 const STATUS_CONFIG = {
-  DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: Edit2 },
-  ACTIVE: { label: 'Active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', icon: Play },
-  PAUSED: { label: 'Paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', icon: Pause },
-  COMPLETED: { label: 'Completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300', icon: Check },
+  DRAFT: { labelKey: 'campaign.status.draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: Edit2 },
+  ACTIVE: { labelKey: 'campaign.status.active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', icon: Play },
+  PAUSED: { labelKey: 'campaign.status.paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', icon: Pause },
+  COMPLETED: { labelKey: 'campaign.status.completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300', icon: Check },
 };
 
 // Modal Component
@@ -488,7 +488,7 @@ function AssignEmployeesModal({ isOpen, onClose, campaign, onSuccess }) {
             ) : (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                 <Users className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-500" />
-                <p>No employees found</p>
+                <p>{t('employee.noEmployeesFound')}</p>
               </div>
             )}
           </div>
@@ -525,11 +525,11 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
     : 0;
 
   const menuItems = [
-    { icon: BarChart3, label: 'View Details', onClick: () => navigate(`/company/campaigns/${campaign.id}`) },
-    { icon: Edit2, label: 'Edit', onClick: () => onEdit(campaign) },
-    { icon: UserPlus, label: 'Assign Employees', onClick: () => onAssign(campaign) },
+    { icon: BarChart3, label: t('campaign.viewDetails'), onClick: () => navigate(`/company/campaigns/${campaign.id}`) },
+    { icon: Edit2, label: t('common.edit'), onClick: () => onEdit(campaign) },
+    { icon: UserPlus, label: t('campaign.assignEmployees'), onClick: () => onAssign(campaign) },
     { divider: true },
-    { icon: Trash2, label: 'Delete', onClick: () => onDelete(campaign), danger: true },
+    { icon: Trash2, label: t('common.delete'), onClick: () => onDelete(campaign), danger: true },
   ];
 
   return (
@@ -541,7 +541,7 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
         <div className="flex items-center gap-2">
           <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full', status.color)}>
             <StatusIcon className="h-3 w-3" />
-            {status.label}
+            {t(status.labelKey)}
           </span>
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu
@@ -561,17 +561,17 @@ function CampaignCard({ campaign, onEdit, onDelete, onAssign }) {
       <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
         <span className="flex items-center gap-1">
           <Users className="h-4 w-4" />
-          {campaign.total_participants || 0} assigned
+          {campaign.total_participants || 0} {t('campaign.assigned')}
         </span>
         <span className="flex items-center gap-1">
           <Mail className="h-4 w-4" />
-          {campaign.num_emails || 0} emails
+          {campaign.num_emails || 0} {t('campaign.emails')}
         </span>
       </div>
 
       {campaign.average_score !== undefined && campaign.average_score !== null && (
         <div className="flex items-center gap-2 text-sm mb-4">
-          <span className="text-gray-500 dark:text-gray-400">Avg Score:</span>
+          <span className="text-gray-500 dark:text-gray-400">{t('campaign.avgScore')}:</span>
           <span className={clsx(
             'font-medium',
             campaign.average_score >= 70 ? 'text-success-600' : campaign.average_score >= 50 ? 'text-warning-600' : 'text-danger-600'
@@ -672,7 +672,7 @@ function CampaignList() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading campaigns...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -685,7 +685,7 @@ function CampaignList() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchCampaigns} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -697,12 +697,12 @@ function CampaignList() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your security awareness campaigns</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('campaign.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={fetchCampaigns} className="btn-secondary flex items-center gap-2">
             <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
-            Refresh
+            {t('admin.common.refresh')}
           </button>
           <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2">
             <Plus className="h-5 w-5" />
@@ -717,7 +717,7 @@ function CampaignList() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder={`${t('common.search')} campaigns...`}
+            placeholder={t('campaign.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input pl-10"
@@ -732,7 +732,7 @@ function CampaignList() {
           >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {statusFilter === 'ALL' ? 'All Status' : STATUS_CONFIG[statusFilter]?.label}
+              {statusFilter === 'ALL' ? t('campaign.allStatus') : t(STATUS_CONFIG[statusFilter]?.labelKey)}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -747,7 +747,7 @@ function CampaignList() {
                     statusFilter === 'ALL' && 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   )}
                 >
-                  All Status
+                  {t('campaign.allStatus')}
                 </button>
                 {Object.entries(STATUS_CONFIG).map(([key, config]) => (
                   <button
@@ -759,7 +759,7 @@ function CampaignList() {
                     )}
                   >
                     <config.icon className="h-4 w-4" />
-                    {config.label}
+                    {t(config.labelKey)}
                   </button>
                 ))}
               </div>
@@ -784,16 +784,16 @@ function CampaignList() {
       ) : (
         <div className="text-center py-12">
           <Target className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No campaigns found</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('campaign.noCampaigns')}</h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             {searchQuery || statusFilter !== 'ALL'
-              ? 'Try adjusting your filters'
-              : 'Get started by creating your first campaign'}
+              ? t('admin.companies.adjustFilters')
+              : t('campaign.createFirst')}
           </p>
           {!searchQuery && statusFilter === 'ALL' && (
             <button onClick={() => setShowCreateModal(true)} className="btn-primary">
               <Plus className="h-5 w-5 mr-2" />
-              Create Campaign
+              {t('campaign.createCampaign')}
             </button>
           )}
         </div>

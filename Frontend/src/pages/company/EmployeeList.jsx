@@ -147,11 +147,11 @@ function EmployeeList() {
               <div>
                 <label className="label">{t('employee.department')}</label>
                 <select className="input">
-                  <option>IT</option>
-                  <option>Marketing</option>
-                  <option>Sales</option>
-                  <option>HR</option>
-                  <option>Finance</option>
+                  <option value="IT">{t('employee.deptIT')}</option>
+                  <option value="Marketing">{t('employee.deptMarketing')}</option>
+                  <option value="Sales">{t('employee.deptSales')}</option>
+                  <option value="HR">{t('employee.deptHR')}</option>
+                  <option value="Finance">{t('employee.deptFinance')}</option>
                 </select>
               </div>
             </div>

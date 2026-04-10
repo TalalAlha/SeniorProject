@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Plus,
   Search,
@@ -34,15 +35,15 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { simulationsAPI, companiesAPI } from '../../api';
 import { useAuth } from '../../contexts';
 
-// Status configuration
+// Status configuration (labelKey for i18n)
 const STATUS_CONFIG = {
-  DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: FileText },
-  READY: { label: 'Ready', color: 'bg-primary-50 text-primary-700', icon: Check },
-  SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Clock },
-  SENT: { label: 'Sent', color: 'bg-warning-50 text-warning-700', icon: Send },
-  IN_PROGRESS: { label: 'In Progress', color: 'bg-warning-50 text-warning-700', icon: Play },
-  ACTIVE: { label: 'Active', color: 'bg-success-50 text-success-700', icon: Play },
-  COMPLETED: { label: 'Completed', color: 'bg-primary-100 text-primary-800', icon: CheckCircle },
+  DRAFT: { labelKey: 'campaign.status.draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: FileText },
+  READY: { labelKey: 'simulation.statusReady', color: 'bg-primary-50 text-primary-700', icon: Check },
+  SCHEDULED: { labelKey: 'simulation.statusScheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Clock },
+  SENT: { labelKey: 'simulation.statusSent', color: 'bg-warning-50 text-warning-700', icon: Send },
+  IN_PROGRESS: { labelKey: 'simulation.statusInProgress', color: 'bg-warning-50 text-warning-700', icon: Play },
+  ACTIVE: { labelKey: 'campaign.status.active', color: 'bg-success-50 text-success-700', icon: Play },
+  COMPLETED: { labelKey: 'campaign.status.completed', color: 'bg-primary-100 text-primary-800', icon: CheckCircle },
 };
 
 // Modal Component
@@ -424,7 +425,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
                 {templates.length === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-500" />
-                    <p>No templates available</p>
+                    <p>{t('simulation.noTemplatesAvailable')}</p>
                   </div>
                 )}
               </div>
@@ -492,7 +493,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
           {includeAdmins && formData.target_employee_ids.some(id => employees.find(e => e.id === id)?.role !== 'EMPLOYEE') && (
             <div className="flex gap-2 p-3 bg-warning-50 border border-warning-200 rounded-lg text-sm text-warning-800">
               <AlertTriangle className="h-4 w-4 text-warning-600 flex-shrink-0 mt-0.5" />
-              <span>Admin users are selected. Note: admins selected here will receive simulation emails only if they are targeted directly — they are excluded from "all employees" sends.</span>
+              <span>{t('simulation.adminWarning')}</span>
             </div>
           )}
 
@@ -538,7 +539,7 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
               ) : (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                   <Users className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-500" />
-                  <p>No employees found</p>
+                  <p>{t('employee.noEmployeesFound')}</p>
                 </div>
               )}
             </div>
@@ -610,8 +611,8 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
               <div className="text-sm text-blue-800">
                 <p className="font-medium">Emails will be sent automatically</p>
                 <ul className="mt-1 space-y-1 list-disc list-inside">
-                  <li>Phishing emails will be delivered to selected employees</li>
-                  <li>You can monitor results in real-time from the analytics page</li>
+                  <li>{t('simulation.emailsSentNote1')}</li>
+                  <li>{t('simulation.emailsSentNote2')}</li>
                 </ul>
               </div>
             </div>
@@ -980,6 +981,7 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
 
 // Simulation Card Component
 function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, onAnalytics }) {
+  const { t } = useTranslation();
   const status = STATUS_CONFIG[simulation.status] || STATUS_CONFIG.DRAFT;
   const StatusIcon = status.icon;
 
@@ -988,16 +990,16 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
   const canViewAnalytics = ['IN_PROGRESS', 'COMPLETED', 'PAUSED'].includes(simulation.status);
 
   const menuItems = [
-    { icon: Eye, label: 'View Details', onClick: () => onView(simulation) },
-    canViewAnalytics && { icon: BarChart3, label: 'View Analytics', onClick: () => onAnalytics(simulation.id) },
-    { icon: Download, label: 'Download Package', onClick: () => onDownload(simulation.id) },
+    { icon: Eye, label: t('common.view'), onClick: () => onView(simulation) },
+    canViewAnalytics && { icon: BarChart3, label: t('simulation.viewAnalytics'), onClick: () => onAnalytics(simulation.id) },
+    { icon: Download, label: t('simulation.generatePackage'), onClick: () => onDownload(simulation.id) },
     ['DRAFT', 'READY', 'SCHEDULED'].includes(simulation.status) && {
       icon: Send,
-      label: 'Mark as Sent',
+      label: t('simulation.statusSent'),
       onClick: () => onMarkSent(simulation.id),
     },
     { divider: true },
-    { icon: Trash2, label: 'Delete', onClick: () => onDelete(simulation.id), danger: true },
+    { icon: Trash2, label: t('common.delete'), onClick: () => onDelete(simulation.id), danger: true },
   ].filter(Boolean);
 
   return (
@@ -1009,7 +1011,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
         <div className="flex items-center gap-2">
           <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full', status.color)}>
             <StatusIcon className="h-3 w-3" />
-            {status.label}
+            {t(status.labelKey)}
           </span>
           <DropdownMenu
             trigger={<MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
@@ -1026,7 +1028,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
 
       {(simulation.template_name || simulation.template?.name) && (
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Template: {simulation.template_name || simulation.template?.name}
+          {t('simulation.template')}: {simulation.template_name || simulation.template?.name}
         </p>
       )}
 
@@ -1034,7 +1036,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="flex items-center gap-2 text-sm">
           <Send className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-          <span className="text-gray-600 dark:text-gray-300">{simulation.total_sent || 0} sent</span>
+          <span className="text-gray-600 dark:text-gray-300">{simulation.total_sent || 0} {t('simulation.sent')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <MousePointer className={clsx(
@@ -1044,7 +1046,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
           <span className={clsx(
             clickRate > 0.3 ? 'text-danger-600' : clickRate > 0.1 ? 'text-warning-600' : 'text-success-600'
           )}>
-            {simulation.total_clicked || 0} clicked
+            {simulation.total_clicked || 0} {t('simulation.clicked')}
           </span>
         </div>
       </div>
@@ -1053,7 +1055,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
       {simulation.total_sent > 0 && (
         <div className="flex gap-4 text-xs pt-3 border-t">
           <div>
-            <span className="text-gray-400 dark:text-gray-500">Click Rate: </span>
+            <span className="text-gray-400 dark:text-gray-500">{t('dashboard.clickRate')}: </span>
             <span className={clsx(
               'font-medium',
               clickRate > 0.3 ? 'text-danger-600' : clickRate > 0.1 ? 'text-warning-600' : 'text-success-600'
@@ -1071,7 +1073,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
           className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-sm py-2"
         >
           <BarChart3 className="h-4 w-4" />
-          View Analytics
+          {t('simulation.viewAnalytics')}
         </button>
       )}
 
@@ -1091,6 +1093,7 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
 
 // Main Component
 function CompanySimulations() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1198,7 +1201,7 @@ function CompanySimulations() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchSimulations} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -1209,17 +1212,17 @@ function CompanySimulations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Phishing Simulations</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Create and manage phishing email simulations</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('simulation.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('simulation.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={fetchSimulations} className="btn-secondary flex items-center gap-2">
             <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
-            Refresh
+            {t('admin.common.refresh')}
           </button>
           <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Create Simulation
+            {t('simulation.createSimulation')}
           </button>
         </div>
       </div>
@@ -1230,7 +1233,7 @@ function CompanySimulations() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Search simulations..."
+            placeholder={t('simulation.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input pl-10"
@@ -1245,7 +1248,7 @@ function CompanySimulations() {
           >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              {statusFilter === 'ALL' ? 'All Status' : STATUS_CONFIG[statusFilter]?.label}
+              {statusFilter === 'ALL' ? t('simulation.allStatus') : t(STATUS_CONFIG[statusFilter]?.labelKey)}
             </div>
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -1260,7 +1263,7 @@ function CompanySimulations() {
                     statusFilter === 'ALL' && 'bg-primary-50 text-primary-700'
                   )}
                 >
-                  All Status
+                  {t('simulation.allStatus')}
                 </button>
                 {Object.entries(STATUS_CONFIG).map(([key, config]) => (
                   <button
@@ -1272,7 +1275,7 @@ function CompanySimulations() {
                     )}
                   >
                     <config.icon className="h-4 w-4" />
-                    {config.label}
+                    {t(config.labelKey)}
                   </button>
                 ))}
               </div>
@@ -1299,16 +1302,16 @@ function CompanySimulations() {
       ) : (
         <div className="text-center py-12">
           <Mail className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No simulations found</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('simulation.noSimulations')}</h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             {searchQuery || statusFilter !== 'ALL'
-              ? 'Try adjusting your filters'
-              : 'Get started by creating your first phishing simulation'}
+              ? t('simulation.adjustFilters')
+              : t('simulation.getStarted')}
           </p>
           {!searchQuery && statusFilter === 'ALL' && (
             <button onClick={() => setShowCreateModal(true)} className="btn-primary">
               <Plus className="h-5 w-5 mr-2" />
-              Create Simulation
+              {t('simulation.createSimulation')}
             </button>
           )}
         </div>
@@ -1334,8 +1337,8 @@ function CompanySimulations() {
         isOpen={!!deletingSimulation}
         onClose={() => setDeletingSimulation(null)}
         onConfirm={handleDelete}
-        title="Delete Simulation"
-        message={`Are you sure you want to delete "${deletingSimulation?.name}"? This action cannot be undone.`}
+        title={t('simulation.deleteSimulation')}
+        message={t('simulation.deleteConfirm', { name: deletingSimulation?.name })}
         confirmText="Delete"
         danger
         loading={actionLoading}

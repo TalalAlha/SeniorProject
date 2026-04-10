@@ -28,7 +28,7 @@ function EmployeeQuizzes() {
       const data = response.data.results || response.data;
       setQuizzes(Array.isArray(data) ? data : []);
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to load quizzes';
+      const message = err.response?.data?.detail || t('quiz.loadingQuizzes');
       setError(message);
       toast.error(message);
     } finally {
@@ -75,7 +75,7 @@ function EmployeeQuizzes() {
       case QUIZ_STATUS.COMPLETED:
         return t('common.view');
       case QUIZ_STATUS.IN_PROGRESS:
-        return 'Continue';
+        return t('quiz.continueQuiz');
       default:
         return t('quiz.startQuiz');
     }
@@ -86,7 +86,7 @@ function EmployeeQuizzes() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading quizzes...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('quiz.loadingQuizzes')}</p>
         </div>
       </div>
     );
@@ -102,7 +102,7 @@ function EmployeeQuizzes() {
           className="btn-primary flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -114,14 +114,14 @@ function EmployeeQuizzes() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('quiz.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Complete quizzes to test your security knowledge</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('quiz.quizSubtitle')}</p>
         </div>
         <button
           onClick={fetchQuizzes}
           className="btn-secondary flex items-center gap-2 self-start"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -170,7 +170,7 @@ function EmployeeQuizzes() {
                   <>
                     <span>•</span>
                     <span>
-                      {quiz.current_question_index}/{quiz.total_questions} answered
+                      {quiz.current_question_index}/{quiz.total_questions} {t('quiz.answered')}
                     </span>
                   </>
                 )}
@@ -205,11 +205,11 @@ function EmployeeQuizzes() {
       ) : (
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No quizzes found</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('quiz.noQuizzesFound')}</h3>
           <p className="text-gray-500 dark:text-gray-400">
             {filter === 'all'
-              ? 'You have no quizzes assigned yet.'
-              : `No quizzes with status "${filter.replace('_', ' ').toLowerCase()}".`}
+              ? t('quiz.noQuizzesAssigned')
+              : t('quiz.noQuizzesFound')}
           </p>
         </div>
       )}

@@ -6,9 +6,9 @@ import clsx from 'clsx';
 import { gamificationAPI } from '../../api';
 
 const PERIODS = {
-  weekly: { key: 'weekly', label: 'Weekly' },
-  monthly: { key: 'monthly', label: 'Monthly' },
-  all_time: { key: 'all_time', label: 'All Time' },
+  weekly: { key: 'weekly', labelKey: 'leaderboard.weekly' },
+  monthly: { key: 'monthly', labelKey: 'leaderboard.monthly' },
+  all_time: { key: 'all_time', labelKey: 'leaderboard.allTime' },
 };
 
 function EmployeeLeaderboard() {
@@ -31,7 +31,7 @@ function EmployeeLeaderboard() {
       setLeaderboardData(leaderboardRes.data);
       setMyPosition(positionRes.data);
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to load leaderboard';
+      const message = err.response?.data?.detail || t('leaderboard.loadingLeaderboard');
       setError(message);
       toast.error(message);
     } finally {
@@ -91,7 +91,7 @@ function EmployeeLeaderboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading leaderboard...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('leaderboard.loadingLeaderboard')}</p>
         </div>
       </div>
     );
@@ -104,7 +104,7 @@ function EmployeeLeaderboard() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -116,11 +116,11 @@ function EmployeeLeaderboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('nav.leaderboard')}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">See how you rank against other employees</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('leaderboard.subtitle')}</p>
         </div>
         <button onClick={fetchData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -129,10 +129,10 @@ function EmployeeLeaderboard() {
         <div className="card bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-200 dark:border-primary-800">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary-600" />
-            Your Position
+            {t('leaderboard.yourPosition')}
           </h2>
           <div className="grid grid-cols-3 gap-4">
-            {Object.entries(PERIODS).map(([key, { label }]) => {
+            {Object.entries(PERIODS).map(([key, { labelKey }]) => {
               const position = myPosition[key];
               if (!position) return null;
               return (
@@ -146,10 +146,10 @@ function EmployeeLeaderboard() {
                   )}
                   onClick={() => setSelectedPeriod(key)}
                 >
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t(labelKey)}</p>
                   <p className="text-2xl font-bold text-primary-600">#{position.rank || '-'}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">{position.points || 0} pts</p>
-                  <p className="text-xs text-gray-400">of {position.total || totalParticipants}</p>
+                  <p className="text-xs text-gray-400">{t('leaderboard.of', { total: position.total || totalParticipants })}</p>
                 </div>
               );
             })}
@@ -159,7 +159,7 @@ function EmployeeLeaderboard() {
 
       {/* Period Tabs */}
       <div className="flex flex-wrap gap-2">
-        {Object.entries(PERIODS).map(([key, { label }]) => {
+        {Object.entries(PERIODS).map(([key, { labelKey }]) => {
           const position = myPosition?.[key];
           return (
             <button
@@ -172,7 +172,7 @@ function EmployeeLeaderboard() {
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
               )}
             >
-              {label}
+              {t(labelKey)}
               {position?.rank && (
                 <span
                   className={clsx(
@@ -193,29 +193,29 @@ function EmployeeLeaderboard() {
         <div className="card text-center">
           <Users className="h-6 w-6 text-primary-500 mx-auto mb-2" />
           <p className="text-xl font-bold text-gray-900 dark:text-white">{totalParticipants}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Participants</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.participants')}</p>
         </div>
         <div className="card text-center">
           <Trophy className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
           <p className="text-xl font-bold text-gray-900 dark:text-white">#{userRank || '-'}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Your Rank</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.yourRank')}</p>
         </div>
         <div className="card text-center">
           <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
           <p className="text-xl font-bold text-gray-900 dark:text-white">{userPoints || 0}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Your Points</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.yourPoints')}</p>
         </div>
         <div className="card text-center">
           <Award className="h-6 w-6 text-purple-500 mx-auto mb-2" />
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{PERIODS[selectedPeriod].label}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Period</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{t(PERIODS[selectedPeriod].labelKey)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.period')}</p>
         </div>
       </div>
 
       {/* Top 3 Podium */}
       {entries.length >= 3 && (
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">Top Performers</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">{t('leaderboard.topPerformers')}</h2>
           <div className="flex items-end justify-center gap-4 mb-4">
             {/* 2nd Place */}
             <div className="flex flex-col items-center">
@@ -292,7 +292,7 @@ function EmployeeLeaderboard() {
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Trophy className="h-5 w-5 text-warning-500" />
-          {PERIODS[selectedPeriod].label} Rankings
+          {t('leaderboard.rankings', { period: t(PERIODS[selectedPeriod].labelKey) })}
         </h2>
 
         {entries.length > 0 ? (
@@ -344,7 +344,7 @@ function EmployeeLeaderboard() {
                       )}
                     >
                       {getFullName(entry.employee)}
-                      {isCurrentUser && <span className="text-primary-500 ml-2">(You)</span>}
+                      {isCurrentUser && <span className="text-primary-500 ml-2">{t('leaderboard.you')}</span>}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {entry.employee?.email || ''}
@@ -364,7 +364,7 @@ function EmployeeLeaderboard() {
                     <p className={clsx('font-bold', isCurrentUser ? 'text-primary-600' : 'text-gray-900 dark:text-white')}>
                       {entry.points || 0}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">points</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('leaderboard.points')}</p>
                   </div>
                 </div>
               );
@@ -373,9 +373,9 @@ function EmployeeLeaderboard() {
         ) : (
           <div className="text-center py-12">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No rankings yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('leaderboard.noRankingsYet')}</h3>
             <p className="text-gray-500 dark:text-gray-400">
-              Complete quizzes and training to appear on the leaderboard!
+              {t('leaderboard.completeForLeaderboard')}
             </p>
           </div>
         )}

@@ -30,7 +30,7 @@ function EmployeeTraining() {
       const data = response.data.results || response.data;
       setTrainings(Array.isArray(data) ? data : []);
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to load training modules';
+      const message = err.response?.data?.detail || t('training.loadingTraining');
       setError(message);
       toast.error(message);
     } finally {
@@ -57,14 +57,14 @@ function EmployeeTraining() {
         return (
           <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-success-50 dark:bg-success-500/20 text-success-700 dark:text-success-500">
             <CheckCircle className="h-3 w-3" />
-            {status === TRAINING_STATUS.PASSED ? 'Passed' : t('training.completed')}
+            {status === TRAINING_STATUS.PASSED ? t('training.passed') : t('training.completed')}
           </span>
         );
       case TRAINING_STATUS.FAILED:
         return (
           <span className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-danger-50 dark:bg-danger-500/20 text-danger-700 dark:text-danger-500">
             <XCircle className="h-3 w-3" />
-            Failed
+            {t('training.failed')}
           </span>
         );
       case TRAINING_STATUS.IN_PROGRESS:
@@ -88,13 +88,13 @@ function EmployeeTraining() {
     switch (status) {
       case TRAINING_STATUS.COMPLETED:
       case TRAINING_STATUS.PASSED:
-        return { text: 'Review', className: 'btn-secondary', showIcon: false };
+        return { textKey: 'training.review', className: 'btn-secondary', showIcon: false };
       case TRAINING_STATUS.FAILED:
-        return { text: 'Retry', className: 'btn-primary', showIcon: true };
+        return { textKey: 'training.retry', className: 'btn-primary', showIcon: true };
       case TRAINING_STATUS.IN_PROGRESS:
-        return { text: 'Continue', className: 'btn-primary', showIcon: true };
+        return { textKey: 'training.continue', className: 'btn-primary', showIcon: true };
       default:
-        return { text: 'Start', className: 'btn-primary', showIcon: true };
+        return { textKey: 'training.start', className: 'btn-primary', showIcon: true };
     }
   };
 
@@ -105,22 +105,23 @@ function EmployeeTraining() {
     const diffDays = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      return { text: 'Overdue', className: 'text-danger-600 dark:text-danger-400' };
+      return { text: t('training.overdue'), className: 'text-danger-600 dark:text-danger-400' };
     } else if (diffDays === 0) {
-      return { text: 'Due today', className: 'text-warning-600 dark:text-warning-400' };
+      return { text: t('training.dueToday'), className: 'text-warning-600 dark:text-warning-400' };
     } else if (diffDays <= 3) {
-      return { text: `Due in ${diffDays} day${diffDays > 1 ? 's' : ''}`, className: 'text-warning-600 dark:text-warning-400' };
+      return { text: t('training.dueInDays', { count: diffDays }), className: 'text-warning-600 dark:text-warning-400' };
     } else {
-      return { text: `Due ${date.toLocaleDateString()}`, className: 'text-gray-500 dark:text-gray-400' };
+      return { text: t('training.dueOn', { date: date.toLocaleDateString() }), className: 'text-gray-500 dark:text-gray-400' };
     }
   };
 
   const getAssignmentReasonLabel = (reason) => {
     const reasons = {
-      AUTO_HIGH_RISK: 'High Risk',
-      AUTO_PHISHING_CLICK: 'Phishing Click',
-      MANUAL: 'Assigned',
-      CAMPAIGN: 'Campaign',
+      AUTO_HIGH_RISK: t('training.reasonHighRisk'),
+      AUTO_PHISHING_CLICK: t('training.reasonPhishingClick'),
+      MANUAL: t('training.reasonManual'),
+      MANUAL_ADMIN: t('training.reasonManual'),
+      CAMPAIGN: t('training.reasonCampaign'),
     };
     return reasons[reason] || reason;
   };
@@ -130,7 +131,7 @@ function EmployeeTraining() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading training modules...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('training.loadingTraining')}</p>
         </div>
       </div>
     );
@@ -146,7 +147,7 @@ function EmployeeTraining() {
           className="btn-primary flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -158,14 +159,14 @@ function EmployeeTraining() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('training.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Complete training modules to improve your security awareness</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('training.trainingSubtitle')}</p>
         </div>
         <button
           onClick={fetchTrainings}
           className="btn-secondary flex items-center gap-2 self-start"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -256,14 +257,14 @@ function EmployeeTraining() {
                           'font-medium',
                           training.quiz_score >= 70 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'
                         )}>
-                          Score: {training.quiz_score}%
+                          {t('training.scoreLabel', { score: training.quiz_score })}
                         </span>
                       )}
                     </div>
 
                     {/* Progress indicator for content viewed */}
                     {training.status === TRAINING_STATUS.IN_PROGRESS && training.content_viewed && (
-                      <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">Content viewed - Quiz pending</p>
+                      <p className="text-xs text-primary-600 dark:text-primary-400 mt-1">{t('training.contentViewed')}</p>
                     )}
                   </div>
 
@@ -272,7 +273,7 @@ function EmployeeTraining() {
                     to={`/employee/training/${training.id}`}
                     className={clsx('btn flex items-center gap-2 flex-shrink-0', buttonConfig.className)}
                   >
-                    {buttonConfig.text}
+                    {t(buttonConfig.textKey)}
                     {buttonConfig.showIcon && <Play className="h-4 w-4" />}
                   </Link>
                 </div>
@@ -283,11 +284,11 @@ function EmployeeTraining() {
       ) : (
         <div className="text-center py-12">
           <Target className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No training modules found</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('training.noTrainingFound')}</h3>
           <p className="text-gray-500 dark:text-gray-400">
             {filter === 'all'
-              ? 'You have no training modules assigned yet.'
-              : `No training modules with status "${filter.replace('_', ' ').toLowerCase()}".`}
+              ? t('training.noTrainingAssigned')
+              : t('training.noTrainingFound')}
           </p>
         </div>
       )}

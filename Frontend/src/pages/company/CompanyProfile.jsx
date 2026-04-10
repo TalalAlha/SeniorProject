@@ -33,11 +33,11 @@ const getPasswordStrength = (password) => {
   if (/\d/.test(password)) strength++;
   if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
-  if (strength <= 1) return { label: 'Weak', color: 'danger', width: '20%' };
-  if (strength <= 2) return { label: 'Fair', color: 'warning', width: '40%' };
-  if (strength <= 3) return { label: 'Good', color: 'yellow', width: '60%' };
-  if (strength <= 4) return { label: 'Strong', color: 'success', width: '80%' };
-  return { label: 'Very Strong', color: 'success', width: '100%' };
+  if (strength <= 1) return { labelKey: 'profile.passwordWeak', color: 'danger', width: '20%' };
+  if (strength <= 2) return { labelKey: 'profile.passwordFair', color: 'warning', width: '40%' };
+  if (strength <= 3) return { labelKey: 'profile.passwordGood', color: 'yellow', width: '60%' };
+  if (strength <= 4) return { labelKey: 'profile.passwordStrong', color: 'success', width: '80%' };
+  return { labelKey: 'profile.passwordVeryStrong', color: 'success', width: '100%' };
 };
 
 function CompanyProfile() {
@@ -214,7 +214,7 @@ function CompanyProfile() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading profile...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -227,7 +227,7 @@ function CompanyProfile() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchProfile} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -238,7 +238,7 @@ function CompanyProfile() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your account settings and preferences</p>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">{t('profile.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -249,7 +249,7 @@ function CompanyProfile() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <User className="h-5 w-5 text-primary-600" />
-                Profile Information
+                {t('profile.profileInformation')}
               </h2>
               {!isEditing ? (
                 <button
@@ -257,7 +257,7 @@ function CompanyProfile() {
                   className="btn-secondary text-sm flex items-center gap-2"
                 >
                   <Edit2 className="h-4 w-4" />
-                  Edit
+                  {t('common.edit')}
                 </button>
               ) : (
                 <button
@@ -330,7 +330,7 @@ function CompanyProfile() {
                     />
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('profile.emailCannotBeChanged')}</p>
                 </div>
 
                 <div>
@@ -400,7 +400,7 @@ function CompanyProfile() {
                     ) : (
                       <Save className="h-4 w-4" />
                     )}
-                    Save Changes
+                    {t('profile.saveChanges')}
                   </button>
                   <button
                     type="button"
@@ -408,7 +408,7 @@ function CompanyProfile() {
                     disabled={savingProfile}
                     className="btn-secondary"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               )}
@@ -419,7 +419,7 @@ function CompanyProfile() {
           <div className="card">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
               <Lock className="h-5 w-5 text-primary-600" />
-              Change Password
+              {t('profile.changePassword')}
             </h2>
 
             <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -482,7 +482,7 @@ function CompanyProfile() {
                 {passwordData.new_password && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-gray-500 dark:text-gray-400">Password strength</span>
+                      <span className="text-gray-500 dark:text-gray-400">{t('profile.passwordStrengthLabel')}</span>
                       <span className={clsx(
                         'font-medium',
                         passwordStrength.color === 'danger' && 'text-danger-600',
@@ -490,7 +490,7 @@ function CompanyProfile() {
                         passwordStrength.color === 'yellow' && 'text-yellow-600 dark:text-yellow-400',
                         passwordStrength.color === 'success' && 'text-success-600'
                       )}>
-                        {passwordStrength.label}
+                        {t(passwordStrength.labelKey)}
                       </span>
                     </div>
                     <div className="h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
@@ -538,26 +538,26 @@ function CompanyProfile() {
                 {passwordData.confirm_password && passwordData.new_password === passwordData.confirm_password && (
                   <p className="text-sm text-success-600 mt-1 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
-                    Passwords match
+                    {t('auth.passwordsMatch') || 'Passwords match'}
                   </p>
                 )}
               </div>
 
               {/* Password Requirements */}
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300">
-                <p className="font-medium mb-2">Password requirements:</p>
+                <p className="font-medium mb-2">{t('auth.passwordRequirements') || 'Password requirements:'}</p>
                 <ul className="space-y-1">
                   <li className={clsx('flex items-center gap-2', passwordData.new_password.length >= 8 && 'text-success-600')}>
                     {passwordData.new_password.length >= 8 ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
-                    At least 8 characters
+                    {t('profile.atLeast8Chars')}
                   </li>
                   <li className={clsx('flex items-center gap-2', /[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) && 'text-success-600')}>
                     {/[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
-                    Upper and lowercase letters
+                    {t('profile.upperAndLower')}
                   </li>
                   <li className={clsx('flex items-center gap-2', /\d/.test(passwordData.new_password) && 'text-success-600')}>
                     {/\d/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
-                    At least one number
+                    {t('profile.atLeastOneNumber')}
                   </li>
                 </ul>
               </div>
@@ -572,7 +572,7 @@ function CompanyProfile() {
                 ) : (
                   <Lock className="h-4 w-4" />
                 )}
-                Change Password
+                {t('profile.changePassword')}
               </button>
             </form>
           </div>
@@ -584,13 +584,13 @@ function CompanyProfile() {
           <div className="card">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary-600" />
-              Account Info
+              {t('profile.accountInfo')}
             </h2>
 
             <div className="space-y-4">
               {/* Role */}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Role</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t('profile.role')}</p>
                 <span className={clsx(
                   'inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
                   profile?.role === 'EMPLOYEE' && 'bg-primary-100 text-primary-700',
@@ -604,7 +604,7 @@ function CompanyProfile() {
 
               {/* Company */}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Company</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t('profile.company')}</p>
                 <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                   {profile?.company?.name || 'N/A'}
@@ -613,7 +613,7 @@ function CompanyProfile() {
 
               {/* Member Since */}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Member Since</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t('profile.memberSince')}</p>
                 <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                   {formatDate(profile?.date_joined || profile?.created_at)}
@@ -622,10 +622,10 @@ function CompanyProfile() {
 
               {/* Account Status */}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Account Status</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t('profile.accountStatus')}</p>
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-success-100 text-success-700">
                   <CheckCircle className="h-3 w-3" />
-                  Active
+                  {t('common.active')}
                 </span>
               </div>
             </div>
@@ -635,7 +635,7 @@ function CompanyProfile() {
           <div className="card">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Globe className="h-5 w-5 text-primary-600" />
-              Quick Language Switch
+              {t('profile.quickLanguageSwitch')}
             </h2>
             <div className="flex gap-2">
               <button
@@ -647,7 +647,7 @@ function CompanyProfile() {
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 )}
               >
-                English
+                {t('common.english')}
               </button>
               <button
                 onClick={() => changeLanguage('ar')}
@@ -658,11 +658,11 @@ function CompanyProfile() {
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 )}
               >
-                Arabic
+                {t('common.arabic')}
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              This only changes the UI. Save your preference in profile settings for persistence.
+              {t('profile.languageSwitchNote')}
             </p>
           </div>
         </div>

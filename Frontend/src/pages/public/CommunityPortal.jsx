@@ -8,48 +8,48 @@ function CommunityPortal() {
   const articles = [
     {
       id: 1,
-      title: 'How to Identify Phishing Emails',
-      excerpt: 'Learn the key signs of phishing emails and how to protect yourself from cyber threats.',
+      title: t('community.article1Title'),
+      excerpt: t('community.article1Excerpt'),
       date: '2024-01-15',
-      category: 'Security Tips',
+      category: t('community.article1Category'),
     },
     {
       id: 2,
-      title: 'Social Engineering: What You Need to Know',
-      excerpt: 'Understanding social engineering attacks and how to defend against them.',
+      title: t('community.article2Title'),
+      excerpt: t('community.article2Excerpt'),
       date: '2024-01-10',
-      category: 'Education',
+      category: t('community.article2Category'),
     },
     {
       id: 3,
-      title: 'Protecting Your Business from Cyber Threats',
-      excerpt: 'Essential cybersecurity practices for businesses in the MENA region.',
+      title: t('community.article3Title'),
+      excerpt: t('community.article3Excerpt'),
       date: '2024-01-05',
-      category: 'Business',
+      category: t('community.article3Category'),
     },
   ];
 
   const tips = [
-    'Always verify the sender\'s email address before clicking any links',
-    'Look for spelling and grammar mistakes in suspicious emails',
-    'Never share your password via email or phone',
-    'Enable two-factor authentication on all accounts',
-    'Report suspicious emails to your IT department immediately',
+    t('community.tip1'),
+    t('community.tip2'),
+    t('community.tip3'),
+    t('community.tip4'),
+    t('community.tip5'),
   ];
 
   const resources = [
     {
-      title: 'Phishing Detection Guide',
+      title: t('community.resource1'),
       type: 'PDF',
       size: '2.3 MB',
     },
     {
-      title: 'Security Best Practices',
+      title: t('community.resource2'),
       type: 'PDF',
       size: '1.8 MB',
     },
     {
-      title: 'Email Security Checklist',
+      title: t('community.resource3'),
       type: 'PDF',
       size: '0.5 MB',
     },
@@ -64,7 +64,7 @@ function CommunityPortal() {
             {t('community.title')}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Free resources, articles, and tips to help you stay safe from phishing attacks.
+            {t('community.subtitle')}
           </p>
         </div>
 

@@ -165,7 +165,7 @@ function CompanyCreate() {
                 onChange={(e) => updateField('industry', e.target.value)}
                 className={clsx('input', errors.industry && 'border-danger-500')}
               >
-                <option value="">Select industry</option>
+                <option value="">{t('admin.common.selectIndustry')}</option>
                 {INDUSTRY_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
@@ -179,7 +179,7 @@ function CompanyCreate() {
                 onChange={(e) => updateField('company_size', e.target.value)}
                 className={clsx('input', errors.company_size && 'border-danger-500')}
               >
-                <option value="">Select size</option>
+                <option value="">{t('admin.common.selectSize')}</option>
                 {COMPANY_SIZE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}

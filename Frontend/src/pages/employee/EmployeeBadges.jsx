@@ -7,11 +7,11 @@ import { gamificationAPI } from '../../api';
 
 // Rarity order and styling
 const RARITY_CONFIG = {
-  COMMON: { order: 1, label: 'Common', color: 'gray', bgClass: 'bg-gray-100 dark:bg-gray-700', textClass: 'text-gray-600 dark:text-gray-300', borderClass: 'border-gray-300 dark:border-gray-600' },
-  UNCOMMON: { order: 2, label: 'Uncommon', color: 'green', bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400', borderClass: 'border-green-300 dark:border-green-600' },
-  RARE: { order: 3, label: 'Rare', color: 'blue', bgClass: 'bg-blue-100 dark:bg-blue-900/30', textClass: 'text-blue-600 dark:text-blue-400', borderClass: 'border-blue-300 dark:border-blue-600' },
-  EPIC: { order: 4, label: 'Epic', color: 'purple', bgClass: 'bg-purple-100 dark:bg-purple-900/30', textClass: 'text-purple-600 dark:text-purple-400', borderClass: 'border-purple-300 dark:border-purple-600' },
-  LEGENDARY: { order: 5, label: 'Legendary', color: 'yellow', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-yellow-400 dark:border-yellow-600' },
+  COMMON: { order: 1, labelKey: 'badge.rarityCommon', color: 'gray', bgClass: 'bg-gray-100 dark:bg-gray-700', textClass: 'text-gray-600 dark:text-gray-300', borderClass: 'border-gray-300 dark:border-gray-600' },
+  UNCOMMON: { order: 2, labelKey: 'badge.rarityUncommon', color: 'green', bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400', borderClass: 'border-green-300 dark:border-green-600' },
+  RARE: { order: 3, labelKey: 'badge.rarityRare', color: 'blue', bgClass: 'bg-blue-100 dark:bg-blue-900/30', textClass: 'text-blue-600 dark:text-blue-400', borderClass: 'border-blue-300 dark:border-blue-600' },
+  EPIC: { order: 4, labelKey: 'badge.rarityEpic', color: 'purple', bgClass: 'bg-purple-100 dark:bg-purple-900/30', textClass: 'text-purple-600 dark:text-purple-400', borderClass: 'border-purple-300 dark:border-purple-600' },
+  LEGENDARY: { order: 5, labelKey: 'badge.rarityLegendary', color: 'yellow', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-yellow-400 dark:border-yellow-600' },
 };
 
 function EmployeeBadges() {
@@ -64,7 +64,7 @@ function EmployeeBadges() {
       const leaderboardData = leaderboardRes.data.results || leaderboardRes.data || [];
       setLeaderboard(Array.isArray(leaderboardData) ? leaderboardData : []);
     } catch (err) {
-      const message = err.response?.data?.detail || 'Failed to load badges';
+      const message = err.response?.data?.detail || t('badge.loadingBadges');
       setError(message);
       toast.error(message);
     } finally {
@@ -128,7 +128,7 @@ function EmployeeBadges() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading badges...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('badge.loadingBadges')}</p>
         </div>
       </div>
     );
@@ -141,7 +141,7 @@ function EmployeeBadges() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -155,11 +155,11 @@ function EmployeeBadges() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('nav.badges')} & {t('nav.leaderboard')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Track your achievements and see how you rank</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('badge.subtitle')}</p>
         </div>
         <button onClick={fetchData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -171,17 +171,17 @@ function EmployeeBadges() {
             <div className="card text-center">
               <Award className="h-8 w-8 text-warning-500 mx-auto mb-2" />
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{earnedCount}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Earned</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('badge.earned')}</p>
             </div>
             <div className="card text-center">
               <Lock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{lockedCount}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Locked</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('badge.locked')}</p>
             </div>
             <div className="card text-center">
               <Trophy className="h-8 w-8 text-primary-500 mx-auto mb-2" />
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{allBadges.length}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('badge.total')}</p>
             </div>
           </div>
 
@@ -189,8 +189,8 @@ function EmployeeBadges() {
           <div className="flex flex-wrap gap-2">
             {[
               { key: 'all', label: t('common.all'), count: processedBadges.length },
-              { key: 'earned', label: 'Earned', count: earnedCount },
-              { key: 'locked', label: 'Locked', count: lockedCount },
+              { key: 'earned', label: t('badge.earned'), count: earnedCount },
+              { key: 'locked', label: t('badge.locked'), count: lockedCount },
             ].map(({ key, label, count }) => (
               <button
                 key={key}
@@ -218,7 +218,7 @@ function EmployeeBadges() {
                   <div key={rarity} className="card">
                     <h2 className={clsx('text-lg font-semibold mb-4 flex items-center gap-2', config.textClass)}>
                       <Star className="h-5 w-5" />
-                      {config.label} Badges ({badges.length})
+                      {t(config.labelKey)} {t('nav.badges')} ({badges.length})
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {badges.map((badge) => (
@@ -246,7 +246,7 @@ function EmployeeBadges() {
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">{badge.description}</p>
                           {badge.earned && badge.awarded_at && (
                             <p className={clsx('text-xs mt-2', config.textClass)}>
-                              Earned {formatDate(badge.awarded_at)}
+                              {t('badge.earnedOn', { date: formatDate(badge.awarded_at) })}
                             </p>
                           )}
                           {badge.points_awarded > 0 && (
@@ -262,13 +262,13 @@ function EmployeeBadges() {
           ) : (
             <div className="card text-center py-12">
               <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No badges found</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('badge.noBadgesFound')}</h3>
               <p className="text-gray-500 dark:text-gray-400">
                 {filter === 'earned'
-                  ? 'You haven\'t earned any badges yet. Complete quizzes and training to earn badges!'
+                  ? t('badge.noBadgesEarned')
                   : filter === 'locked'
-                  ? 'All badges have been unlocked!'
-                  : 'No badges available.'}
+                  ? t('badge.allBadgesUnlocked')
+                  : t('badge.noBadgesAvailable')}
               </p>
             </div>
           )}
@@ -312,7 +312,7 @@ function EmployeeBadges() {
                       )}
                     >
                       {user.name || user.employee_name || 'Anonymous'}
-                      {user.is_current_user && ' (You)'}
+                      {user.is_current_user && ` ${t('badge.you')}`}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{user.points || user.total_points || 0} pts</p>
                   </div>
@@ -323,7 +323,7 @@ function EmployeeBadges() {
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Trophy className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p>No leaderboard data available</p>
+              <p>{t('badge.noLeaderboardData')}</p>
             </div>
           )}
         </div>
@@ -359,7 +359,7 @@ function EmployeeBadges() {
                   RARITY_CONFIG[selectedBadge.rarity]?.textClass || 'text-gray-600'
                 )}
               >
-                {RARITY_CONFIG[selectedBadge.rarity]?.label || 'Common'}
+                {t(RARITY_CONFIG[selectedBadge.rarity]?.labelKey || 'badge.rarityCommon')}
               </span>
 
               <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedBadge.description}</p>
@@ -367,7 +367,7 @@ function EmployeeBadges() {
               <div className="flex justify-center gap-4 text-sm">
                 <div className="text-center">
                   <p className="font-bold text-primary-600 dark:text-primary-400">{selectedBadge.points_awarded || 0}</p>
-                  <p className="text-gray-500 dark:text-gray-400">Points</p>
+                  <p className="text-gray-500 dark:text-gray-400">{t('badge.pointsLabel')}</p>
                 </div>
               </div>
 
@@ -375,11 +375,11 @@ function EmployeeBadges() {
                 <div className="mt-6 p-4 bg-success-50 dark:bg-success-900/20 rounded-lg">
                   <div className="flex items-center justify-center gap-2 text-success-700 dark:text-success-300">
                     <Award className="h-5 w-5" />
-                    <span className="font-medium">Badge Earned!</span>
+                    <span className="font-medium">{t('badge.badgeEarned')}</span>
                   </div>
                   {selectedBadge.awarded_at && (
                     <p className="text-sm text-success-600 dark:text-success-400 mt-1">
-                      on {formatDate(selectedBadge.awarded_at)}
+                      {t('badge.earnedOnDate', { date: formatDate(selectedBadge.awarded_at) })}
                     </p>
                   )}
                 </div>
@@ -387,10 +387,10 @@ function EmployeeBadges() {
                 <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
                     <Lock className="h-5 w-5" />
-                    <span className="font-medium">Badge Locked</span>
+                    <span className="font-medium">{t('badge.badgeLocked')}</span>
                   </div>
                   <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                    Complete the requirements to unlock this badge
+                    {t('badge.unlockRequirements')}
                   </p>
                 </div>
               )}

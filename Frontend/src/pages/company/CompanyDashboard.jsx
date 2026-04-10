@@ -28,10 +28,10 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 // Risk level configuration
 const RISK_CONFIG = {
-  LOW: { label: 'Low Risk', color: 'bg-success-500', textColor: 'text-success-600 dark:text-success-400', bgLight: 'bg-success-100 dark:bg-success-900/30' },
-  MEDIUM: { label: 'Medium Risk', color: 'bg-warning-500', textColor: 'text-warning-600 dark:text-warning-400', bgLight: 'bg-warning-100 dark:bg-warning-900/30' },
-  HIGH: { label: 'High Risk', color: 'bg-orange-500', textColor: 'text-orange-600 dark:text-orange-400', bgLight: 'bg-orange-100 dark:bg-orange-900/30' },
-  CRITICAL: { label: 'Critical Risk', color: 'bg-danger-500', textColor: 'text-danger-600 dark:text-danger-400', bgLight: 'bg-danger-100 dark:bg-danger-900/30' },
+  LOW: { labelKey: 'employee.riskLevels.low', color: 'bg-success-500', textColor: 'text-success-600 dark:text-success-400', bgLight: 'bg-success-100 dark:bg-success-900/30' },
+  MEDIUM: { labelKey: 'employee.riskLevels.medium', color: 'bg-warning-500', textColor: 'text-warning-600 dark:text-warning-400', bgLight: 'bg-warning-100 dark:bg-warning-900/30' },
+  HIGH: { labelKey: 'employee.riskLevels.high', color: 'bg-orange-500', textColor: 'text-orange-600 dark:text-orange-400', bgLight: 'bg-orange-100 dark:bg-orange-900/30' },
+  CRITICAL: { labelKey: 'employee.riskLevels.critical', color: 'bg-danger-500', textColor: 'text-danger-600 dark:text-danger-400', bgLight: 'bg-danger-100 dark:bg-danger-900/30' },
 };
 
 // Stat Card Component
@@ -126,7 +126,7 @@ function RiskScoreGauge({ score, size = 'large' }) {
 }
 
 // Risk Distribution Bar Chart Component
-function RiskDistributionChart({ data }) {
+function RiskDistributionChart({ data, t }) {
   const total = Object.values(data).reduce((sum, count) => sum + count, 0) || 1;
   const levels = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
@@ -140,8 +140,8 @@ function RiskDistributionChart({ data }) {
         return (
           <div key={level} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-300">{config.label}</span>
-              <span className="font-medium text-gray-900 dark:text-white">{count} employees</span>
+              <span className="text-gray-600 dark:text-gray-300">{t(config.labelKey)}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{count} {t('dashboard.employees')}</span>
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
               <div
@@ -149,7 +149,7 @@ function RiskDistributionChart({ data }) {
                 style={{ width: `${Math.max(percentage, count > 0 ? 2 : 0)}%` }}
               />
             </div>
-            <p className="text-xs text-gray-400 dark:text-gray-500">{percentage.toFixed(1)}% of employees</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{t('dashboard.percentOfEmployees', { percent: percentage.toFixed(1) })}</p>
           </div>
         );
       })}
@@ -159,12 +159,13 @@ function RiskDistributionChart({ data }) {
 
 // Campaign Status Badge
 function CampaignStatusBadge({ status }) {
+  const { t } = useTranslation();
   const statusConfig = {
-    ACTIVE: { label: 'Active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400', icon: Play },
-    DRAFT: { label: 'Draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300', icon: Clock },
-    PAUSED: { label: 'Paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', icon: Pause },
-    COMPLETED: { label: 'Completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400', icon: CheckCircle2 },
-    SCHEDULED: { label: 'Scheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Calendar },
+    ACTIVE: { labelKey: 'campaign.status.active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400', icon: Play },
+    DRAFT: { labelKey: 'campaign.status.draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300', icon: Clock },
+    PAUSED: { labelKey: 'campaign.status.paused', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', icon: Pause },
+    COMPLETED: { labelKey: 'campaign.status.completed', color: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400', icon: CheckCircle2 },
+    SCHEDULED: { labelKey: 'simulation.statusScheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Calendar },
   };
 
   const config = statusConfig[status] || statusConfig.DRAFT;
@@ -173,13 +174,14 @@ function CampaignStatusBadge({ status }) {
   return (
     <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full', config.color)}>
       <Icon className="h-3 w-3" />
-      {config.label}
+      {t(config.labelKey)}
     </span>
   );
 }
 
 // Campaign Card Component
 function CampaignCard({ campaign }) {
+  const { t } = useTranslation();
   const rawRate = campaign.completion_rate ?? campaign.progress ?? 0;
   const progress = rawRate <= 1 && rawRate > 0 ? rawRate * 100 : Number(rawRate);
   const employeeCount = campaign.total_participants ?? campaign.assigned_count ?? 0;
@@ -194,8 +196,8 @@ function CampaignCard({ campaign }) {
         <CampaignStatusBadge status={campaign.status} />
       </div>
       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
-        <span>{employeeCount} employees</span>
-        <span>{Math.round(progress)}% complete</span>
+        <span>{employeeCount} {t('dashboard.employees')}</span>
+        <span>{Math.round(progress)}% {t('dashboard.complete')}</span>
       </div>
       <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
         <div
@@ -209,13 +211,26 @@ function CampaignCard({ campaign }) {
 
 // Simulation Card Component
 function SimulationCard({ simulation }) {
+  const { t } = useTranslation();
   const getStatusColor = (status) => {
     switch (status) {
       case 'ACTIVE': return 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400';
       case 'COMPLETED': return 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400';
       case 'SCHEDULED': return 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400';
+      case 'IN_PROGRESS': return 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400';
       default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
     }
+  };
+
+  const getStatusLabel = (status) => {
+    const map = {
+      ACTIVE: t('campaign.status.active'),
+      COMPLETED: t('campaign.status.completed'),
+      SCHEDULED: t('simulation.statusScheduled'),
+      IN_PROGRESS: t('simulation.statusInProgress'),
+      DRAFT: t('campaign.status.draft'),
+    };
+    return map[status] || status;
   };
 
   return (
@@ -226,28 +241,28 @@ function SimulationCard({ simulation }) {
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-medium text-gray-900 dark:text-white truncate flex-1 mr-2">{simulation.name}</h3>
         <span className={clsx('text-xs font-medium px-2 py-1 rounded-full', getStatusColor(simulation.status))}>
-          {simulation.status}
+          {getStatusLabel(simulation.status)}
         </span>
       </div>
       {simulation.template_name && (
         <p className="text-sm text-gray-500 mb-2 truncate">
-          Template: {simulation.template_name}
+          {t('dashboard.templateLabel')}: {simulation.template_name}
         </p>
       )}
       <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>{simulation.target_count || 0} targets</span>
+        <span>{simulation.target_count || 0} {t('dashboard.targets')}</span>
         {simulation.click_rate !== undefined && (
           <span className={clsx(
             'font-medium',
             simulation.click_rate > 30 ? 'text-danger-600' : 'text-success-600'
           )}>
-            {simulation.click_rate}% click rate
+            {simulation.click_rate}% {t('dashboard.clickRate')}
           </span>
         )}
       </div>
       {simulation.created_at && (
         <p className="text-xs text-gray-400 mt-2">
-          Created {formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
+          {formatDistanceToNow(new Date(simulation.created_at), { addSuffix: true })}
         </p>
       )}
     </Link>
@@ -317,7 +332,7 @@ function CompanyDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('admin.dashboard.loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -330,7 +345,7 @@ function CompanyDashboard() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchDashboardData} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -356,11 +371,11 @@ function CompanyDashboard() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Company overview and security metrics</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('dashboard.companyOverview')}</p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('admin.common.refresh')}
         </button>
       </div>
 
@@ -371,28 +386,28 @@ function CompanyDashboard() {
           value={totalEmployees}
           icon={Users}
           color="primary"
-          subtitle={`${stats?.total_admins || 0} admins`}
+          subtitle={`${stats?.total_admins || 0} ${t('dashboard.admins')}`}
         />
         <StatCard
           title={t('dashboard.activeCampaigns')}
           value={activeCampaigns}
           icon={Target}
           color="success"
-          subtitle={`${activeSimulations} active simulations`}
+          subtitle={`${activeSimulations} ${t('dashboard.activeSimulationsLabel')}`}
         />
         <StatCard
           title={t('dashboard.averageRiskScore')}
           value={`${Math.round(avgRiskScore)}`}
           icon={AlertTriangle}
           color={avgRiskScore > 60 ? 'danger' : avgRiskScore > 30 ? 'warning' : 'success'}
-          subtitle={highRiskCount > 0 ? `${highRiskCount} high risk employees` : 'No high risk employees'}
+          subtitle={highRiskCount > 0 ? `${highRiskCount} ${t('dashboard.highRiskEmployeesLabel')}` : t('admin.dashboard.noHighRisk')}
         />
         <StatCard
           title={t('dashboard.completionRate')}
           value={`${trainingCompletion}%`}
           icon={CheckCircle}
           color="success"
-          subtitle="Training completion"
+          subtitle={t('dashboard.trainingCompletion')}
         />
       </div>
 
@@ -401,10 +416,10 @@ function CompanyDashboard() {
         {/* Risk Distribution Chart */}
         <div className="card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Risk Distribution</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.riskDistribution')}</h2>
             <RiskScoreGauge score={avgRiskScore} size="small" />
           </div>
-          <RiskDistributionChart data={riskDistribution} />
+          <RiskDistributionChart data={riskDistribution} t={t} />
         </div>
 
         {/* Recent Campaigns */}
@@ -415,7 +430,7 @@ function CompanyDashboard() {
               to="/company/campaigns"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
             >
-              View All
+              {t('admin.common.viewAll')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -428,12 +443,12 @@ function CompanyDashboard() {
           ) : (
             <div className="text-center py-8">
               <Target className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No campaigns yet</p>
+              <p className="text-gray-500">{t('dashboard.noCampaignsYet')}</p>
               <Link
                 to="/company/campaigns/create"
                 className="mt-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
               >
-                Create your first campaign
+                {t('dashboard.createFirstCampaign')}
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </div>
@@ -443,12 +458,12 @@ function CompanyDashboard() {
         {/* Recent Simulations */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Simulations</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.recentSimulations')}</h2>
             <Link
               to="/company/simulations"
               className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
             >
-              View All
+              {t('admin.common.viewAll')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -461,12 +476,12 @@ function CompanyDashboard() {
           ) : (
             <div className="text-center py-8">
               <Mail className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No simulations yet</p>
+              <p className="text-gray-500">{t('dashboard.noSimulationsYet')}</p>
               <Link
                 to="/company/simulations/create"
                 className="mt-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
               >
-                Create your first simulation
+                {t('dashboard.createFirstSimulation')}
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </div>
@@ -483,7 +498,7 @@ function CompanyDashboard() {
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{t('campaign.createCampaign')}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Launch awareness campaign</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.launchAwarenessCampaign')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -496,7 +511,7 @@ function CompanyDashboard() {
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{t('simulation.createSimulation')}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Test employee awareness</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.testEmployeeAwareness')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -508,8 +523,8 @@ function CompanyDashboard() {
               <UserPlus className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">Manage Employees</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Invite and manage team</p>
+              <p className="font-medium text-gray-900 dark:text-white">{t('dashboard.manageEmployees')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.inviteAndManageTeam')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -522,7 +537,7 @@ function CompanyDashboard() {
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{t('nav.analytics')}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">View detailed reports</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.viewDetailedReports')}</p>
             </div>
           </div>
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />

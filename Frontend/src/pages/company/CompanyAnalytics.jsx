@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   TrendingDown,
   TrendingUp,
@@ -46,9 +47,9 @@ import {
 // ── Constants ──────────────────────────────────────────────
 
 const PERIODS = [
-  { key: '7d', label: '7 Days' },
-  { key: '30d', label: '30 Days' },
-  { key: '90d', label: '90 Days' },
+  { key: '7d', labelKey: 'analytics.7days' },
+  { key: '30d', labelKey: 'analytics.30days' },
+  { key: '90d', labelKey: 'analytics.90days' },
 ];
 
 const RISK_COLORS = {
@@ -58,11 +59,11 @@ const RISK_COLORS = {
   CRITICAL: '#ef4444',
 };
 
-const RISK_LABELS = {
-  LOW: 'Low',
-  MEDIUM: 'Medium',
-  HIGH: 'High',
-  CRITICAL: 'Critical',
+const RISK_LABEL_KEYS = {
+  LOW: 'analytics.low',
+  MEDIUM: 'analytics.medium',
+  HIGH: 'analytics.high',
+  CRITICAL: 'analytics.critical',
 };
 
 const ROWS_PER_PAGE = 10;
@@ -196,11 +197,12 @@ function SortHeader({ label, sortKey, currentSort, currentDir, onSort }) {
 }
 
 function Pagination({ page, totalPages, onPageChange }) {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t dark:border-gray-700">
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Page {page} of {totalPages}
+        {t('analytics.pageOf', { page, total: totalPages })}
       </p>
       <div className="flex gap-2">
         <button
@@ -224,23 +226,24 @@ function Pagination({ page, totalPages, onPageChange }) {
 
 // Category config for module icons
 const MODULE_CATEGORY_CONFIG = {
-  EMAIL_SECURITY: { icon: Mail, iconColor: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20', label: 'Email Security' },
-  MOBILE_SECURITY: { icon: Smartphone, iconColor: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/20', label: 'Mobile Security' },
-  SOCIAL_ENGINEERING: { icon: Phone, iconColor: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/20', label: 'Social Engineering' },
+  EMAIL_SECURITY: { icon: Mail, iconColor: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20', labelKey: 'training.categoryEmailSecurity' },
+  MOBILE_SECURITY: { icon: Smartphone, iconColor: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/20', labelKey: 'training.categoryMobileSecurity' },
+  SOCIAL_ENGINEERING: { icon: Phone, iconColor: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/20', labelKey: 'training.categorySocialEngineering' },
 };
 
 // Status badge config for existing assignments shown inside the modal
 const ASSIGNMENT_STATUS_UI = {
-  ASSIGNED:    { label: 'In queue',    badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',    blocked: true  },
-  IN_PROGRESS: { label: 'In progress', badge: 'bg-warning-100 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', blocked: true  },
-  COMPLETED:   { label: 'Completed',   badge: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', blocked: false },
-  PASSED:      { label: 'Passed',      badge: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', blocked: false },
-  FAILED:      { label: 'Failed',      badge: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-300',  blocked: false },
-  EXPIRED:     { label: 'Expired',     badge: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',     blocked: false },
+  ASSIGNED:    { labelKey: 'training.inQueue',         badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',    blocked: true  },
+  IN_PROGRESS: { labelKey: 'training.statusInProgress', badge: 'bg-warning-100 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300', blocked: true  },
+  COMPLETED:   { labelKey: 'training.statusCompleted',  badge: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', blocked: false },
+  PASSED:      { labelKey: 'training.statusPassed',     badge: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300', blocked: false },
+  FAILED:      { labelKey: 'training.statusFailed',     badge: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-300',  blocked: false },
+  EXPIRED:     { labelKey: 'training.statusExpired',    badge: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',     blocked: false },
 };
 
 // Modal for assigning training — fetches real modules + employee's existing assignments
 function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
+  const { t } = useTranslation();
   const [modules, setModules] = useState([]);
   const [existingAssignments, setExistingAssignments] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
@@ -345,12 +348,12 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
           {/* Header */}
           <div className="flex items-start justify-between p-6 border-b dark:border-gray-700">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Assign Training</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('analytics.assignTraining')}</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 <span className="font-medium text-gray-900 dark:text-white">{employeeName}</span>
                 {' · '}
                 <span className={clsx('font-semibold', getRiskColor(employee.risk_score))}>
-                  Risk Score: {employee.risk_score}
+                  {t('analytics.riskScoreLabel')}: {employee.risk_score}
                 </span>
               </p>
             </div>
@@ -364,29 +367,29 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
             {dataLoading ? (
               <div className="flex items-center justify-center py-10 gap-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
-                <span className="text-sm text-gray-500 dark:text-gray-400">Loading modules...</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{t('analytics.loadingModules')}</span>
               </div>
             ) : loadError ? (
               <div className="text-center py-8">
                 <AlertCircle className="h-10 w-10 text-danger-500 mx-auto mb-3" />
-                <p className="font-medium text-gray-900 dark:text-white mb-1">Failed to load modules</p>
+                <p className="font-medium text-gray-900 dark:text-white mb-1">{t('analytics.failedToLoadModules')}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{loadError}</p>
                 <button onClick={loadData} className="btn-secondary text-sm">
-                  Try Again
+                  {t('admin.common.tryAgain')}
                 </button>
               </div>
             ) : modules.length === 0 ? (
               <div className="text-center py-8">
                 <AlertTriangle className="h-10 w-10 text-warning-500 mx-auto mb-3" />
-                <p className="font-medium text-gray-900 dark:text-white mb-1">No training modules found</p>
+                <p className="font-medium text-gray-900 dark:text-white mb-1">{t('analytics.noModulesFound')}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Seed the database first, then come back to assign training.
+                  {t('analytics.seedFirst')}
                 </p>
                 <button
                   onClick={() => { onClose(); window.location.href = '/company/training'; }}
                   className="btn-primary text-sm"
                 >
-                  Go to Training Management
+                  {t('analytics.goToTraining')}
                 </button>
               </div>
             ) : (
@@ -395,6 +398,7 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                   icon: BookOpen,
                   iconColor: 'text-primary-600',
                   bgColor: 'bg-primary-50',
+                  labelKey: null,
                   label: module.category || 'Training',
                 };
                 const CatIcon = cat.icon;
@@ -440,24 +444,24 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
                           <p className="font-medium text-gray-900 dark:text-white leading-tight">{module.title}</p>
                           {statusUi && (
                             <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', statusUi.badge)}>
-                              {statusUi.label}
+                              {t(statusUi.labelKey)}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          <span>{cat.label}</span>
+                          <span>{cat.labelKey ? t(cat.labelKey) : cat.label}</span>
                           <span>·</span>
                           <span>{module.duration_minutes} min</span>
                         </div>
                         {/* Contextual hint */}
                         {blocked && (
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                            Cannot assign — already active for this employee
+                            {t('analytics.cannotAssign')}
                           </p>
                         )}
                         {!blocked && assignment && (
                           <p className="text-xs text-primary-600 mt-1">
-                            Previously {statusUi?.label?.toLowerCase() || 'assigned'} — can re-assign
+                            {t('analytics.previouslyAssigned', { status: statusUi?.labelKey ? t(statusUi.labelKey).toLowerCase() : 'assigned' })}
                           </p>
                         )}
                       </div>
@@ -471,7 +475,7 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
           {/* Footer */}
           <div className="flex gap-3 p-6 border-t dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-b-xl">
             <button onClick={onClose} className="btn-secondary flex-1">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleAssign}
@@ -484,14 +488,14 @@ function AssignTrainingModal({ isOpen, onClose, employee, onSuccess }) {
               {assigning ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Assigning...
+                  {t('training.assigning')}
                 </>
               ) : (
                 <>
                   <UserPlus className="h-4 w-4" />
                   {selectedModules.size === 0
-                    ? selectableCount === 0 ? 'All Active' : 'Select Modules'
-                    : `Assign ${selectedModules.size} Module${selectedModules.size !== 1 ? 's' : ''}`}
+                    ? selectableCount === 0 ? t('analytics.allActive') : t('analytics.selectModules')
+                    : t('analytics.assignModules', { count: selectedModules.size })}
                 </>
               )}
             </button>
@@ -521,6 +525,7 @@ function ChartTooltip({ active, payload, label, formatter }) {
 // ── Main Component ─────────────────────────────────────────
 
 function CompanyAnalytics() {
+  const { t } = useTranslation();
   // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -620,11 +625,11 @@ function CompanyAnalytics() {
     const entries = Object.entries(dist).filter(([, count]) => count > 0);
     if (entries.length === 0) return [];
     return entries.map(([level, count]) => ({
-      name: RISK_LABELS[level] || level,
+      name: t(RISK_LABEL_KEYS[level] || level),
       value: count,
       level,
     }));
-  }, [overview]);
+  }, [overview, t]);
 
   const riskDistTotal = useMemo(
     () => riskDistData.reduce((sum, d) => sum + d.value, 0),
@@ -758,7 +763,7 @@ function CompanyAnalytics() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading analytics...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('analytics.loadingAnalytics')}</p>
         </div>
       </div>
     );
@@ -773,7 +778,7 @@ function CompanyAnalytics() {
         <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button onClick={fetchAnalytics} className="btn-primary flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Try Again
+          {t('admin.common.tryAgain')}
         </button>
       </div>
     );
@@ -791,7 +796,8 @@ function CompanyAnalytics() {
   const trainingColor = (trainingRate > 0.7 || trainingRate > 70) ? 'success' : 'warning';
 
   // Period label for display
-  const periodLabel = PERIODS.find((p) => p.key === period)?.label || period;
+  const periodLabelKey = PERIODS.find((p) => p.key === period)?.labelKey;
+  const periodLabel = periodLabelKey ? t(periodLabelKey) : period;
 
   // ── Render ──
 
@@ -800,15 +806,15 @@ function CompanyAnalytics() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics & Reports</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Last {periodLabel}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('analytics.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">{t('analytics.lastPeriodLabel', { label: periodLabel })}</p>
         </div>
         <button
           onClick={fetchAnalytics}
           className="btn-secondary flex items-center gap-2 self-start"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          {t('analytics.refresh')}
         </button>
       </div>
 
@@ -825,7 +831,7 @@ function CompanyAnalytics() {
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border hover:bg-gray-50 dark:hover:bg-gray-700'
             )}
           >
-            {p.label}
+            {t(p.labelKey)}
           </button>
         ))}
       </div>
@@ -833,25 +839,25 @@ function CompanyAnalytics() {
       {/* ── Metric Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          label="Avg Risk Score"
+          label={t('analytics.avgRiskScore')}
           value={avgRisk?.toFixed?.(1) ?? '0'}
           icon={AlertTriangle}
           color={riskColor}
         />
         <MetricCard
-          label="Campaign Completion"
+          label={t('analytics.campaignCompletion')}
           value={formatPct(completionRate)}
           icon={Target}
           color="primary"
         />
         <MetricCard
-          label="Simulation Click Rate"
+          label={t('analytics.simulationClickRate')}
           value={formatPct(clickRate)}
           icon={MousePointerClick}
           color={clickColor}
         />
         <MetricCard
-          label="Training Completion"
+          label={t('analytics.trainingCompletion')}
           value={formatPct(trainingRate)}
           icon={BookOpen}
           color={trainingColor}
@@ -862,7 +868,7 @@ function CompanyAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Risk Score Trend */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Average Risk Score Over Time</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('analytics.avgRiskScoreOverTime')}</h3>
           {trendLineData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendLineData}>
@@ -883,14 +889,14 @@ function CompanyAnalytics() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
-              No trend data available
+              {t('analytics.noTrendData')}
             </div>
           )}
         </div>
 
         {/* Chart 2: Risk Distribution Donut */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Risk Level Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('analytics.riskLevelDistribution')}</h3>
           {riskDistData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -917,7 +923,7 @@ function CompanyAnalytics() {
                     return (
                       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 border p-3 text-sm">
                         <p className="font-medium">{d.name}</p>
-                        <p>{d.value} employees ({pct}%)</p>
+                        <p>{d.value} {t('analytics.employees')} ({pct}%)</p>
                       </div>
                     );
                   }}
@@ -928,20 +934,20 @@ function CompanyAnalytics() {
                   {riskDistTotal}
                 </text>
                 <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 text-xs">
-                  employees
+                  {t('analytics.employees')}
                 </text>
               </PieChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
-              No distribution data available
+              {t('analytics.noDistributionData')}
             </div>
           )}
         </div>
 
         {/* Chart 3: Campaign vs Simulation Activity */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Security Training Activity</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('analytics.securityTrainingActivity')}</h3>
           {activityBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={activityBarData}>
@@ -950,20 +956,20 @@ function CompanyAnalytics() {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend />
-                <Bar dataKey="completions" name="Training Completions" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="clicks" name="Simulation Clicks" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completions" name={t('analytics.trainingCompletions')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="clicks" name={t('analytics.simulationClicks')} fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
-              No activity data available
+              {t('analytics.noActivityData')}
             </div>
           )}
         </div>
 
         {/* Chart 4: Training Effectiveness */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Training Completion Rates</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('analytics.trainingCompletionRates')}</h3>
           {trainingBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={trainingBarData} layout="vertical">
@@ -973,7 +979,7 @@ function CompanyAnalytics() {
                 <Tooltip
                   content={<ChartTooltip formatter={(v) => `${Math.round(v)}%`} />}
                 />
-                <Bar dataKey="rate" name="Completion Rate" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="rate" name={t('analytics.completionRate')} radius={[0, 4, 4, 0]}>
                   {trainingBarData.map((entry, i) => (
                     <Cell
                       key={i}
@@ -985,7 +991,7 @@ function CompanyAnalytics() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-gray-400 dark:text-gray-500">
-              No training data available
+              {t('analytics.noTrainingData')}
             </div>
           )}
         </div>
@@ -996,9 +1002,9 @@ function CompanyAnalytics() {
         {/* Tab Navigation */}
         <div className="flex border-b dark:border-gray-700">
           {[
-            { key: 'campaigns', label: 'Recent Campaigns' },
-            { key: 'simulations', label: 'Recent Simulations' },
-            { key: 'highrisk', label: 'High Risk Employees' },
+            { key: 'campaigns', label: t('analytics.recentCampaigns') },
+            { key: 'simulations', label: t('analytics.recentSimulations') },
+            { key: 'highrisk', label: t('analytics.highRiskEmployees') },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -1021,7 +1027,7 @@ function CompanyAnalytics() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('common.search') + '...'}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -1040,7 +1046,7 @@ function CompanyAnalytics() {
             ) : (
               <Download className="h-4 w-4" />
             )}
-            Export CSV
+            {t('admin.common.exportCsv')}
           </button>
         </div>
 
@@ -1050,12 +1056,12 @@ function CompanyAnalytics() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <SortHeader label="Campaign Name" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Assigned</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Completion</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Avg Score</th>
-                  <SortHeader label="Created" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                  <SortHeader label={t('analytics.campaignName')} sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.assigned')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.completion')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.avgScore')}</th>
+                  <SortHeader label={t('analytics.created')} sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y dark:divide-gray-700">
@@ -1095,7 +1101,7 @@ function CompanyAnalytics() {
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
                           >
                             <Eye className="h-4 w-4" />
-                            View
+                            {t('common.view')}
                           </button>
                         </td>
                       </tr>
@@ -1104,7 +1110,7 @@ function CompanyAnalytics() {
                 ) : (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                      {searchQuery ? 'No campaigns match your search' : 'No campaigns found'}
+                      {searchQuery ? t('analytics.noCampaignsMatch') : t('analytics.noCampaignsFound')}
                     </td>
                   </tr>
                 )}
@@ -1116,12 +1122,12 @@ function CompanyAnalytics() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <SortHeader label="Simulation Name" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Targets</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Open Rate</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Click Rate</th>
-                  <SortHeader label="Date" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                  <SortHeader label={t('analytics.simulationName')} sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.targets')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.openRate')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.clickRate')}</th>
+                  <SortHeader label={t('analytics.date')} sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y dark:divide-gray-700">
@@ -1148,7 +1154,7 @@ function CompanyAnalytics() {
                             className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
                           >
                             <Eye className="h-4 w-4" />
-                            View
+                            {t('common.view')}
                           </button>
                         </td>
                       </tr>
@@ -1157,7 +1163,7 @@ function CompanyAnalytics() {
                 ) : (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                      {searchQuery ? 'No simulations match your search' : 'No simulations found'}
+                      {searchQuery ? t('analytics.noSimulationsMatch') : t('analytics.noSimulationsFound')}
                     </td>
                   </tr>
                 )}
@@ -1169,12 +1175,12 @@ function CompanyAnalytics() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <SortHeader label="Employee Name" sortKey="last_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
-                  <SortHeader label="Risk Score" sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Last Quiz</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Needs Training</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                  <SortHeader label={t('analytics.employeeName')} sortKey="last_name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.email')}</th>
+                  <SortHeader label={t('analytics.riskScore')} sortKey="risk_score" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.lastQuiz')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.needsTraining')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y dark:divide-gray-700">
@@ -1193,9 +1199,9 @@ function CompanyAnalytics() {
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300 text-sm">{formatDate(emp.last_quiz_date)}</td>
                       <td className="px-4 py-3">
                         {emp.requires_remediation ? (
-                          <span className="text-danger-600 text-sm font-medium">Yes</span>
+                          <span className="text-danger-600 text-sm font-medium">{t('common.yes')}</span>
                         ) : (
-                          <span className="text-success-600 text-sm">No</span>
+                          <span className="text-success-600 text-sm">{t('common.no')}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -1203,7 +1209,7 @@ function CompanyAnalytics() {
                           onClick={() => setAssignModal({ open: true, employee: emp })}
                           className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                         >
-                          Assign Training
+                          {t('analytics.assignTraining')}
                         </button>
                       </td>
                     </tr>
@@ -1211,7 +1217,7 @@ function CompanyAnalytics() {
                 ) : (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                      {searchQuery ? 'No employees match your search' : 'No high-risk employees found'}
+                      {searchQuery ? t('analytics.noEmployeesMatch') : t('analytics.noHighRiskFound')}
                     </td>
                   </tr>
                 )}
@@ -1226,13 +1232,13 @@ function CompanyAnalytics() {
 
       {/* ── Export Actions ── */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Export Reports</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('analytics.exportReports')}</h3>
         <div className="flex flex-wrap gap-3">
           {[
-            { key: 'campaigns', label: 'Export Campaigns' },
-            { key: 'simulations', label: 'Export Simulations' },
-            { key: 'risk_scores', label: 'Export Risk Scores' },
-            { key: 'training', label: 'Export Training' },
+            { key: 'campaigns', label: t('analytics.exportCampaigns') },
+            { key: 'simulations', label: t('analytics.exportSimulations') },
+            { key: 'risk_scores', label: t('analytics.exportRiskScores') },
+            { key: 'training', label: t('analytics.exportTraining') },
           ].map((btn) => (
             <button
               key={btn.key}
