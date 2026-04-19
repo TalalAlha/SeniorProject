@@ -1,28 +1,28 @@
 {
-  "vocab_size_en": 1449,
-  "vocab_size_ar": 860,
+  "vocab_size_en": 3982,
+  "vocab_size_ar": 3429,
   "embedding_dim": 256,
   "hidden_dim": 512,
   "num_layers": 3,
   "dropout": 0.3,
-  "max_seq_len_en": 120,
-  "max_seq_len_ar": 100,
+  "max_seq_len_en": 150,
+  "max_seq_len_ar": 120,
   "labels": [
     "[LEGIT]",
     "[PHISH]"
   ],
   "label_indices_en": {
-    "[LEGIT]": 25,
-    "[PHISH]": 26
+    "[LEGIT]": 26,
+    "[PHISH]": 27
   },
   "label_indices_ar": {
-    "[LEGIT]": 10,
-    "[PHISH]": 11
+    "[LEGIT]": 9,
+    "[PHISH]": 10
   },
   "training_info": {
     "en_dataset": 14000,
     "ar_dataset": 10000,
-    "en_final_loss": 0.19879009191869595,
-    "ar_final_loss": 0.2812148275283667
+    "en_final_loss": 0.26496908348908116,
+    "ar_final_loss": 0.3420215491683055
   }
 }
