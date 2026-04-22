@@ -177,7 +177,7 @@ class DashboardViewSet(viewsets.ViewSet):
             from apps.training.models import RemediationTraining
             trainings = RemediationTraining.objects.filter(**company_filter)
             total_trainings = trainings.count()
-            completed_trainings = trainings.filter(status__in=['COMPLETED', 'PASSED']).count()
+            completed_trainings = trainings.filter(status__in=['COMPLETED', 'PASSED', 'FAILED']).count()
             passed_trainings = trainings.filter(status='PASSED').count()
             training_completion_rate = (completed_trainings / total_trainings * 100) if total_trainings > 0 else None
             training_pass_rate = (passed_trainings / completed_trainings * 100) if completed_trainings > 0 else None
@@ -220,8 +220,8 @@ class DashboardViewSet(viewsets.ViewSet):
             'total_trainings_assigned': total_trainings,
             'trainings_completed': completed_trainings,
             'trainings_passed': passed_trainings,
-            'training_completion_rate': round(training_completion_rate, 2) if training_completion_rate else None,
-            'training_pass_rate': round(training_pass_rate, 2) if training_pass_rate else None,
+            'training_completion_rate': round(training_completion_rate, 2) if training_completion_rate is not None else None,
+            'training_pass_rate': round(training_pass_rate, 2) if training_pass_rate is not None else None,
             'total_badges_awarded': badges_awarded,
             'total_points_distributed': points_dist,
         }

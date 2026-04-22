@@ -338,7 +338,7 @@ function EmployeeProfile() {
                   <div className="relative">
                     <input
                       type="text"
-                      value={profile?.company?.name || 'N/A'}
+                      value={profile?.company_name || profile?.company?.name || 'N/A'}
                       disabled
                       className="input bg-gray-50 dark:bg-gray-700 dark:text-white pr-10"
                     />
@@ -607,7 +607,7 @@ function EmployeeProfile() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t('profile.company')}</p>
                 <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-gray-400" />
-                  {profile?.company?.name || 'N/A'}
+                  {profile?.company_name || profile?.company?.name || 'N/A'}
                 </p>
               </div>
 

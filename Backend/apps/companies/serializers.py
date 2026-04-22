@@ -172,6 +172,9 @@ class CompanyUserSerializer(serializers.ModelSerializer):
 
     full_name = serializers.CharField(source='get_full_name', read_only=True)
     risk_score = serializers.SerializerMethodField()
+    quizzes_completed = serializers.SerializerMethodField()
+    trainings_completed = serializers.SerializerMethodField()
+    badges_earned = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -179,7 +182,8 @@ class CompanyUserSerializer(serializers.ModelSerializer):
             'id', 'email', 'first_name', 'last_name', 'full_name',
             'phone_number', 'role', 'preferred_language',
             'is_active', 'is_verified',
-            'date_joined', 'last_login', 'risk_score'
+            'date_joined', 'last_login', 'risk_score',
+            'quizzes_completed', 'trainings_completed', 'badges_earned',
         ]
         read_only_fields = ['date_joined', 'last_login']
 
@@ -204,6 +208,30 @@ class CompanyUserSerializer(serializers.ModelSerializer):
             return None
         except Exception:
             return None
+
+    def get_quizzes_completed(self, obj):
+        try:
+            from apps.campaigns.models import QuizResult
+            return QuizResult.objects.filter(employee=obj).count()
+        except Exception:
+            return 0
+
+    def get_trainings_completed(self, obj):
+        try:
+            from apps.training.models import RemediationTraining
+            return RemediationTraining.objects.filter(
+                employee=obj,
+                status__in=['COMPLETED', 'PASSED', 'FAILED'],
+            ).count()
+        except Exception:
+            return 0
+
+    def get_badges_earned(self, obj):
+        try:
+            from apps.gamification.models import EmployeeBadge
+            return EmployeeBadge.objects.filter(employee=obj).count()
+        except Exception:
+            return 0
 
 
 class CompanyUserCreateSerializer(serializers.ModelSerializer):

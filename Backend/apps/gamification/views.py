@@ -96,7 +96,7 @@ class BadgeViewSet(viewsets.ModelViewSet):
             employee=request.user
         ).select_related('badge').order_by('-awarded_at')
 
-        serializer = EmployeeBadgeListSerializer(badges, many=True)
+        serializer = EmployeeBadgeSerializer(badges, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
