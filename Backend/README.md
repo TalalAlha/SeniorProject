@@ -1,6 +1,6 @@
 # PhishAware — Backend
 
-Django REST Framework API powering the PhishAware cybersecurity awareness platform.
+Django REST Framework API powering the PhishAware cybersecurity awareness platform. JWT-secured, multi-tenant, bilingual (English + Arabic), and shipped with a pair of trained LSTM models that generate phishing and legitimate emails on demand.
 
 ---
 
@@ -9,11 +9,12 @@ Django REST Framework API powering the PhishAware cybersecurity awareness platfo
 | Component | Technology |
 |-----------|-----------|
 | Framework | Django 5.x + Django REST Framework 3.x |
-| Authentication | SimpleJWT (JWT access + refresh tokens, token blacklisting) |
-| Database | SQLite (development) / PostgreSQL (production) |
-| Email | SendGrid via SMTP relay (`django.core.mail`) |
-| API Docs | drf-yasg (Swagger + ReDoc) |
-| Environment | python-decouple (`.env` file) |
+| Authentication | SimpleJWT (short-lived access + blacklistable refresh tokens) |
+| Database | SQLite (development) / PostgreSQL-ready (production) |
+| AI | PyTorch 2.x — custom 3-layer LSTM, 512 hidden, 256 embedding |
+| Email | SendGrid via Django SMTP backend |
+| API Docs | drf-yasg (Swagger UI + ReDoc) |
+| Config | python-decouple (`.env`) |
 | CORS | django-cors-headers |
 
 ---
@@ -23,16 +24,25 @@ Django REST Framework API powering the PhishAware cybersecurity awareness platfo
 ```
 Backend/
 ├── apps/
-│   ├── accounts/       # Auth, registration, email verification, invitations, password reset
-│   ├── companies/      # Company CRUD, user management, CSV import
-│   ├── campaigns/      # Assessment campaigns: email classification quizzes, scoring, results
-│   ├── simulations/    # Live phishing simulations: email dispatch, click/report tracking
-│   ├── training/       # Training modules, quizzes, risk scores, remediation assignments
-│   ├── analytics/      # Dashboard stats, trends, risk analytics, CSV export
-│   ├── notifications/  # 36-type notification system
-│   ├── gamification/   # Badges and leaderboard
-│   ├── community/      # Community portal
-│   └── core/           # Shared permissions, email helpers, HTML email templates
+│   ├── accounts/        Auth, registration, email verification, invitations, password reset
+│   ├── assessments/     Email template library + AI email generation endpoint
+│   ├── analytics/       Dashboard stats, trends, risk analytics, CSV export
+│   ├── campaigns/       Awareness campaigns: email classification quizzes, scoring
+│   ├── community/       Public community portal (no auth)
+│   ├── companies/       Company CRUD, user management, CSV import
+│   ├── core/            Shared permissions, email helpers, HTML email templates
+│   ├── gamification/    Badges, points ledger, leaderboard
+│   ├── notifications/   36-type notification system
+│   ├── simulations/     Live phishing simulations: email dispatch, click/report tracking
+│   └── training/        Modules, quizzes, risk scores, remediation assignments
+├── ml_models/
+│   ├── email_generator.py     Public API: EmailGenerator.generate_email()
+│   ├── lstm_model.py          Model architecture
+│   ├── vocabulary.py          Tokenization
+│   ├── phishing_lstm_en.pth   Trained EN weights (14k dataset)
+│   ├── phishing_lstm_ar.pth   Trained AR weights (10k dataset)
+│   ├── vocab_en.json / vocab_ar.json
+│   └── model_config.json
 ├── phishaware_backend/
 │   ├── settings.py
 │   └── urls.py
@@ -44,22 +54,25 @@ Backend/
 
 ## Setup
 
-### 1. Create and activate a virtual environment
+### 1. Virtual environment
 
 ```bash
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+source venv/bin/activate          # Windows: venv\Scripts\activate
 ```
 
-### 2. Install dependencies
+### 2. Dependencies
 
 ```bash
 pip install -r requirements.txt
+pip install torch                 # Required for AI email generation
 ```
 
-### 3. Configure environment variables
+> `requirements.txt` intentionally omits PyTorch because CPU / CUDA builds depend on the host. Install the variant appropriate for your machine.
 
-Create a `.env` file in the `Backend/` directory:
+### 3. Environment variables
+
+Create `.env` in `Backend/`:
 
 ```env
 SECRET_KEY=your-django-secret-key
@@ -76,35 +89,19 @@ DEFAULT_FROM_EMAIL=PhishAware <no-reply@yourdomain.com>
 SENDGRID_VERIFIED_SENDER=no-reply@yourdomain.com
 ```
 
-### 4. Apply migrations
+### 4. Migrate, seed, run
 
 ```bash
 python manage.py migrate
-```
-
-### 5. Seed initial data
-
-```bash
-# 15 global phishing simulation templates (8 English + 7 Arabic)
-python manage.py seed_simulation_templates
-
-# 3 training modules with 5 bilingual quiz questions each
-python manage.py seed_training
-```
-
-### 6. Create a Super Admin account
-
-```bash
+python manage.py seed_simulation_templates   # 15 phishing templates (8 EN + 7 AR)
+python manage.py seed_training               # 3 modules with 5 bilingual questions each
 python manage.py createsuperuser
-```
-
-### 7. Start the development server
-
-```bash
 python manage.py runserver
 ```
 
-API available at: `http://localhost:8000/api/v1/`
+API: `http://localhost:8000/api/v1/`
+Swagger UI: `http://localhost:8000/api/docs/`
+ReDoc: `http://localhost:8000/api/redoc/`
 
 ---
 
@@ -122,7 +119,7 @@ API available at: `http://localhost:8000/api/v1/`
 | POST | `/resend-verification/` | Resend verification email | Public |
 | POST | `/password-reset/` | Request password reset link | Public |
 | POST | `/password-reset/<uuid>/` | Set new password via token | Public |
-| GET/PATCH | `/profile/` | Get or update user profile | Required |
+| GET/PATCH | `/profile/` | Get or update own profile | Required |
 | POST | `/change-password/` | Change password | Required |
 
 ### Employee Invitations — `/api/v1/employees/`
@@ -147,33 +144,38 @@ API available at: `http://localhost:8000/api/v1/`
 | POST | `/<id>/deactivate/` | Deactivate company | Super Admin |
 | GET | `/<id>/stats/` | Company statistics | Admin |
 | GET | `/<id>/users/` | List company users | Admin |
-| DELETE | `/<id>/users/<uid>/remove/` | Remove user from company | Admin |
+| DELETE | `/<id>/users/<uid>/remove/` | Remove user | Admin |
 | POST | `/<id>/import_csv/` | Bulk import users from CSV | Admin |
 | GET | `/my_company/` | Get own company | Required |
 
-### Campaigns — `/api/v1/campaigns/`
+### Awareness Campaigns — `/api/v1/campaigns/`
 
-Assessment-style exercises where employees classify a set of emails (phishing or legitimate) through a quiz interface. Different from Simulations — no real emails are sent; employees take a quiz to test their awareness.
+Quiz-based exercises where employees classify emails as phishing or legitimate. No emails are sent — scoring is immediate.
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET/POST | `/campaigns/` | List / create campaigns | Admin |
-| GET/PATCH | `/campaigns/<id>/` | Campaign detail / update | Admin |
-| DELETE | `/campaigns/<id>/` | Delete campaign | Admin |
+| GET/PATCH/DELETE | `/campaigns/<id>/` | Campaign detail / update / delete | Admin |
 | POST | `/campaigns/<id>/activate/` | Activate campaign | Admin |
-| POST | `/campaigns/<id>/assign_to_employees/` | Assign to employees (creates quizzes) | Admin |
+| POST | `/campaigns/<id>/assign_to_employees/` | Assign + create employee quizzes | Admin |
 | GET | `/campaigns/<id>/statistics/` | Completion rate, avg score, risk distribution | Admin |
-| GET | `/campaigns/<id>/assigned_employees/` | List employees with quiz status and score | Admin |
+| GET | `/campaigns/<id>/assigned_employees/` | Employees with quiz status and score | Admin |
 | GET | `/quizzes/` | List quizzes (own for employees, all for admins) | Required |
-| GET | `/quizzes/<id>/questions/` | Get quiz questions (no answers revealed) | Required |
+| GET | `/quizzes/<id>/questions/` | Quiz questions (no answers revealed) | Required |
 | POST | `/quizzes/<id>/start/` | Start quiz | Employee |
-| POST | `/quizzes/<id>/answer_question/` | Submit answer for a single question | Employee |
-| POST | `/quizzes/<id>/submit/` | Finalize quiz and calculate result | Employee |
-| GET | `/quizzes/<id>/result/` | View result with per-question breakdown | Required |
+| POST | `/quizzes/<id>/answer_question/` | Submit answer for one question | Employee |
+| POST | `/quizzes/<id>/submit/` | Finalize and score quiz | Employee |
+| GET | `/quizzes/<id>/result/` | Full per-question breakdown | Required |
 
----
+### Assessments & AI Email Generation — `/api/v1/assessments/`
 
-### Simulations — `/api/v1/simulations/`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET/POST | `/email-templates/` | List / create reusable email templates | Required |
+| GET/PATCH/DELETE | `/email-templates/<id>/` | Template detail / update / delete | Required |
+| POST | `/ai/generate-emails/` | Generate phishing or legitimate emails via LSTM | Admin |
+
+### Live Simulations — `/api/v1/simulations/`
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -182,10 +184,10 @@ Assessment-style exercises where employees classify a set of emails (phishing or
 | GET/POST | `/campaigns/` | List / create campaigns | Required |
 | GET/PATCH | `/campaigns/<id>/` | Campaign detail / update | Required |
 | POST | `/campaigns/<id>/send/` | Dispatch simulation emails | Admin |
-| GET | `/link/<token>/` | Track link click (phishing lure) | **Public** |
-| POST | `/report/<token>/` | Employee reports phishing email | **Public** |
+| GET | `/link/<token>/` | Track lure-link click → redirects to feedback page | **Public** |
+| POST | `/report/<token>/` | Employee reports email as phishing | **Public** |
 | POST | `/credentials/<token>/` | Log credential submission | **Public** |
-| GET | `/feedback/<token>/` | Get educational feedback | **Public** |
+| GET | `/feedback/<token>/` | Educational feedback (red flags + explanation) | **Public** |
 
 ### Training — `/api/v1/training/`
 
@@ -196,7 +198,7 @@ Assessment-style exercises where employees classify a set of emails (phishing or
 | GET | `/risk-scores/statistics/` | Company-wide statistics | Admin |
 | GET | `/risk-scores/<id>/history/` | Score change history | Required |
 | GET/POST | `/modules/` | List / create training modules | Required |
-| GET | `/modules/<id>/questions/` | Get module quiz questions | Required |
+| GET | `/modules/<id>/questions/` | Module quiz questions | Required |
 | GET/POST | `/assignments/` | List / create assignments | Required |
 | POST | `/assignments/<id>/start/` | Start training | Required |
 | POST | `/assignments/<id>/view_content/` | Mark content viewed | Required |
@@ -206,11 +208,27 @@ Assessment-style exercises where employees classify a set of emails (phishing or
 | GET | `/assignments/my_trainings/` | Own assignments | Required |
 | GET | `/assignments/overdue/` | Overdue assignments | Admin |
 
+### Gamification — `/api/v1/gamification/`
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET/POST | `/badges/` | List / create badges (admin for POST) | Required |
+| GET/PUT/DELETE | `/badges/<id>/` | Badge detail / update / delete | Required / Admin |
+| GET | `/badges/my_badges/` | Own earned badges | Required |
+| GET | `/badges/recent/` | Recently awarded badges | Required |
+| POST | `/badges/<id>/bulk_award/` | Bulk-award a badge | Admin |
+| GET | `/points/` | List points records (admin sees all) | Required |
+| GET | `/points/my_summary/` | Own points summary | Required |
+| GET | `/points/my_transactions/` | Own points transactions | Required |
+| POST | `/points/adjust/` | Manual admin adjustment | Admin |
+| GET | `/leaderboard/` | Leaderboard (filter by period, company, limit) | Required |
+| GET | `/leaderboard/my_position/` | Own leaderboard position | Required |
+
 ### Analytics — `/api/v1/analytics/`
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/dashboard/overview/` | Platform/company overview stats | Required |
+| GET | `/dashboard/overview/` | Platform / company overview stats | Required |
 | GET | `/dashboard/trends/` | Time-series data (`?period=7d\|30d\|90d`) | Required |
 | GET | `/campaigns/<id>/` | Detailed campaign analytics | Required |
 | GET | `/risk/distribution/` | Risk score distribution | Required |
@@ -225,55 +243,79 @@ Assessment-style exercises where employees classify a set of emails (phishing or
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/` | List own notifications | Required |
-| GET | `/unread_count/` | Unread notification count | Required |
-| POST | `/<id>/mark_read/` | Mark single notification as read | Required |
+| GET | `/unread_count/` | Unread count | Required |
+| POST | `/<id>/mark_read/` | Mark single as read | Required |
 | POST | `/mark_all_read/` | Mark all as read | Required |
 | DELETE | `/clear_all/` | Delete all notifications | Required |
+
+### Community — `/api/v1/community/`
+
+Public resources accessible without authentication (training topics, quizzes, articles).
 
 ---
 
 ## User Roles
 
-| Role | Permissions |
-|------|-------------|
+| Role | Scope |
+|------|-------|
 | `SUPER_ADMIN` | Full access across all companies and global data |
-| `COMPANY_ADMIN` | Full access within own company only |
+| `COMPANY_ADMIN` | Full access within own company |
 | `EMPLOYEE` | Read-only access to own data (training, score, profile) |
 
 ---
 
 ## Key Design Decisions
 
-**JWT Authentication** — Access tokens are short-lived. Refresh tokens are blacklisted on logout. Unverified users (`is_verified=False`) cannot obtain tokens. Staff accounts (`is_staff=True`) bypass the verification check for admin convenience.
+**JWT authentication.** Access tokens are short-lived; refresh tokens are blacklisted on logout. Unverified users (`is_verified=False`) cannot obtain tokens. Staff accounts (`is_staff=True`) bypass the verification check for admin convenience.
 
-**Invitation-Only Employees** — Employees cannot self-register. A Company Admin sends a time-limited (7-day) UUID invitation token via email. On acceptance the account activates immediately, with `is_verified=True` set automatically — no separate email verification needed.
+**Invitation-only employees.** Employees cannot self-register. A Company Admin sends a 7-day UUID invitation token. On acceptance the account activates immediately with `is_verified=True` — no separate email verification step.
 
-**Denormalized Campaign Statistics** — `SimulationCampaign` caches `total_sent`, `total_opened`, `total_clicked`, `total_reported` directly on the model for instant reads. Updated atomically every time a `TrackingEvent` is saved via `_update_simulation_stats()` and `_update_campaign_stats()`.
+**Denormalized campaign statistics.** `SimulationCampaign` caches `total_sent`, `total_opened`, `total_clicked`, `total_reported` on the model for instant reads. Updated atomically on every `TrackingEvent.save()` via `_update_simulation_stats()` and `_update_campaign_stats()`.
 
-**Risk Score Signals** — Employee risk scores recalculate automatically via a Django `post_save` signal on `TrackingEvent` (`training/signals.py`). The signal fires after `super().save()`, before the inline stat methods.
+**Risk score signals.** Employee risk scores recalculate automatically through a Django `post_save` signal on `TrackingEvent` in `training/signals.py`. The signal fires after `super().save()` and before the inline stat methods.
 
-**Non-Blocking Email** — All email dispatch is wrapped in try/except. Failures are logged (`logger.error`) but never raised to the API caller, preventing email infrastructure issues from breaking registration or invitation flows.
+**Non-blocking email delivery.** All email dispatch is wrapped in try/except. Failures are logged (`logger.error`) but never raised to the caller, so email infrastructure issues can't break registration or invitation flows.
+
+**Lazy-loaded ML models.** LSTM weights load once on first AI generation request, guarded by a threading lock, so the server boots instantly and the ~200 MB model memory is only paid when needed.
 
 ---
 
 ## Email Templates
 
-Five branded HTML templates live in `apps/core/templates/emails/`:
+Branded HTML templates live in [apps/core/templates/emails/](apps/core/templates/emails/):
 
-| Template File | Trigger |
-|---------------|---------|
+| Template | Trigger |
+|----------|---------|
 | `verification.html` | User registration |
 | `invitation.html` | Employee invited by admin |
 | `password_reset.html` | Password reset request |
 | Company welcome (inline) | Company Admin verifies email |
 | Password changed (inline) | Password change confirmation |
 
-**Test email delivery:**
+Test email delivery end-to-end:
 
 ```bash
-python manage.py test_email --to your@email.com --type all
+python manage.py test_email --to you@example.com --type all
 # --type options: all | verification | invitation | password_reset
 ```
+
+---
+
+## AI Email Generation
+
+Two in-house LSTM models generate phishing and legitimate emails on demand — English and Arabic. Used to produce campaign content that isn't repetitive across simulations.
+
+| Detail | Value |
+|--------|-------|
+| Architecture | 3-layer LSTM, 256 embedding, 512 hidden, 0.3 dropout |
+| EN training set | 14,000 samples, final loss 0.265 |
+| AR training set | 10,000 samples, final loss 0.342 |
+| EN vocabulary | 3,982 tokens |
+| AR vocabulary | 3,429 tokens |
+| Max sequence | 150 tokens (EN) / 120 tokens (AR) |
+| Labels | `[LEGIT]`, `[PHISH]` |
+
+Entry point: `EmailGenerator.generate_email(email_type, language)` in [ml_models/email_generator.py](ml_models/email_generator.py). Keyword-aware sender selection ensures brand impersonation emails (PayPal, Al Rajhi, Absher, etc.) get matching sender addresses rather than generic ones.
 
 ---
 
@@ -281,27 +323,41 @@ python manage.py test_email --to your@email.com --type all
 
 | Command | What it creates |
 |---------|----------------|
-| `seed_simulation_templates` | 15 phishing templates: 8 English + 7 Arabic, covering link manipulation, credential harvesting, urgency scams, authority impersonation, and business email compromise |
-| `seed_training` | 3 modules — Email Security, Mobile Security, Social Engineering — each with 5 bilingual (EN/AR) quiz questions |
+| `seed_simulation_templates` | 15 phishing templates — 8 EN + 7 AR — covering link manipulation, credential harvesting, urgency scams, authority impersonation, and business email compromise |
+| `seed_training` | 3 modules (Email Security, Mobile Security, Social Engineering), each with 5 bilingual quiz questions |
+
+---
+
+## Management Commands
+
+| Command | Purpose |
+|---------|---------|
+| `python manage.py test_email` | Send test emails of each type |
+| `python manage.py seed_simulation_templates` | Seed the 15 global phishing templates |
+| `python manage.py seed_training` | Seed the 3 training modules + questions |
+| `python manage.py clean_training` | Remove seeded training data (reset) |
+| `python manage.py send_training_reminders` | Trigger scheduled reminder notifications |
+| `python manage.py audit_notifications` | Audit the notification system for orphans |
+| `python manage.py test_notifications` | Fire sample notifications across all 36 types |
 
 ---
 
 ## Notification Types (36 total)
 
-The notification system covers all significant platform events:
-
-- **Employee — Training (7):** assigned, due soon, due tomorrow, overdue, completed, quiz passed, quiz failed
-- **Employee — Simulation (4):** link clicked, email reported, campaign launched, expired safe
-- **Employee — Account (5):** welcome, profile updated, password changed, score up, score down
-- **Admin — Employee Actions (6):** employee clicked, reported, training completed, failed quiz, multiple failures, high risk
-- **Admin — Campaign (5):** campaign completed, progress update, high click rate, low report rate, emails sent
-- **Admin — Training (3):** deadline approaching, overdue alert, monthly report ready
-- **Admin — Staff (2):** employee joined, invitation expired
-- **Super Admin (3):** new company registered, system alert, backup completed
+| Audience | Categories |
+|----------|-----------|
+| Employee — Training (7) | assigned, due soon, due tomorrow, overdue, completed, quiz passed, quiz failed |
+| Employee — Simulation (4) | link clicked, email reported, campaign launched, expired safe |
+| Employee — Account (5) | welcome, profile updated, password changed, score up, score down |
+| Admin — Employee actions (6) | employee clicked, reported, training completed, failed quiz, multiple failures, high risk |
+| Admin — Campaign (5) | campaign completed, progress update, high click rate, low report rate, emails sent |
+| Admin — Training (3) | deadline approaching, overdue alert, monthly report ready |
+| Admin — Staff (2) | employee joined, invitation expired |
+| Super Admin (3) | new company registered, system alert, backup completed |
 
 ---
 
-## API Documentation (Development)
+## API Documentation
 
-- Swagger UI: `http://localhost:8000/swagger/`
-- ReDoc: `http://localhost:8000/redoc/`
+- Swagger UI: `http://localhost:8000/api/docs/`
+- ReDoc: `http://localhost:8000/api/redoc/`

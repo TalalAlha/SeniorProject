@@ -1,6 +1,6 @@
 # PhishAware — Frontend
 
-React + Vite single-page application for the PhishAware cybersecurity awareness platform.
+React 19 + Vite single-page application for the PhishAware cybersecurity awareness platform. Role-based routing, JWT auth with automatic refresh, bilingual UI (English + Arabic with RTL), and live campaign analytics.
 
 ---
 
@@ -10,14 +10,14 @@ React + Vite single-page application for the PhishAware cybersecurity awareness 
 |-----------|-----------|
 | Framework | React 19 |
 | Build Tool | Vite 7 |
-| Routing | React Router 6 |
+| Routing | React Router 6 (createBrowserRouter) |
 | Styling | Tailwind CSS 3 |
-| HTTP Client | Axios |
+| HTTP Client | Axios (with JWT refresh interceptor) |
 | Charts | Recharts |
 | Icons | Lucide React |
-| Internationalization | i18next + react-i18next (English + Arabic) |
-| Notifications | react-hot-toast |
-| Date Utilities | date-fns |
+| i18n | i18next + react-i18next (English + Arabic, RTL-aware) |
+| Toasts | react-hot-toast |
+| Dates | date-fns |
 
 ---
 
@@ -27,30 +27,30 @@ React + Vite single-page application for the PhishAware cybersecurity awareness 
 Frontend/
 ├── src/
 │   ├── api/
-│   │   ├── axios.js          # Axios instance with JWT interceptors
-│   │   ├── endpoints.js      # All API endpoint functions grouped by resource
-│   │   ├── notifications.js  # Notification-specific API helpers
-│   │   └── index.js          # Re-exports
+│   │   ├── axios.js          Axios instance + JWT request/response interceptors
+│   │   ├── endpoints.js      All API endpoint functions grouped by resource
+│   │   ├── notifications.js  Notification-specific helpers
+│   │   └── index.js          Re-exports
 │   ├── contexts/
-│   │   └── index.jsx         # AuthContext, user state, login/logout helpers
+│   │   └── index.jsx         AuthContext, USER_ROLES, login/logout helpers
 │   ├── routes/
-│   │   ├── index.jsx         # createBrowserRouter config (all routes)
-│   │   └── ProtectedRoute.jsx# Route guards by role
+│   │   ├── index.jsx         createBrowserRouter configuration
+│   │   └── ProtectedRoute.jsx ProtectedRoute / PublicRoute / GuestRoute guards
 │   ├── layouts/
-│   │   ├── DashboardLayout.jsx  # Sidebar + topbar shell for authenticated pages
-│   │   └── PublicLayout.jsx     # Navbar + footer shell for public pages
+│   │   ├── DashboardLayout.jsx  Sidebar + topbar shell for authenticated pages
+│   │   └── PublicLayout.jsx     Navbar + footer shell for public pages
 │   ├── pages/
-│   │   ├── auth/             # Login, Register, Verify Email, Accept Invitation, Password Reset
-│   │   ├── public/           # Home, Training Topics, Quiz, Community Portal, Simulation Caught
-│   │   ├── employee/         # Dashboard, Training, Quizzes, Badges, Leaderboard, Profile
-│   │   ├── company/          # Dashboard, Simulations, Campaigns, Employees, Training, Analytics
-│   │   └── admin/            # Super Admin Dashboard, Company List, Platform Analytics
-│   ├── components/           # Reusable UI components
-│   ├── hooks/                # Custom React hooks
-│   ├── i18n/                 # Translation files (en, ar)
-│   ├── utils/                # Helper functions
-│   └── main.jsx              # App entry point
-├── public/                   # Static assets
+│   │   ├── auth/             Login, RegisterCompany, VerifyEmail, AcceptInvitation, ForgotPassword, ResetPassword
+│   │   ├── public/           PublicHome, TrainingTopics, TopicTraining, PublicQuiz, CommunityPortal, SimulationCaught, Unauthorized, NotFound
+│   │   ├── employee/         Dashboard, Quizzes, TakeQuiz, Training, TakeTraining, Badges, Leaderboard, Profile
+│   │   ├── company/          Dashboard, Campaigns, Simulations, SimulationAnalytics, Employees, Training, Analytics, Profile
+│   │   └── admin/            Dashboard, CompanyList, CompanyCreate, PlatformAnalytics, UserManagement
+│   ├── components/           Shared UI
+│   ├── hooks/                Custom hooks
+│   ├── i18n/                 English + Arabic translations
+│   ├── utils/                Helpers
+│   └── main.jsx              App entry
+├── public/                   Static assets
 ├── index.html
 ├── vite.config.js
 ├── tailwind.config.js
@@ -69,108 +69,108 @@ npm install
 
 ### 2. Configure environment variables
 
-Create a `.env` file in the `Frontend/` directory:
+Create `.env` in `Frontend/`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-### 3. Start the development server
+### 3. Run
 
 ```bash
-npm run dev
-```
-
-App runs at: `http://localhost:5173`
-
-### Other commands
-
-```bash
+npm run dev       # Dev server at http://localhost:5173
 npm run build     # Production build → dist/
-npm run preview   # Preview production build locally
-npm run lint      # Run ESLint
+npm run preview   # Preview production build
+npm run lint      # ESLint
 ```
 
 ---
 
 ## Routing
 
-The app uses React Router 6 with three role-based route groups protected by `ProtectedRoute`.
+React Router 6 with three role-based route groups protected by `ProtectedRoute`. Guest routes redirect authenticated users to their role dashboard; public routes redirect authenticated users away from auth pages.
 
-### Public Routes (no authentication required)
+### Public routes (no auth)
 
 | Path | Page | Description |
 |------|------|-------------|
 | `/` | PublicHome | Landing page |
-| `/training` | TrainingTopics | Public cybersecurity training topics |
-| `/training/:topic` | TopicTraining | Topic detail and content |
-| `/quiz` | PublicQuiz | Public quiz |
+| `/training` | TrainingTopics | Public cybersecurity topics |
+| `/training/:topic` | TopicTraining | Topic content |
+| `/quiz` | PublicQuiz | Public awareness quiz |
 | `/community` | CommunityPortal | Community portal |
 | `/login` | LoginPage | Login form |
+| `/register` → `/register/company` | — | Alias redirect |
 | `/register/company` | RegisterCompany | Company self-registration |
-| `/verify-email/:token` | VerifyEmailPage | Email verification via UUID token |
-| `/accept-invitation/:token` | AcceptInvitation | Employee sets password via invitation token |
-| `/forgot-password` | ForgotPassword | Password reset request |
-| `/reset-password/:token` | ResetPassword | Set new password via token |
-| `/simulation/caught/:token` | SimulationCaught | Educational page after clicking phishing link |
+| `/verify-email/:token` | VerifyEmailPage | Email verification via UUID |
+| `/accept-invitation/:token` | AcceptInvitation | Employee sets password |
+| `/forgot-password` | ForgotPassword | Request password reset |
+| `/reset-password/:token` | ResetPassword | Set new password |
+| `/simulation/caught/:token` | SimulationCaught | Educational landing after clicking a phishing lure |
+| `/simulation/error`, `/simulation/expired` | NotFoundPage | Simulation error states |
+| `/unauthorized` | UnauthorizedPage | Access denied |
+| `*` | NotFoundPage | 404 |
 
-### Employee Routes — `/employee/*` (role: `EMPLOYEE`)
+### Employee routes — `/employee/*` (role: `EMPLOYEE`)
 
-| Path | Page | Description |
-|------|------|-------------|
-| `/employee/dashboard` | EmployeeDashboard | Personal stats, risk score, recent activity |
-| `/employee/training` | EmployeeTraining | Assigned training modules |
-| `/employee/training/:id` | TakeTraining | View content + take quiz |
-| `/employee/quizzes` | EmployeeQuizzes | All available quizzes |
-| `/employee/quizzes/:id` | TakeQuiz | Take a specific quiz |
-| `/employee/badges` | EmployeeBadges | Earned badges |
-| `/employee/leaderboard` | EmployeeLeaderboard | Company leaderboard |
-| `/employee/profile` | EmployeeProfile | Profile management |
+| Path | Page |
+|------|------|
+| `/employee/dashboard` | EmployeeDashboard |
+| `/employee/quizzes` | EmployeeQuizzes |
+| `/employee/quizzes/:id` | TakeQuiz |
+| `/employee/training` | EmployeeTraining |
+| `/employee/training/:id` | TakeTraining |
+| `/employee/badges` | EmployeeBadges |
+| `/employee/leaderboard` | EmployeeLeaderboard |
+| `/employee/profile` | EmployeeProfile |
 
-### Company Admin Routes — `/company/*` (role: `COMPANY_ADMIN`)
+### Company Admin routes — `/company/*` (role: `COMPANY_ADMIN`)
 
-| Path | Page | Description |
-|------|------|-------------|
-| `/company/dashboard` | CompanyDashboard | Company-wide stats and overview |
-| `/company/simulations` | CompanySimulations | Phishing simulation campaigns (list + modal detail) |
-| `/company/simulations/:id/analytics` | SimulationAnalytics | Per-simulation analytics (auto-refreshes every 15s) |
-| `/company/campaigns` | CampaignList | Campaign management |
-| `/company/campaigns/create` | CampaignCreate | Create new campaign |
-| `/company/campaigns/:id` | CampaignDetails | Campaign detail and tracking |
-| `/company/employees` | CompanyEmployees | Employee list, invite, manage |
-| `/company/training` | TrainingManagement | Assign and manage training |
-| `/company/analytics` | CompanyAnalytics | Full analytics dashboard |
-| `/company/profile` | CompanyProfile | Company profile settings |
+| Path | Page |
+|------|------|
+| `/company/dashboard` | CompanyDashboard |
+| `/company/campaigns` | CampaignList |
+| `/company/campaigns/create` | CampaignCreate |
+| `/company/campaigns/:id` | CampaignDetails |
+| `/company/simulations` | CompanySimulations |
+| `/company/simulations/:id/analytics` | SimulationAnalytics (polls every 15s) |
+| `/company/employees` | CompanyEmployees |
+| `/company/training` | TrainingManagement |
+| `/company/analytics` | CompanyAnalytics |
+| `/company/profile` | CompanyProfile |
 
-### Super Admin Routes — `/admin/*` (role: `SUPER_ADMIN`)
+### Super Admin routes — `/admin/*` (role: `SUPER_ADMIN`)
 
-| Path | Page | Description |
-|------|------|-------------|
-| `/admin/dashboard` | AdminDashboard | Platform-wide overview |
-| `/admin/companies` | CompanyList | All registered companies |
-| `/admin/companies/create` | CompanyCreate | Manually create a company |
-| `/admin/analytics` | PlatformAnalytics | Platform-wide analytics |
-| `/admin/users` | UserManagement | All platform users |
+| Path | Page |
+|------|------|
+| `/admin/dashboard` | AdminDashboard |
+| `/admin/companies` | CompanyList |
+| `/admin/companies/create` | CompanyCreate |
+| `/admin/analytics` | PlatformAnalytics |
+| `/admin/users` | UserManagement |
+| `/admin/profile` | EmployeeProfile (reused) |
 
 ---
 
 ## Authentication
 
-Authentication is managed via `AuthContext` (`src/contexts/index.jsx`).
+Managed via `AuthContext` ([src/contexts/index.jsx](src/contexts/index.jsx)).
 
-- JWT access and refresh tokens are stored in `localStorage`
-- The Axios instance (`src/api/axios.js`) attaches the access token to every request via a request interceptor
-- A response interceptor automatically attempts token refresh on `401` errors and retries the original request
-- On failed refresh, the user is logged out and redirected to `/login`
+- JWT access and refresh tokens stored in `localStorage`
+- Axios request interceptor attaches the access token to every request
+- Axios response interceptor catches `401`, calls the refresh endpoint, retries the original request, and logs out + redirects to `/login` if refresh fails
 - `ProtectedRoute` reads the user role from context and redirects unauthorized users to `/unauthorized`
+- `PublicRoute` sends already-authenticated users to their role dashboard
+- `GuestRoute` renders the public layout for anyone (auth optional)
 
 ---
 
 ## API Client
 
-All API calls are defined in `src/api/endpoints.js`, grouped by resource:
+All calls are defined in [src/api/endpoints.js](src/api/endpoints.js), grouped by resource. Examples:
 
 ```js
+// Auth
 authAPI.login(credentials)
 authAPI.register(data)
 authAPI.verifyEmail(token)
@@ -181,30 +181,51 @@ authAPI.getProfile()
 authAPI.updateProfile(data)
 authAPI.changePassword(data)
 
+// Companies
 companiesAPI.getMyCompany()
 companiesAPI.getStats(id)
 companiesAPI.getUsers(id, params)
 
+// Employees
 employeesAPI.invite(data)
 employeesAPI.getInvitationDetails(token)
 employeesAPI.acceptInvitation(token, data)
 employeesAPI.getPending()
+employeesAPI.resend(id)
+employeesAPI.cancel(id)
 
+// Simulations
 simulationsAPI.getCampaigns()
 simulationsAPI.createCampaign(data)
 simulationsAPI.send(id)
 simulationsAPI.getSimulationFeedback(token, lang)
 
+// Assessments / AI
+assessmentsAPI.generateEmails(payload)
+
+// Campaigns (classification quizzes)
+campaignsAPI.list()
+campaignsAPI.assignToEmployees(id, payload)
+campaignsAPI.getStatistics(id)
+
+// Training
 trainingAPI.getMyTrainings()
 trainingAPI.startTraining(id)
 trainingAPI.getQuiz(id)
 trainingAPI.submitQuiz(id, answers)
 trainingAPI.getRiskScore()
 
+// Gamification
+gamificationAPI.getBadges()
+gamificationAPI.getLeaderboard(params)
+gamificationAPI.getMyPoints()
+
+// Analytics
 analyticsAPI.getOverview()
 analyticsAPI.getTrends(params)
 analyticsAPI.exportCSV(params)
 
+// Notifications
 notificationsAPI.getAll()
 notificationsAPI.getUnreadCount()
 notificationsAPI.markRead(id)
@@ -214,29 +235,31 @@ notificationsAPI.clearAll()
 
 ---
 
-## Internationalization (i18n)
+## Internationalization
 
-The app supports **English** and **Arabic** via i18next. Language is detected from browser settings and can be toggled at runtime.
-
-- Translation files: `src/i18n/`
-- RTL layout is applied automatically when Arabic is active
-- Backend data (training content, simulation templates) is also bilingual — the API returns the appropriate language based on the request
+- English and Arabic, handled with `i18next` + `i18next-browser-languagedetector`
+- Language auto-detected from browser; user can switch at runtime from the UI
+- RTL layout applied automatically when Arabic is active (via Tailwind's `dir` utilities and `html[dir]` attribute)
+- Backend content (simulation templates, training modules, quiz questions) is also bilingual — the API returns the appropriate language based on the request
 
 ---
 
-## Key Pages
+## Notable Pages
 
-### SimulationCaught (`/simulation/caught/:token`)
-Public page — no authentication required. Loaded when an employee clicks a phishing link. Fetches educational feedback from the API (`GET /simulations/feedback/<token>/`) and displays the red flags that should have been spotted, along with an explanation.
+### `/simulation/caught/:token` — SimulationCaught
+Public page (no auth). Loaded when an employee clicks a phishing lure. Fetches educational feedback from `GET /simulations/feedback/<token>/` and displays the red flags the employee missed, a plain-language explanation, and next steps.
 
-### AcceptInvitation (`/accept-invitation/:token`)
-Public page — no authentication required. Validates the invitation token, shows the company name and pre-filled email, and lets the employee set their password to activate their account.
+### `/accept-invitation/:token` — AcceptInvitation
+Public page (no auth). Validates the invitation token, shows the inviting company's name and the pre-filled email, and lets the employee set their password. On success the account activates and verification is skipped (invite token proves ownership).
 
-### SimulationAnalytics (`/company/simulations/:id/analytics`)
-Polls the backend every 15 seconds to display live campaign stats: emails sent, opened, clicked, and reported. Includes charts for click rate over time and per-employee breakdown.
+### `/company/simulations/:id/analytics` — SimulationAnalytics
+Polls the backend every 15 seconds for live stats: emails sent, opened, clicked, reported. Charts click rate over time and per-employee breakdown.
 
-### CompanyEmployees (`/company/employees`)
-Employee management hub. Displays all active employees with their risk scores. Includes an invite modal (sends invitation email), resend, and cancel actions for pending invitations.
+### `/company/employees` — CompanyEmployees
+Employee management hub. Lists active employees with risk scores; invite modal sends the invitation email; pending invitations support resend (rotates token) and cancel.
+
+### `/company/campaigns/*` — Awareness Campaigns
+Classification quiz campaigns. Admins create, assign, and view per-campaign statistics (completion rate, average score, risk distribution).
 
 ---
 
