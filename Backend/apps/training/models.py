@@ -114,10 +114,15 @@ class RiskScore(models.Model):
 
     @property
     def quiz_accuracy(self):
-        """Calculate quiz accuracy percentage."""
-        if self.total_quiz_questions == 0:
+        """Average quiz score across completed quizzes (hybrid score, not raw correct/total)."""
+        if self.total_quizzes_taken == 0:
             return None
-        return round((self.correct_quiz_answers / self.total_quiz_questions) * 100, 1)
+        from django.db.models import Avg
+        from apps.campaigns.models import QuizResult
+        avg = QuizResult.objects.filter(employee_id=self.employee_id).aggregate(avg=Avg('score'))['avg']
+        if avg is None:
+            return None
+        return round(float(avg), 1)
 
     @property
     def simulation_click_rate(self):
@@ -413,7 +418,7 @@ class TrainingModule(models.Model):
     # Quiz configuration
     passing_score = models.PositiveIntegerField(
         _('passing score'),
-        default=80,
+        default=75,
         validators=[MinValueValidator(50), MaxValueValidator(100)],
         help_text=_('Minimum percentage required to pass')
     )

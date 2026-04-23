@@ -760,6 +760,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 from rest_framework.decorators import api_view, permission_classes as fn_permission_classes
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 import logging as _logging
 
 _logger = _logging.getLogger(__name__)
@@ -801,6 +803,11 @@ def register_company(request):
             {'error': 'A user with that email already exists.'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    try:
+        validate_password(admin_password)
+    except DjangoValidationError as exc:
+        return Response({'error': ' '.join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
     with transaction.atomic():
         company = Company.objects.create(

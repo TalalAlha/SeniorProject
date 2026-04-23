@@ -17,6 +17,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { Eye, EyeOff, CheckCircle, RefreshCw, Building2 } from 'lucide-react';
 import Logo from '../../components/Logo';
+import PasswordRequirements from '../../components/PasswordRequirements';
+import { isPasswordValid } from '../../utils/passwordValidation';
 import { authAPI } from '../../api';
 
 const RegisterPage = () => {
@@ -48,6 +50,11 @@ const RegisterPage = () => {
 
     if (formData.password !== formData.password_confirm) {
       toast.error('Passwords do not match');
+      return;
+    }
+
+    if (!isPasswordValid(formData.password)) {
+      toast.error('Password does not meet all requirements');
       return;
     }
 
@@ -243,6 +250,8 @@ const RegisterPage = () => {
               </button>
             </div>
           </div>
+
+          <PasswordRequirements password={formData.password} />
 
           {/* Submit Button */}
           <button

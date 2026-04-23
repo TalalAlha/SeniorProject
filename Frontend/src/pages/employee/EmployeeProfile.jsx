@@ -23,6 +23,8 @@ import { authAPI } from '../../api';
 import { changeLanguage } from '../../i18n';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
+import PasswordRequirements from '../../components/PasswordRequirements';
+import { isPasswordValid } from '../../utils/passwordValidation';
 
 // Password strength checker
 const getPasswordStrength = (password) => {
@@ -146,8 +148,8 @@ function EmployeeProfile() {
 
     if (!passwordData.new_password) {
       errors.new_password = t('profile.newPasswordRequired');
-    } else if (passwordData.new_password.length < 8) {
-      errors.new_password = t('profile.passwordMinLength');
+    } else if (!isPasswordValid(passwordData.new_password)) {
+      errors.new_password = t('profile.passwordDoesNotMeetRequirements');
     }
 
     if (!passwordData.confirm_password) {
@@ -543,24 +545,7 @@ function EmployeeProfile() {
                 )}
               </div>
 
-              {/* Password Requirements */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300">
-                <p className="font-medium mb-2">{t('profile.passwordRequirements')}</p>
-                <ul className="space-y-1">
-                  <li className={clsx('flex items-center gap-2', passwordData.new_password.length >= 8 && 'text-success-600')}>
-                    {passwordData.new_password.length >= 8 ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
-                    {t('profile.atLeast8Chars')}
-                  </li>
-                  <li className={clsx('flex items-center gap-2', /[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) && 'text-success-600')}>
-                    {/[A-Z]/.test(passwordData.new_password) && /[a-z]/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
-                    {t('profile.upperAndLower')}
-                  </li>
-                  <li className={clsx('flex items-center gap-2', /\d/.test(passwordData.new_password) && 'text-success-600')}>
-                    {/\d/.test(passwordData.new_password) ? <CheckCircle className="h-4 w-4" /> : <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" />}
-                    {t('profile.atLeastOneNumber')}
-                  </li>
-                </ul>
-              </div>
+              <PasswordRequirements password={passwordData.new_password} />
 
               <button
                 type="submit"

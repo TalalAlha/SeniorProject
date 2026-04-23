@@ -19,6 +19,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Check, X, Loader2, Eye, EyeOff } from 'lucide-react';
 import Logo from '../../components/Logo';
+import PasswordRequirements from '../../components/PasswordRequirements';
+import { isPasswordValid } from '../../utils/passwordValidation';
 import toast from 'react-hot-toast';
 import { employeesAPI } from '../../api';
 
@@ -69,8 +71,8 @@ function AcceptInvitation() {
   const handleAccept = async (e) => {
     e.preventDefault();
 
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters.');
+    if (!isPasswordValid(password)) {
+      toast.error('Password does not meet all requirements.');
       return;
     }
     if (password !== confirmPassword) {
@@ -229,6 +231,8 @@ function AcceptInvitation() {
               </button>
             </div>
           </div>
+
+          <PasswordRequirements password={password} />
 
           <button
             type="submit"

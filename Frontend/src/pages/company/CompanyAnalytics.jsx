@@ -105,6 +105,14 @@ function getRiskBg(score) {
   return 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-300';
 }
 
+// Quiz-score color: higher is better (passing threshold = 75)
+function getQuizScoreColor(score) {
+  if (score >= 75) return 'text-success-600 dark:text-success-400';
+  if (score >= 50) return 'text-warning-600 dark:text-warning-400';
+  if (score >= 25) return 'text-orange-600 dark:text-orange-400';
+  return 'text-danger-600 dark:text-danger-400';
+}
+
 function formatPct(value) {
   if (value == null) return '0%';
   const n = typeof value === 'number' && value <= 1 ? value * 100 : value;
@@ -1108,7 +1116,7 @@ function CompanyAnalytics() {
                         </td>
                         <td className="px-4 py-3">
                           {avgScore != null ? (
-                            <span className={clsx('font-medium', getRiskColor(avgScore))}>
+                            <span className={clsx('font-medium', getQuizScoreColor(avgScore))}>
                               {Math.round(avgScore)}
                             </span>
                           ) : (
@@ -1145,7 +1153,6 @@ function CompanyAnalytics() {
                 <tr>
                   <SortHeader label={t('analytics.simulationName')} sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.targets')}</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.openRate')}</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.clickRate')}</th>
                   <SortHeader label={t('analytics.date')} sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('analytics.actions')}</th>
@@ -1156,13 +1163,10 @@ function CompanyAnalytics() {
                   pagedData.map((s) => {
                     const cr = s.click_rate ?? 0;
                     const crPct = cr <= 1 ? cr * 100 : cr;
-                    const openR = s.open_rate ?? 0;
-                    const openPct = openR <= 1 ? openR * 100 : openR;
                     return (
                       <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.name}</td>
                         <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{s.target_count ?? s.total_targets ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{Math.round(openPct)}%</td>
                         <td className="px-4 py-3">
                           <span className={clsx('font-medium', crPct > 30 ? 'text-danger-600' : 'text-gray-900 dark:text-white')}>
                             {Math.round(crPct)}%
@@ -1183,7 +1187,7 @@ function CompanyAnalytics() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       {searchQuery ? t('analytics.noSimulationsMatch') : t('analytics.noSimulationsFound')}
                     </td>
                   </tr>

@@ -3,6 +3,8 @@ import logging
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from rest_framework import generics, status, views
 from rest_framework.response import Response
@@ -389,6 +391,11 @@ class AcceptInvitationView(views.APIView):
         if not password:
             return Response({'error': 'Password is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            validate_password(password, user=user)
+        except DjangoValidationError as exc:
+            return Response({'error': ' '.join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
         user.set_password(password)
         user.is_active = True
         user.is_verified = True
@@ -588,6 +595,11 @@ def reset_password(request, token):
             {'error': 'Password is required.'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    try:
+        validate_password(new_password, user=user)
+    except DjangoValidationError as exc:
+        return Response({'error': ' '.join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
     user.set_password(new_password)
     # Consume the token so the same link cannot be reused

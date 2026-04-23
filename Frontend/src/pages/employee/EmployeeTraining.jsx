@@ -277,7 +277,7 @@ function EmployeeTraining() {
                       {training.quiz_score !== null && (
                         <span className={clsx(
                           'font-medium',
-                          training.quiz_score >= 70 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'
+                          training.quiz_score >= (training.training_module?.passing_score ?? 75) ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'
                         )}>
                           {t('training.scoreLabel', { score: training.quiz_score })}
                         </span>

@@ -6,6 +6,7 @@ Serializers for company CRUD, user management, and statistics.
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from django.db.models import Avg, Count, Q
 
@@ -237,7 +238,7 @@ class CompanyUserSerializer(serializers.ModelSerializer):
 class CompanyUserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating users within a company."""
 
-    password = serializers.CharField(write_only=True, required=False, min_length=8)
+    password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
 
     class Meta:
         model = User

@@ -18,6 +18,8 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Logo from '../../components/Logo';
+import PasswordRequirements from '../../components/PasswordRequirements';
+import { isPasswordValid } from '../../utils/passwordValidation';
 import { toast } from 'react-hot-toast';
 import { authAPI } from '../../api';
 
@@ -38,8 +40,8 @@ function ResetPassword() {
       return;
     }
 
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters.');
+    if (!isPasswordValid(password)) {
+      toast.error('Password does not meet all requirements.');
       return;
     }
 
@@ -128,6 +130,8 @@ function ResetPassword() {
                 </button>
               </div>
             </div>
+
+            <PasswordRequirements password={password} />
 
             <button
               type="submit"

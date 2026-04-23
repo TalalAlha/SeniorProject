@@ -19,6 +19,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, User, Mail, Lock, Globe, Eye, EyeOff, CheckCircle, RefreshCw } from 'lucide-react';
 import Logo from '../../components/Logo';
+import PasswordRequirements from '../../components/PasswordRequirements';
+import { isPasswordValid } from '../../utils/passwordValidation';
 import { toast } from 'react-hot-toast';
 import { companiesAPI, authAPI } from '../../api';
 
@@ -51,8 +53,8 @@ const RegisterCompany = () => {
       return;
     }
 
-    if (formData.admin_password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+    if (!isPasswordValid(formData.admin_password)) {
+      toast.error('Password does not meet all requirements');
       return;
     }
 
@@ -283,6 +285,8 @@ const RegisterCompany = () => {
                 </button>
               </div>
             </div>
+
+            <PasswordRequirements password={formData.admin_password} />
           </div>
 
           {/* Submit */}

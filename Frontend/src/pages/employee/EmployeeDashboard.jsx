@@ -336,6 +336,33 @@ function EmployeeDashboard() {
                   {Math.round(riskScore?.simulation_click_rate || 0)}%
                 </span>
               </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 dark:text-gray-400">{t('dashboard.quizzesTaken') || 'Quizzes Taken'}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {riskScore?.total_quizzes_taken || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 dark:text-gray-400">{t('dashboard.simulationsReceived') || 'Simulations Received'}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {riskScore?.total_simulations_received || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 dark:text-gray-400">{t('dashboard.trainingsCompleted') || 'Trainings Completed'}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {riskScore?.trainings_completed || 0}
+                  {riskScore?.trainings_assigned ? ` / ${riskScore.trainings_assigned}` : ''}
+                </span>
+              </div>
+              {riskScore?.pending_trainings > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">{t('dashboard.pendingTraining') || 'Pending Training'}</span>
+                  <span className="font-medium text-warning-600 dark:text-warning-400">
+                    {riskScore.pending_trainings}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
