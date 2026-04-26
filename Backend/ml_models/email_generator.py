@@ -172,50 +172,6 @@ _LEGIT_SENDERS_AR = [
 ]
 
 # ---------------------------------------------------------------------------
-# Subject pools (fallback when extraction fails)
-# ---------------------------------------------------------------------------
-
-_PHISHING_SUBJECTS_EN = [
-    "Urgent: Verify Your Account Immediately",
-    "Security Alert: Unusual Activity Detected",
-    "Action Required: Confirm Your Identity",
-    "Your Account Has Been Temporarily Suspended",
-    "Important: Update Your Password Now",
-    "Suspicious Login Attempt Detected",
-    "Final Notice: Account Verification Required",
-]
-
-_PHISHING_SUBJECTS_AR = [
-    "تنبيه أمني: تحقق من حسابك",
-    "عاجل: تم اكتشاف نشاط مشبوه",
-    "تحذير: حسابك في خطر",
-    "مطلوب: تحديث بيانات حسابك",
-    "إشعار أمني هام",
-    "تعليق مؤقت لحسابك",
-    "عاجل: تأكيد هويتك مطلوب",
-]
-
-_LEGIT_SUBJECTS_EN = [
-    "Monthly Team Newsletter",
-    "Meeting Reminder: Team Sync Tomorrow",
-    "HR Update: Policy Changes",
-    "IT Maintenance Notice",
-    "Upcoming Company Event",
-    "Performance Review Schedule",
-    "Office Closure Announcement",
-]
-
-_LEGIT_SUBJECTS_AR = [
-    "النشرة الشهرية للفريق",
-    "تذكير باجتماع: مزامنة الفريق",
-    "تحديث الموارد البشرية",
-    "إشعار صيانة تقنية المعلومات",
-    "فعالية الشركة القادمة",
-    "جدول مراجعة الأداء",
-    "إعلان إغلاق المكتب",
-]
-
-# ---------------------------------------------------------------------------
 # Category pools
 # ---------------------------------------------------------------------------
 
@@ -346,18 +302,68 @@ def _select_red_flags(body: str, language: str) -> list:
 _LABEL_STRIP_RE = re.compile(r'\[PHISH\]|\[LEGIT\]')
 _SENTENCE_END_RE = re.compile(r'([.!?]\s+)([a-z])')
 _STANDALONE_I_RE = re.compile(r'\bi\b')
+_WORD_RE = re.compile(r"\b[A-Za-z][A-Za-z']*\b")
+_GREETING_RE = re.compile(r'\b(Dear|Hi|Hello|Mr\.|Ms\.|Mrs\.|Dr\.)\s+([a-z])')
+
+_ALWAYS_CAPITALIZE = {
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'january', 'february', 'march', 'april', 'june', 'july',
+    'august', 'september', 'october', 'november', 'december',
+    'riyadh', 'jeddah', 'mecca', 'medina', 'dammam', 'khobar', 'dhahran',
+    'dubai', 'doha', 'manama', 'kuwait', 'muscat', 'cairo', 'amman', 'beirut',
+    'saudi', 'arabia', 'emirates', 'qatar', 'bahrain', 'oman', 'jordan',
+    'arabic', 'english',
+}
+
+_ALL_CAPS = {
+    'gcc', 'uae', 'ksa', 'usa', 'uk', 'eu', 'mena', 'hsbc', 'stc', 'sabic',
+    'simah', 'sadad', 'dhl', 'pdf', 'url', 'id', 'pin', 'otp', 'vpn', 'api',
+    'ceo', 'cfo', 'cto', 'cio',
+}
+
+_BRAND_CASE = {
+    'paypal': 'PayPal', 'docusign': 'DocuSign', 'linkedin': 'LinkedIn',
+    'youtube': 'YouTube', 'iphone': 'iPhone', 'ipad': 'iPad', 'macos': 'macOS',
+    'ios': 'iOS', 'github': 'GitHub', 'whatsapp': 'WhatsApp',
+}
+
+
+def _fix_word_case(match):
+    w = match.group(0)
+    low = w.lower()
+    if low in _ALL_CAPS:
+        return w.upper()
+    if low in _BRAND_CASE:
+        return _BRAND_CASE[low]
+    if low in _ALWAYS_CAPITALIZE:
+        return w[0].upper() + w[1:].lower()
+    return w
+
+
+def _normalize_numbers(text: str) -> str:
+    """Collapse stray whitespace inside numbers ('10, 000' -> '10,000', '175. 00' -> '175.00').
+
+    The LSTM tokenizer sometimes splits multi-digit numbers, leaving spaces
+    around commas and decimal points. Those spaces render badly in any
+    language and especially in RTL Arabic where they confuse the bidi
+    algorithm.
+    """
+    if not text:
+        return text
+    text = re.sub(r'(\d)\s*,\s*(\d)', r'\1,\2', text)
+    text = re.sub(r'(\d)\s*\.\s*(\d)', r'\1.\2', text)
+    return text
 
 
 def _apply_capitalization(text: str) -> str:
-    """Sentence-case an all-lowercase English body: capitalize after . ! ?  and standalone i -> I."""
+    """Sentence-case an all-lowercase English body and fix proper nouns / acronyms / brands."""
     if not text:
         return text
-    # Capitalize the very first character
     text = text[0].upper() + text[1:]
-    # Capitalize first letter after sentence-ending punctuation
     text = _SENTENCE_END_RE.sub(lambda m: m.group(1) + m.group(2).upper(), text)
-    # Capitalize standalone pronoun "i"
     text = _STANDALONE_I_RE.sub('I', text)
+    text = _WORD_RE.sub(_fix_word_case, text)
+    text = _GREETING_RE.sub(lambda m: f"{m.group(1)} {m.group(2).upper()}", text)
     return text
 
 
@@ -395,22 +401,6 @@ def _generate_sample(model, vocab, device, email_type='phishing',
     return _LABEL_STRIP_RE.sub('', raw).strip()
 
 
-def _extract_subject(body: str, language: str) -> str:
-    """Pull a subject line from the first sentence of the body (≤80 chars)."""
-    # Split on common sentence terminators
-    m = re.split(r'[.!?。،]', body, maxsplit=1)
-    candidate = m[0].strip() if m else ''
-    # Keep only if it looks reasonable
-    if 10 < len(candidate) <= 80:
-        return candidate
-    # Fall back to a fixed-length truncation of the body start
-    if len(body) > 15:
-        truncated = body[:75].rsplit(' ', 1)[0]
-        if len(truncated) > 10:
-            return truncated + '…'
-    return ''   # caller will use fallback pool
-
-
 def _pick_sender(email_type: str, language: str, body: str = ''):
     if email_type != 'phishing':
         pool = _LEGIT_SENDERS_AR if language == 'ar' else _LEGIT_SENDERS_EN
@@ -433,14 +423,8 @@ def _pick_sender(email_type: str, language: str, body: str = ''):
 
 
 def _pick_subject(email_type: str, language: str, body: str) -> str:
-    subject = _extract_subject(body, language)
-    if subject:
-        return subject
-    if email_type == 'phishing':
-        pool = _PHISHING_SUBJECTS_AR if language == 'ar' else _PHISHING_SUBJECTS_EN
-    else:
-        pool = _LEGIT_SUBJECTS_AR if language == 'ar' else _LEGIT_SUBJECTS_EN
-    return random.choice(pool)
+    """Subject rendering disabled — frontend hides the subject row when blank."""
+    return ''
 
 
 # ---------------------------------------------------------------------------
@@ -547,6 +531,9 @@ class EmailGenerator:
                                     email_type=email_type,
                                     max_len=max_len,
                                     temperature=min(temperature + 0.15, 1.0))
+
+        # Collapse stray whitespace inside numbers (applies to both languages)
+        body = _normalize_numbers(body)
 
         # Apply sentence-case capitalization for English output
         if language == 'en':

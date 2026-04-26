@@ -1499,6 +1499,18 @@ function TakeQuiz() {
           )}
         </div>
 
+        {/* ── Subject line ── */}
+        {question.email_subject && (
+          <div
+            className={`px-6 py-4 border-b border-gray-100 dark:border-gray-700 ${isArabic ? 'text-right' : ''}`}
+            dir={isArabic ? 'rtl' : 'ltr'}
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">
+              {question.email_subject}
+            </h2>
+          </div>
+        )}
+
         {/* ── Email body ── */}
         <div
           className={`px-8 py-7 ${isArabic ? 'text-right' : ''}`}
