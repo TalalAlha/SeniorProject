@@ -22,6 +22,11 @@ from .services import (
     check_and_award_badge,
     check_training_champion_badge,
     check_security_aware_badge,
+    check_simulation_survivor_badge,
+    check_streak_master_badge,
+    check_top_reporter_badge,
+    check_quiz_milestone_badges,
+    check_comeback_kid_badge,
 )
 from .models import PointsTransaction
 
@@ -88,6 +93,12 @@ def handle_quiz_result(sender, instance, created, **kwargs):
                     source_id=instance.id
                 )
 
+            # Tiered quiz milestones (5, 25)
+            check_quiz_milestone_badges(employee)
+
+            # Activity streak (award_points already updated the streak)
+            check_streak_master_badge(employee)
+
         logger.info(f'Gamification: Processed QuizResult for {employee.email} — {quiz_score}% → {breakdown["total"]} pts')
 
     except Exception as e:
@@ -142,6 +153,10 @@ def handle_tracking_event(sender, instance, created, **kwargs):
                     source_type='TrackingEvent',
                     source_id=instance.id
                 )
+
+            # Top Reporter (25+) and streak refresh
+            check_top_reporter_badge(employee)
+            check_streak_master_badge(employee)
 
         logger.info(f'Gamification: Processed TrackingEvent (EMAIL_REPORTED) for {employee.email}')
 
@@ -224,6 +239,9 @@ def handle_training_completion(sender, instance, created, **kwargs):
             # Check for Training Champion badge
             check_training_champion_badge(employee)
 
+            # Streak refresh
+            check_streak_master_badge(employee)
+
         logger.info(f'Gamification: Processed RemediationTraining for {employee.email}')
 
     except Exception as e:
@@ -237,19 +255,26 @@ def handle_training_completion(sender, instance, created, **kwargs):
 @receiver(post_save, sender='training.RiskScore')
 def handle_risk_score_change(sender, instance, **kwargs):
     """
-    Check for "Security Aware" badge:
-    - LOW risk score (<=30) maintained for 30+ days
+    Risk-score-driven badges:
+    - "Security Aware":     LOW risk maintained for 30+ days
+    - "Comeback Kid":       was HIGH/CRITICAL at some point, now LOW
+    - "Simulation Survivor": 5+ simulations received, 0 clicked
     """
     try:
         employee = instance.employee
         if not employee or employee.role != 'EMPLOYEE':
             return
 
-        # Only check if score is LOW
+        # Simulation Survivor — independent of current risk level (driven by
+        # simulation counters which RiskScore exposes).
+        check_simulation_survivor_badge(employee)
+
+        # The remaining checks only matter when current risk level is LOW.
         if instance.risk_level != 'LOW':
             return
 
         check_security_aware_badge(employee, instance)
+        check_comeback_kid_badge(employee, instance)
 
     except Exception as e:
         logger.error(f'Error in gamification risk score signal: {e}')

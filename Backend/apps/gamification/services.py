@@ -5,7 +5,7 @@ Business logic for badge awarding and points management.
 """
 
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, models
 from django.db.models import F
 from datetime import timedelta, date
 import logging
@@ -283,38 +283,132 @@ def check_and_award_badge(employee, badge_type, source_type='', source_id=None):
 def check_training_champion_badge(employee):
     """
     Check and award "Training Champion" badge.
-    Condition: All assigned trainings completed (none pending).
+    Condition: Passed trainings in 3 or more distinct categories.
 
-    Args:
-        employee: User instance
-
-    Returns:
-        EmployeeBadge if awarded, None otherwise
+    The previous "no pending + at least 1 completed" rule fired the Epic
+    badge as soon as a single training queue emptied, so users with one
+    assigned + one passed got the same reward as users who completed
+    everything. Requiring breadth across categories closes that.
     """
     from apps.training.models import RemediationTraining
 
-    # Check if there are any pending trainings
-    pending_trainings = RemediationTraining.objects.filter(
+    distinct_categories = RemediationTraining.objects.filter(
         employee=employee,
-        status__in=['ASSIGNED', 'IN_PROGRESS']
-    ).exists()
+        status='PASSED'
+    ).values_list('training_module__category', flat=True).distinct().count()
 
-    if pending_trainings:
-        return None
-
-    # Check if employee has completed at least one training
-    completed_count = RemediationTraining.objects.filter(
-        employee=employee,
-        status__in=['PASSED', 'COMPLETED']
-    ).count()
-
-    if completed_count > 0:
+    if distinct_categories >= 3:
         return check_and_award_badge(
             employee=employee,
             badge_type='TRAINING_CHAMPION',
             source_type='RemediationTraining'
         )
 
+    return None
+
+
+def check_simulation_survivor_badge(employee):
+    """5+ simulations received, 0 clicked (perfect record so far)."""
+    from apps.training.models import RiskScore
+    try:
+        rs = RiskScore.objects.get(employee=employee)
+    except RiskScore.DoesNotExist:
+        return None
+
+    if rs.total_simulations_received >= 5 and rs.simulations_clicked == 0:
+        return check_and_award_badge(
+            employee=employee,
+            badge_type='SIMULATION_SURVIVOR',
+            source_type='RiskScore',
+            source_id=rs.id,
+        )
+    return None
+
+
+def check_streak_master_badge(employee):
+    """7+ day current activity streak."""
+    try:
+        ep = EmployeePoints.objects.get(employee=employee)
+    except EmployeePoints.DoesNotExist:
+        return None
+
+    if ep.current_streak_days >= 7:
+        return check_and_award_badge(
+            employee=employee,
+            badge_type='STREAK_MASTER',
+            source_type='EmployeePoints',
+            source_id=ep.id,
+        )
+    return None
+
+
+def check_top_reporter_badge(employee):
+    """25+ reported phishing simulations."""
+    from apps.simulations.models import TrackingEvent
+
+    count = TrackingEvent.objects.filter(
+        employee=employee,
+        event_type='EMAIL_REPORTED'
+    ).count()
+
+    if count >= 25:
+        return check_and_award_badge(
+            employee=employee,
+            badge_type='TOP_REPORTER',
+            source_type='TrackingEvent',
+        )
+    return None
+
+
+def check_quiz_milestone_badges(employee):
+    """Tiered quiz badges: 5 quizzes (Apprentice), 25 quizzes (Expert)."""
+    from apps.campaigns.models import QuizResult
+
+    count = QuizResult.objects.filter(employee=employee).count()
+    awarded = []
+
+    if count >= 5:
+        b = check_and_award_badge(
+            employee=employee,
+            badge_type='QUIZ_APPRENTICE',
+            source_type='QuizResult',
+        )
+        if b:
+            awarded.append(b)
+
+    if count >= 25:
+        b = check_and_award_badge(
+            employee=employee,
+            badge_type='QUIZ_EXPERT',
+            source_type='QuizResult',
+        )
+        if b:
+            awarded.append(b)
+
+    return awarded
+
+
+def check_comeback_kid_badge(employee, risk_score):
+    """Currently LOW risk and history shows a prior HIGH/CRITICAL state."""
+    from apps.training.models import RiskScoreHistory
+
+    if risk_score.risk_level != 'LOW':
+        return None
+
+    had_high_or_critical = RiskScoreHistory.objects.filter(
+        employee=employee,
+    ).filter(
+        models.Q(previous_risk_level__in=['HIGH', 'CRITICAL'])
+        | models.Q(new_risk_level__in=['HIGH', 'CRITICAL'])
+    ).exists()
+
+    if had_high_or_critical:
+        return check_and_award_badge(
+            employee=employee,
+            badge_type='COMEBACK_KID',
+            source_type='RiskScore',
+            source_id=risk_score.id,
+        )
     return None
 
 

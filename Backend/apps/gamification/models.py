@@ -39,6 +39,9 @@ class Badge(models.Model):
         ('SIMULATION_SURVIVOR', _('Simulation Survivor')),
         ('STREAK_MASTER', _('Streak Master')),
         ('TOP_REPORTER', _('Top Reporter')),
+        ('QUIZ_APPRENTICE', _('Quiz Apprentice')),
+        ('QUIZ_EXPERT', _('Quiz Expert')),
+        ('COMEBACK_KID', _('Comeback Kid')),
     ]
 
     RARITY_CHOICES = [

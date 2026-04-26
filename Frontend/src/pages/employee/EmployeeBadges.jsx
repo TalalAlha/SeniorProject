@@ -34,8 +34,16 @@ const RARITY_CONFIG = {
   LEGENDARY: { order: 5, labelKey: 'badge.rarityLegendary', color: 'yellow', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-yellow-400 dark:border-yellow-600' },
 };
 
+// Pick the localised badge field for the current language, falling back to English.
+function localizedBadgeField(badge, lang, base) {
+  if (!badge) return '';
+  if (lang === 'ar') return badge[`${base}_ar`] || badge[base] || '';
+  return badge[base] || '';
+}
+
 function EmployeeBadges() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('ar') ? 'ar' : 'en';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allBadges, setAllBadges] = useState([]);
@@ -261,9 +269,9 @@ function EmployeeBadges() {
                             )}
                           </div>
                           <h3 className={clsx('font-medium', badge.earned ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400')}>
-                            {badge.name}
+                            {localizedBadgeField(badge, lang, 'name')}
                           </h3>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">{badge.description}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">{localizedBadgeField(badge, lang, 'description')}</p>
                           {badge.earned && badge.awarded_at && (
                             <p className={clsx('text-xs mt-2', config.textClass)}>
                               {t('badge.earnedOn', { date: formatDate(badge.awarded_at) })}
@@ -370,7 +378,7 @@ function EmployeeBadges() {
                 {selectedBadge.icon || '🏅'}
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{selectedBadge.name}</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{localizedBadgeField(selectedBadge, lang, 'name')}</h3>
 
               <span
                 className={clsx(
@@ -382,7 +390,7 @@ function EmployeeBadges() {
                 {t(RARITY_CONFIG[selectedBadge.rarity]?.labelKey || 'badge.rarityCommon')}
               </span>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedBadge.description}</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">{localizedBadgeField(selectedBadge, lang, 'description')}</p>
 
               <div className="flex justify-center gap-4 text-sm">
                 <div className="text-center">

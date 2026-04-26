@@ -167,8 +167,13 @@ function QuickStatCard({ title, value, subtitle, icon: Icon, color, linkTo, link
 }
 
 function EmployeeDashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const lang = i18n.language?.startsWith('ar') ? 'ar' : 'en';
+  const localizedBadgeName = (badge) => {
+    if (!badge) return '';
+    return lang === 'ar' ? (badge.name_ar || badge.name || '') : (badge.name || '');
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState({
@@ -431,7 +436,7 @@ function EmployeeDashboard() {
                   >
                     <div className="text-3xl">{badge.icon || '🏅'}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">{badge.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white truncate">{localizedBadgeName(badge)}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {item.awarded_at ? t('dashboard.earnedOn', { date: formatDate(item.awarded_at) }) : t('dashboard.recentlyEarned')}
                       </p>
