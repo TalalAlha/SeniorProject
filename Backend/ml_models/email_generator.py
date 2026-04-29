@@ -370,7 +370,7 @@ def _apply_capitalization(text: str) -> str:
 def _generate_sample(model, vocab, device, email_type='phishing',
                      max_len=120, temperature=0.8):
     model.eval()
-    with torch.no_grad():
+    with torch.inference_mode():
         tokens = [vocab.word2idx.get(vocab.START_TOKEN, 1)]
         if email_type == 'phishing' and '[PHISH]' in vocab.word2idx:
             tokens.append(vocab.word2idx['[PHISH]'])
@@ -399,6 +399,86 @@ def _generate_sample(model, vocab, device, email_type='phishing',
     raw = vocab.decode(tokens)
     # Strip label control tokens that appear at start of decoded text
     return _LABEL_STRIP_RE.sub('', raw).strip()
+
+
+def _generate_batch(model, vocab, device, tasks, max_len=120):
+    """
+    Batched autoregressive inference — generate len(tasks) email bodies in one
+    LSTM pass instead of len(tasks) sequential passes.
+
+    tasks  : list of (email_type, temperature) for the same model/vocab.
+    Returns: list of raw decoded strings, same order and length as tasks.
+    """
+    B = len(tasks)
+    if B == 0:
+        return []
+
+    start_idx = vocab.word2idx.get(vocab.START_TOKEN, 1)
+    end_idx   = vocab.word2idx.get(vocab.END_TOKEN, 2)
+    pad_idx   = vocab.word2idx.get(vocab.PAD_TOKEN, 0)
+    phish_idx = vocab.word2idx.get('[PHISH]')
+    legit_idx = vocab.word2idx.get('[LEGIT]')
+
+    label_idx = [
+        phish_idx if et == 'phishing' and phish_idx is not None
+        else legit_idx if et == 'legitimate' and legit_idx is not None
+        else None
+        for et, _ in tasks
+    ]
+    temperatures = torch.tensor([t for _, t in tasks], device=device)  # (B,)
+
+    tokens = [[start_idx] for _ in range(B)]
+
+    with torch.inference_mode():
+        hidden = model.init_hidden(B, device)
+
+        # ── Seed: START token (shared) ──
+        x = torch.full((B, 1), start_idx, dtype=torch.long, device=device)
+        output, hidden = model(x, hidden)
+
+        # ── Seed: label token (per-sequence) ──
+        if any(idx is not None for idx in label_idx):
+            label_tensor = torch.tensor(
+                [idx if idx is not None else pad_idx for idx in label_idx],
+                dtype=torch.long, device=device,
+            ).unsqueeze(1)  # (B, 1)
+            output, hidden = model(label_tensor, hidden)
+            for i, idx in enumerate(label_idx):
+                if idx is not None:
+                    tokens[i].append(idx)
+
+        done = [False] * B
+
+        # ── Autoregressive loop ──
+        for _ in range(max_len):
+            last_logits = output[:, -1, :]                    # (B, vocab_size)
+            scaled = last_logits / temperatures.unsqueeze(1)  # (B, vocab_size)
+
+            next_token_list = []
+            for i in range(B):
+                if done[i]:
+                    next_token_list.append(pad_idx)
+                    continue
+                top_vals, top_ids = torch.topk(scaled[i], 50)
+                probs = torch.softmax(top_vals, dim=0)
+                chosen = torch.multinomial(probs, 1).item()
+                nt = top_ids[chosen].item()
+                if nt == end_idx:
+                    done[i] = True
+                    next_token_list.append(pad_idx)
+                elif nt == pad_idx:
+                    next_token_list.append(pad_idx)
+                else:
+                    tokens[i].append(nt)
+                    next_token_list.append(nt)
+
+            if all(done):
+                break
+
+            x = torch.tensor(next_token_list, dtype=torch.long, device=device).unsqueeze(1)
+            output, hidden = model(x, hidden)
+
+    return [_LABEL_STRIP_RE.sub('', vocab.decode(tok)).strip() for tok in tokens]
 
 
 def _pick_sender(email_type: str, language: str, body: str = ''):
@@ -569,19 +649,18 @@ def generate_campaign_emails(campaign, num_phishing: int, num_legitimate: int):
     from apps.assessments.models import EmailTemplate
 
     generator = _get_generator()
-    templates = []
+    generator._load_models()
 
-    # Determine language distribution from campaign's english_ratio (default 0.5)
     english_ratio = float(getattr(campaign, 'english_ratio', 0.5))
 
     phishing_en = round(num_phishing * english_ratio)
     phishing_ar = num_phishing - phishing_en
-    legit_en = round(num_legitimate * english_ratio)
-    legit_ar = num_legitimate - legit_en
+    legit_en    = round(num_legitimate * english_ratio)
+    legit_ar    = num_legitimate - legit_en
 
     tasks = (
-        [('phishing', 'en')] * phishing_en +
-        [('phishing', 'ar')] * phishing_ar +
+        [('phishing',   'en')] * phishing_en +
+        [('phishing',   'ar')] * phishing_ar +
         [('legitimate', 'en')] * legit_en +
         [('legitimate', 'ar')] * legit_ar
     )
@@ -590,69 +669,122 @@ def generate_campaign_emails(campaign, num_phishing: int, num_legitimate: int):
     _SIMILARITY_THRESHOLD = 0.80
     _MAX_RETRIES = 3
 
-    # Track accepted bodies per (email_type, language) to detect near-duplicates
-    accepted_bodies: dict = {}
+    # ── Batch inference: one forward-pass loop per language ──────────────────
+    bodies = [None] * len(tasks)
 
-    for email_type, language in tasks:
-        group_key = (email_type, language)
-        accepted = accepted_bodies.setdefault(group_key, [])
+    en_indices = [(i, et) for i, (et, lang) in enumerate(tasks) if lang == 'en']
+    ar_indices = [(i, et) for i, (et, lang) in enumerate(tasks) if lang == 'ar']
 
-        best_data = None
-        best_sim = 1.0
+    if en_indices:
+        max_len_en = generator._config.get('max_seq_len_en', 120)
+        en_results = _generate_batch(
+            generator._en_model, generator._en_vocab, generator._device,
+            [(et, 0.8) for _, et in en_indices],
+            max_len=max_len_en,
+        )
+        for (orig_i, _), body in zip(en_indices, en_results):
+            bodies[orig_i] = body
 
-        for attempt in range(_MAX_RETRIES + 1):
-            try:
-                data = generator.generate_email(email_type=email_type, language=language)
-            except Exception as exc:
-                logger.warning(
-                    "AI generation failed for (%s, %s): %s — skipping email",
-                    email_type, language, exc,
-                )
-                break
+    if ar_indices:
+        max_len_ar = generator._config.get('max_seq_len_ar', 100)
+        ar_results = _generate_batch(
+            generator._ar_model, generator._ar_vocab, generator._device,
+            [(et, 0.75) for _, et in ar_indices],
+            max_len=max_len_ar,
+        )
+        for (orig_i, _), body in zip(ar_indices, ar_results):
+            bodies[orig_i] = body
 
-            if not accepted:
-                best_data = data
-                break
+    # ── Post-process all bodies ───────────────────────────────────────────────
+    for i, (_, language) in enumerate(tasks):
+        body = bodies[i]
+        if not body:
+            continue
+        body = _normalize_numbers(body)
+        if language == 'en':
+            body = _apply_capitalization(body)
+        bodies[i] = body
 
-            max_sim = max(_similarity(data['body'], b) for b in accepted)
+    # ── Similarity check; individually regenerate short / near-duplicate ──────
+    accepted_bodies = {}
+    for i, (email_type, language) in enumerate(tasks):
+        body = bodies[i]
+        needs_regen = not body or len(body.split()) < 15
 
-            if max_sim <= _SIMILARITY_THRESHOLD:
-                best_data = data
-                break
+        if not needs_regen:
+            accepted = accepted_bodies.get((email_type, language), [])
+            if accepted:
+                max_sim = max(_similarity(body, b) for b in accepted)
+                if max_sim > _SIMILARITY_THRESHOLD:
+                    needs_regen = True
 
-            # Keep the least similar attempt seen so far
-            if best_data is None or max_sim < best_sim:
-                best_data = data
-                best_sim = max_sim
+        if needs_regen:
+            temperature = 0.75 if language == 'ar' else 0.8
+            max_len = generator._config.get(f'max_seq_len_{language}', 120)
+            model = generator._ar_model if language == 'ar' else generator._en_model
+            vocab = generator._ar_vocab if language == 'ar' else generator._en_vocab
+            accepted = accepted_bodies.get((email_type, language), [])
 
-            logger.debug(
-                "Similarity %.2f > %.2f for (%s, %s) — retry %d/%d",
-                max_sim, _SIMILARITY_THRESHOLD, email_type, language,
-                attempt + 1, _MAX_RETRIES,
+            best_body = body
+            best_sim  = (
+                max((_similarity(body, b) for b in accepted), default=0.0)
+                if body else 1.0
             )
 
-        if best_data is None:
+            for attempt in range(_MAX_RETRIES + 1):
+                try:
+                    candidate = _generate_sample(
+                        model, vocab, generator._device,
+                        email_type=email_type, max_len=max_len,
+                        temperature=min(temperature + 0.1 * attempt, 1.0),
+                    )
+                    candidate = _normalize_numbers(candidate)
+                    if language == 'en':
+                        candidate = _apply_capitalization(candidate)
+                    if len(candidate.split()) < 15:
+                        continue
+                    sim = max((_similarity(candidate, b) for b in accepted), default=0.0)
+                    if sim <= _SIMILARITY_THRESHOLD:
+                        best_body = candidate
+                        break
+                    if best_body is None or sim < best_sim:
+                        best_body = candidate
+                        best_sim  = sim
+                except Exception as exc:
+                    logger.warning(
+                        "Regen failed for (%s, %s) attempt %d: %s",
+                        email_type, language, attempt, exc,
+                    )
+
+            if best_body is None:
+                bodies[i] = None
+                continue
+            bodies[i] = best_body
+            body = best_body
+
+        accepted_bodies.setdefault((email_type, language), []).append(body)
+
+    # ── Build objects and bulk-insert in one query ────────────────────────────
+    template_objects = []
+    for i, (email_type, language) in enumerate(tasks):
+        body = bodies[i]
+        if not body:
             continue
 
-        accepted.append(best_data['body'])
-        data = best_data
-
-        db_type = 'PHISHING' if email_type == 'phishing' else 'LEGITIMATE'
-
+        db_type  = 'PHISHING' if email_type == 'phishing' else 'LEGITIMATE'
         category = (
-            random.choice(_PHISHING_CATEGORIES)
-            if email_type == 'phishing'
+            random.choice(_PHISHING_CATEGORIES) if email_type == 'phishing'
             else random.choice(_LEGIT_CATEGORIES)
         )
+        red_flags = _select_red_flags(body, language) if email_type == 'phishing' else []
+        sender_name, sender_email = _pick_sender(email_type, language, body)
 
-        red_flags = _select_red_flags(data['body'], language) if email_type == 'phishing' else []
-
-        template = EmailTemplate.objects.create(
+        template_objects.append(EmailTemplate(
             campaign=campaign,
-            sender_name=data['sender_name'],
-            sender_email=data['sender_email'],
-            subject=data['subject'],
-            body=data['body'],
+            sender_name=sender_name,
+            sender_email=sender_email,
+            subject=_pick_subject(email_type, language, body),
+            body=body,
             email_type=db_type,
             category=category,
             difficulty=_pick_difficulty(),
@@ -661,14 +793,15 @@ def generate_campaign_emails(campaign, num_phishing: int, num_legitimate: int):
             ai_model_used='PhishAware-LSTM-v2',
             generation_prompt=f'type={email_type}, language={language}',
             red_flags=red_flags,
-        )
-        templates.append(template)
+        ))
+
+    created = EmailTemplate.objects.bulk_create(template_objects)
 
     logger.info(
         "Campaign '%s': created %d/%d AI email templates.",
-        campaign.name, len(templates), num_phishing + num_legitimate,
+        campaign.name, len(created), num_phishing + num_legitimate,
     )
-    return templates
+    return list(created)
 
 
 def _similarity(a: str, b: str) -> float:

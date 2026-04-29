@@ -48,10 +48,18 @@ import {
   ChevronDown,
   ChevronUp,
   Award,
+  Reply,
+  ReplyAll,
+  Forward,
+  Archive,
+  Trash2,
+  Star,
+  Ban,
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import { campaignsAPI } from '../../api';
+import { useAuth } from '../../contexts';
 
 // ── Email rendering helpers ──────────────────────────────────────────────────
 
@@ -59,21 +67,76 @@ import { campaignsAPI } from '../../api';
 const isArabicText = (text = '') => /[\u0600-\u06FF]/.test(text);
 
 /**
- * Return a realistic-looking date/time string, slightly offset per question
- * so consecutive emails don't all show the same time.
+ * Return a realistic, Gmail-style relative date string.
+ * Today    → "6:25 PM"        / "٦:٢٥ م"
+ * Yesterday → "Yesterday at 6:25 PM" / "أمس، ٦:٢٥ م"
+ * <7 days  → "Apr 25"         / "٢٥ أبريل"
+ * Older    → "Apr 25, 2026"   / "٢٥ أبريل ٢٠٢٦"
  */
-const formatEmailDate = (index = 0) => {
+const formatEmailDate = (index = 0, isArabic = false) => {
+  // Stagger across multiple days so the inbox feels real (not all "today")
+  const hoursAgo = 1 + index * 4;
   const d = new Date();
-  d.setMinutes(d.getMinutes() - (75 + index * 47));
-  return d.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  d.setHours(d.getHours() - hoursAgo);
+
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yest = new Date(now);
+  yest.setDate(yest.getDate() - 1);
+  const isYesterday = d.toDateString() === yest.toDateString();
+  const daysAgo = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+
+  const locale = isArabic ? 'ar-SA' : 'en-US';
+  const timeStr = d.toLocaleString(locale, {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   });
+
+  if (sameDay) return timeStr;
+  if (isYesterday) return isArabic ? `أمس، ${timeStr}` : `Yesterday at ${timeStr}`;
+  if (daysAgo < 7) return d.toLocaleString(locale, { month: 'short', day: 'numeric' });
+  return d.toLocaleString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
 };
+
+/**
+ * Two-letter avatar initials from a sender name.
+ * "IT Department"   → "IT"
+ * "Aramco IT Services" → "AR"
+ * "إدارة المرور"      → "إد"
+ */
+const getInitials = (name = '?') => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  const first = words[0];
+  if (first.length >= 2) return first.slice(0, 2).toUpperCase();
+  if (words.length >= 2) return (first[0] + words[1][0]).toUpperCase();
+  return first[0].toUpperCase();
+};
+
+/** Skeleton placeholder shown briefly while transitioning between questions. */
+const EmailSkeleton = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 animate-pulse">
+    <div className="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 flex justify-between rounded-t-xl">
+      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded" />
+    </div>
+    <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex items-start gap-3">
+      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+      <div className="flex-1 space-y-2 py-1">
+        <div className="h-3.5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-3 w-2/5 bg-gray-200 dark:bg-gray-700 rounded" />
+      </div>
+    </div>
+    <div className="px-6 py-6 space-y-3">
+      <div className="h-3.5 w-full bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="h-3.5 w-11/12 bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="h-3.5 w-10/12 bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="h-3.5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+    </div>
+  </div>
+);
 
 /**
  * Wrap currency amounts, time-period phrases, and (for phishing emails)
@@ -166,7 +229,7 @@ const URGENCY_PATTERNS = [
  * – Remaining paragraphs: standard body text with improved line height
  * – Phishing phrases highlighted in yellow via enhanceInlineText
  */
-const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', questionIndex = 0, senderEmail = '') => {
+const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', questionIndex = 0, senderEmail = '', onLinkClick = null) => {
   if (!body) return null;
 
   const hasLink = isRtl
@@ -178,20 +241,16 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
   const paragraphs = displayBody.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const buttonStyle = getButtonStyle(emailType, questionIndex);
 
-  // Direction-aware left-border callout for the opening paragraph
-  const firstParaClass = isRtl
-    ? 'text-[15px] font-semibold text-gray-900 dark:text-white leading-relaxed border-r-4 border-blue-400 pr-4 py-2'
-    : 'text-[15px] font-semibold text-gray-900 dark:text-white leading-relaxed border-l-4 border-blue-400 pl-4 py-2';
-
   return (
     <div className="space-y-5 animate-fade-in">
       {paragraphs.map((para, idx) => {
         const lines = para.split('\n');
-        const isFirst = idx === 0;
         return (
           <p
             key={idx}
-            className={isFirst ? firstParaClass : 'text-[15px] text-gray-700 dark:text-gray-200 leading-[1.8]'}
+            className={`text-[15px] text-gray-700 dark:text-gray-200 ${
+              isRtl ? 'leading-[2.1]' : 'leading-[1.6]'
+            }`}
           >
             {lines.map((line, li) => (
               <span key={li}>
@@ -206,15 +265,21 @@ const formatEmailBody = (body = '', isRtl = false, emailType = 'LEGITIMATE', que
       {hasLink && (
         <div className="flex justify-center pt-4 pb-2">
           <div className="relative group">
-            {/* Button */}
-            <div
-              className={`inline-flex items-center gap-2 px-6 py-3 ${buttonStyle} text-white rounded-lg hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 cursor-default select-none ${isRtl ? 'flex-row-reverse' : ''}`}
+            {/* Button — clicking triggers the "Caught You" interstitial */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onLinkClick) {
+                  onLinkClick(generateLinkUrl(senderEmail, emailType, questionIndex));
+                }
+              }}
+              className={`inline-flex items-center gap-2 px-6 py-2.5 ${buttonStyle} text-white rounded-md transition-shadow duration-200 cursor-pointer select-none ${isRtl ? 'flex-row-reverse' : ''}`}
             >
               <ExternalLink className="h-4 w-4 flex-shrink-0" />
               <span className="font-semibold text-base">
                 {isRtl ? 'انقر هنا' : 'Click Here'}
               </span>
-            </div>
+            </button>
             {/* URL preview tooltip — appears on hover */}
             <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 pointer-events-none">
               <div className="bg-gray-900 text-white rounded-lg shadow-2xl px-4 py-3 min-w-[260px] max-w-[320px]">
@@ -242,6 +307,27 @@ const getReadTime = (text = '') => {
   const words = text.trim().split(/\s+/).length;
   return Math.max(1, Math.ceil(words / 200));
 };
+
+/**
+ * Deterministic colour for a sender avatar — same name always → same gradient.
+ * Real inboxes vary avatar colour per sender; with every avatar identical,
+ * employees subconsciously stop reading who sent the email.
+ */
+const AVATAR_GRADIENTS = [
+  'from-blue-500 to-purple-600',
+  'from-rose-500 to-pink-600',
+  'from-emerald-500 to-teal-600',
+  'from-amber-500 to-orange-600',
+  'from-indigo-500 to-blue-600',
+  'from-fuchsia-500 to-purple-600',
+];
+const hashString = (str = '') => {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+const getAvatarGradient = (key = '') =>
+  AVATAR_GRADIENTS[hashString(key) % AVATAR_GRADIENTS.length];
 
 // ── Link hover preview ───────────────────────────────────────────────────────
 
@@ -558,6 +644,7 @@ function TakeQuiz() {
   const { t, i18n } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -571,6 +658,12 @@ function TakeQuiz() {
 
   // Red flags modal state
   const [showRedFlagsModal, setShowRedFlagsModal] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const actionMenuRef = useRef(null);
+  const [starredQuestions, setStarredQuestions] = useState({});
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [caughtUrl, setCaughtUrl] = useState('');
+  const [showCaughtModal, setShowCaughtModal] = useState(false);
   const [selectedFlags, setSelectedFlags] = useState([]);
   const [detectedRedFlags, setDetectedRedFlags] = useState([]);
   // Real / decoy IDs for the currently open modal
@@ -659,7 +752,20 @@ function TakeQuiz() {
   // Reset timer when navigating between questions
   useEffect(() => {
     questionStartTime.current = Date.now();
+    setShowActionMenu(false);
   }, [currentIndex]);
+
+  // Close the email action menu when clicking outside it
+  useEffect(() => {
+    if (!showActionMenu) return;
+    const handleClickOutside = (e) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target)) {
+        setShowActionMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showActionMenu]);
 
   const handleAnswer = async (answer, flags = [], flagScoreData = null) => {
     const question = questions[currentIndex];
@@ -852,14 +958,26 @@ function TakeQuiz() {
   // ---------- Completed state ----------
 
   if (completed && result) {
+    const completedHasPassed = Math.round(result.score) >= 70;
     return (
       <div className="fade-in max-w-2xl mx-auto">
         <div className="card text-center py-10">
-          <CheckCircle className="h-16 w-16 text-success-500 mx-auto mb-4" />
+          {completedHasPassed ? (
+            <CheckCircle className="h-16 w-16 text-success-500 mx-auto mb-4" />
+          ) : (
+            <XCircle className="h-16 w-16 text-danger-500 mx-auto mb-4" />
+          )}
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {t('quiz.quizComplete')}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">{quizData?.campaign_name}</p>
+          {quizData?.campaign_name && (
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              <span className="text-gray-400 dark:text-gray-500">
+                {i18n.language === 'ar' ? 'الحملة: ' : 'Campaign: '}
+              </span>
+              {quizData.campaign_name}
+            </p>
+          )}
 
           {/* Score */}
           <div className="text-5xl font-bold text-primary-600 mb-2">
@@ -893,8 +1011,8 @@ function TakeQuiz() {
                 {!hasPassed && (
                   <p className="text-sm text-red-700 dark:text-red-400 mt-2">
                     {i18n.language === 'ar'
-                      ? `تحتاج ${passThreshold}٪ للنجاح. يمكنك إعادة المحاولة.`
-                      : t('quiz.needToPassMsg', { threshold: passThreshold })}
+                      ? `تحتاج ${passThreshold}٪ للنجاح.`
+                      : `You need ${passThreshold}% to pass.`}
                   </p>
                 )}
               </div>
@@ -922,7 +1040,9 @@ function TakeQuiz() {
                   <div className="text-center">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('quiz.performanceBonus')}</p>
                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">+{performanceBonus}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{finalScore}% × 0.7</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {i18n.language === 'ar' ? 'بناءً على نتيجتك' : 'based on your score'}
+                    </p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('quiz.totalEarned')}</p>
@@ -987,6 +1107,13 @@ function TakeQuiz() {
               )}
               Risk Level: {result.risk_level}
             </span>
+            {(result.risk_level === 'HIGH' || result.risk_level === 'CRITICAL') && (
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                {i18n.language === 'ar'
+                  ? 'مهارات اكتشاف التصيّد لديك تحتاج إلى تحسين — أنت أكثر عرضة للوقوع في رسائل التصيّد الاحتيالي.'
+                  : "Your detection skills need improvement — you're more likely to fall for phishing."}
+              </p>
+            )}
           </div>
 
           {(() => {
@@ -1048,9 +1175,10 @@ function TakeQuiz() {
               };
             }, { correct: 0, missed: 0, incorrect: 0 });
 
-            const resultIsArabic = isArabicText(
-              (questions[0]?.email_body || '') + (questions[0]?.email_subject || '')
-            );
+            // Results page chrome (Q labels, verdicts, score labels) follows the
+            // user's UI language — not the email content language. The actual
+            // email body keeps its original language elsewhere.
+            const resultIsArabic = i18n.language === 'ar';
 
             return (
               <>
@@ -1091,6 +1219,25 @@ function TakeQuiz() {
                       incorrectFlags, scoringResult,
                     } = getQuestionBreakdown(q);
                     const isExpanded = expandedQuestion === idx;
+                    // Partial credit: right answer but missed flags or false positives
+                    const flagIssues = missedFlags.length + incorrectFlags.length;
+                    const isPartial = isCorrect && flagIssues > 0;
+
+                    const headerBg = !isCorrect
+                      ? 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
+                      : isPartial
+                      ? 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30'
+                      : 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30';
+                    const iconBg = !isCorrect
+                      ? 'bg-red-500'
+                      : isPartial
+                      ? 'bg-amber-500'
+                      : 'bg-green-500';
+                    const verdictColor = !isCorrect
+                      ? 'text-red-700 dark:text-red-400'
+                      : isPartial
+                      ? 'text-amber-700 dark:text-amber-400'
+                      : 'text-green-700 dark:text-green-400';
 
                     return (
                       <div key={q.question_number} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
@@ -1100,14 +1247,14 @@ function TakeQuiz() {
                           onClick={() => setExpandedQuestion(isExpanded ? null : idx)}
                           className={clsx(
                             'w-full p-4 flex items-center justify-between transition-colors text-left',
-                            isCorrect ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
+                            headerBg
                           )}
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <div
                               className={clsx(
-                                'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                                isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white',
+                                iconBg
                               )}
                             >
                               {isCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
@@ -1119,7 +1266,7 @@ function TakeQuiz() {
                                   <span className="text-gray-500 dark:text-gray-400 font-normal"> — {q.email_subject}</span>
                                 )}
                               </p>
-                              <p className={clsx('text-xs', isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400')}>
+                              <p className={clsx('text-xs', verdictColor)}>
                                 {isCorrect
                                   ? (userAnswer === 'PHISHING'
                                       ? (resultIsArabic ? 'تصيد احتيالي — صحيح ✓' : 'Phishing — Correct ✓')
@@ -1127,15 +1274,38 @@ function TakeQuiz() {
                                   : (userAnswer === 'PHISHING'
                                       ? (resultIsArabic ? 'هذا كان بريداً شرعياً ✗' : 'This was a legitimate email ✗')
                                       : (resultIsArabic ? 'هذا كان تصيداً احتيالياً ✗' : 'This was a phishing email ✗'))}
+                                {isPartial && (
+                                  <span className="ml-2">
+                                    {resultIsArabic
+                                      ? `• فاتتك ${flagIssues} ${flagIssues === 1 ? 'علامة' : 'علامات'}`
+                                      : `• Missed ${flagIssues} flag${flagIssues === 1 ? '' : 's'}`}
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             {scoringResult && scoringResult.maxScore > 0 && (
                               <div className="text-right">
-                                <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
+                                <p
+                                  className={clsx(
+                                    'text-sm font-bold',
+                                    isPartial
+                                      ? 'text-amber-700 dark:text-amber-400'
+                                      : 'text-blue-700 dark:text-blue-400'
+                                  )}
+                                >
                                   {scoringResult.score}
-                                  <span className="text-xs text-blue-400 dark:text-blue-500 font-normal">/{scoringResult.maxScore}</span>
+                                  <span
+                                    className={clsx(
+                                      'text-xs font-normal',
+                                      isPartial
+                                        ? 'text-amber-500 dark:text-amber-500/70'
+                                        : 'text-blue-400 dark:text-blue-500'
+                                    )}
+                                  >
+                                    /{scoringResult.maxScore}
+                                  </span>
                                 </p>
                                 <p className="text-[10px] text-gray-400 dark:text-gray-500">{resultIsArabic ? 'نقاط' : 'flag pts'}</p>
                               </div>
@@ -1348,6 +1518,11 @@ function TakeQuiz() {
       p.test(question.email_body || '') || p.test(question.email_subject || '')
   );
 
+  // Resolved sender email — used for the avatar gradient hash.
+  const _resolvedSenderEmail =
+    question.email_sender_email ||
+    generateSenderEmail(question.email_sender_name, question.email_type, currentIndex);
+
   // Deterministic fake attachment for phishing emails that have no real attachment
   const showFakeAttachment =
     question.email_type === 'PHISHING' &&
@@ -1420,20 +1595,108 @@ function TakeQuiz() {
       </div>
 
       {/* Email Client — Gmail-style */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 mb-6 hover:shadow-2xl transition-shadow duration-300">
+      {isTransitioning ? <EmailSkeleton /> : (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
 
         {/* ── Toolbar ── */}
-        <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2.5 flex items-center justify-between overflow-hidden rounded-t-xl">
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 font-medium">
+        <div
+          className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2.5 flex items-center justify-between rounded-t-xl"
+          dir={isArabic ? 'rtl' : 'ltr'}
+        >
+          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300 font-semibold">
             <Mail className="h-4 w-4" />
-            <span>{t('quiz.inbox')}</span>
+            <span>{isArabic ? 'البريد الوارد' : t('quiz.inbox')}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
-              <Clock className="h-3 w-3" />
-              <span>{getReadTime(question.email_body)} min read</span>
+            {/* Action menu — clicking "Delete" marks the email as phishing */}
+            <div className="relative" ref={actionMenuRef}>
+              <button
+                type="button"
+                onClick={() => !isAnswered && setShowActionMenu((v) => !v)}
+                disabled={isAnswered}
+                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={isArabic ? 'إجراءات الرسالة' : 'Email actions'}
+                aria-haspopup="menu"
+                aria-expanded={showActionMenu}
+              >
+                <MoreVertical className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </button>
+
+              {showActionMenu && (
+                <div
+                  role="menu"
+                  className={`absolute top-full mt-1 ${
+                    isArabic ? 'left-0' : 'right-0'
+                  } bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[210px] z-30`}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowActionMenu(false);
+                      handlePhishingClick();
+                    }}
+                    className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-700 dark:text-red-400 ${
+                      isArabic ? 'flex-row-reverse text-right' : 'text-left'
+                    }`}
+                  >
+                    <Trash2 className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium">
+                      {isArabic ? 'حذف' : 'Delete'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowActionMenu(false);
+                      handlePhishingClick();
+                    }}
+                    className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-orange-700 dark:text-orange-400 ${
+                      isArabic ? 'flex-row-reverse text-right' : 'text-left'
+                    }`}
+                  >
+                    <Ban className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium">
+                      {isArabic ? 'تمييز كرسالة مزعجة' : 'Mark as spam'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowActionMenu(false);
+                      handlePhishingClick();
+                    }}
+                    className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-700 dark:text-amber-400 ${
+                      isArabic ? 'flex-row-reverse text-right' : 'text-left'
+                    }`}
+                  >
+                    <ShieldAlert className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium">
+                      {isArabic ? 'الإبلاغ كاحتيال' : 'Report phishing'}
+                    </span>
+                  </button>
+                  <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setShowActionMenu(false);
+                      handleAnswer('LEGITIMATE', []);
+                    }}
+                    className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-green-700 dark:text-green-400 ${
+                      isArabic ? 'flex-row-reverse text-right' : 'text-left'
+                    }`}
+                  >
+                    <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium">
+                      {isArabic ? 'تمييز كآمن' : 'Mark as safe'}
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
-            <MoreVertical className="h-4 w-4 text-gray-400 dark:text-gray-500" />
           </div>
         </div>
 
@@ -1448,22 +1711,50 @@ function TakeQuiz() {
         )}
 
         {/* ── Sender row ── */}
-        <div className="px-6 pb-5 border-b border-gray-100 dark:border-gray-700">
+        <div
+          className="px-6 pt-5 pb-5 border-b border-gray-100 dark:border-gray-700"
+          dir={isArabic ? 'rtl' : 'ltr'}
+        >
           <div className="flex items-start gap-3">
-            {/* Initials avatar */}
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 select-none">
-              {(question.email_sender_name || '?').charAt(0).toUpperCase()}
+            {/* Initials avatar — colour deterministic per sender */}
+            <div
+              className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarGradient(
+                _resolvedSenderEmail || question.email_sender_name || ''
+              )} flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 select-none tracking-wide`}
+            >
+              {getInitials(question.email_sender_name)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                <p className="text-[15px] font-bold text-gray-900 dark:text-white truncate">
                   {question.email_sender_name}
                 </p>
-                <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                  {formatEmailDate(currentIndex)}
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    {formatEmailDate(currentIndex, isArabic)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setStarredQuestions((prev) => ({
+                        ...prev,
+                        [question.question_number]: !prev[question.question_number],
+                      }))
+                    }
+                    className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    aria-label={isArabic ? 'تمييز بنجمة' : 'Star'}
+                  >
+                    <Star
+                      className={`h-4 w-4 transition-colors ${
+                        starredQuestions[question.question_number]
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-wrap mt-0.5">
+              <div className="flex items-center gap-2 flex-wrap mt-1">
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                   &lt;{question.email_sender_email || generateSenderEmail(question.email_sender_name, question.email_type, currentIndex)}&gt;
                 </p>
@@ -1474,7 +1765,15 @@ function TakeQuiz() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">to me</p>
+              <p
+                className="text-xs text-gray-400 dark:text-gray-500 mt-0.5"
+                dir={isArabic ? 'rtl' : 'ltr'}
+              >
+                <span>{isArabic ? 'إلى: ' : 'to: '}</span>
+                <bdi className="font-mono text-gray-500 dark:text-gray-400">
+                  {user?.email || (isArabic ? 'أنا' : 'me')}
+                </bdi>
+              </p>
             </div>
           </div>
 
@@ -1499,7 +1798,7 @@ function TakeQuiz() {
           )}
         </div>
 
-        {/* ── Subject line ── */}
+        {/* ── Subject line (only when backend supplies one — currently disabled) ── */}
         {question.email_subject && (
           <div
             className={`px-6 py-4 border-b border-gray-100 dark:border-gray-700 ${isArabic ? 'text-right' : ''}`}
@@ -1513,7 +1812,7 @@ function TakeQuiz() {
 
         {/* ── Email body ── */}
         <div
-          className={`px-8 py-7 ${isArabic ? 'text-right' : ''}`}
+          className={`px-6 py-6 ${isArabic ? 'text-right' : ''}`}
           dir={isArabic ? 'rtl' : 'ltr'}
           style={{
             fontFamily: 'system-ui, -apple-system, "Segoe UI", Arial, sans-serif',
@@ -1527,7 +1826,12 @@ function TakeQuiz() {
             isArabic,
             question.email_type,
             currentIndex,
-            question.email_sender_email || generateSenderEmail(question.email_sender_name, question.email_type, currentIndex)
+            question.email_sender_email || generateSenderEmail(question.email_sender_name, question.email_type, currentIndex),
+            (url) => {
+              if (isAnswered) return;
+              setCaughtUrl(url);
+              setShowCaughtModal(true);
+            }
           )}
 
           {/* Fake attachment pill for phishing emails without a real attachment */}
@@ -1559,7 +1863,29 @@ function TakeQuiz() {
             </div>
           )}
         </div>
+
+        {/* ── Inbox-style action toolbar (visual only — adds realism) ── */}
+        <div
+          className={`px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 flex-wrap rounded-b-xl bg-gray-50/40 dark:bg-gray-900/20 ${isArabic ? 'flex-row-reverse' : ''}`}
+        >
+          {[
+            { icon: Reply,    en: 'Reply',     ar: 'رد' },
+            { icon: ReplyAll, en: 'Reply all', ar: 'رد للجميع' },
+            { icon: Forward,  en: 'Forward',   ar: 'إعادة توجيه' },
+            { icon: Archive,  en: 'Archive',   ar: 'أرشفة' },
+          ].map(({ icon: Icon, en, ar }) => (
+            <div
+              key={en}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-full text-xs text-gray-600 dark:text-gray-400 select-none cursor-not-allowed ${isArabic ? 'flex-row-reverse' : ''}`}
+              title={isArabic ? 'هذا تدريب — الأزرار غير فعّالة' : 'Training mode — buttons are non-functional'}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{isArabic ? ar : en}</span>
+            </div>
+          ))}
+        </div>
       </div>
+      )}
 
       {/* Answer Buttons */}
       <div className="space-y-4 mb-6">
@@ -1616,6 +1942,106 @@ function TakeQuiz() {
           </div>
         )}
       </div>
+
+      {/* "Caught You" interstitial — fires when user clicks the CTA in a phishing email.
+          Uses UI language (i18n), not email content language — this is the user's moment. */}
+      {showCaughtModal && (() => {
+        const uiArabic = i18n.language === 'ar';
+        return (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 animate-fadeIn"
+          dir={uiArabic ? 'rtl' : 'ltr'}
+        >
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5 flex items-center gap-3">
+              <div className="bg-white/20 rounded-full p-2 flex-shrink-0">
+                <AlertTriangle className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white leading-tight">
+                  {uiArabic ? 'تم الإيقاع بك!' : 'Caught You!'}
+                </h3>
+                <p className="text-red-100 text-sm mt-0.5">
+                  {uiArabic
+                    ? 'وثقت برسالة احتيالية — هذه إجابة خاطئة'
+                    : 'You trusted a phishing email — this counts as a wrong answer'}
+                </p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  {uiArabic ? 'كنت ستزور:' : 'You were about to visit:'}
+                </p>
+                <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5">
+                  <bdi className="font-mono text-xs text-red-700 dark:text-red-400 break-all">
+                    {caughtUrl}
+                  </bdi>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  {uiArabic ? 'لو كان حقيقياً:' : 'What would have happened:'}
+                </p>
+                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                  <li className={`flex items-start gap-2 ${uiArabic ? 'flex-row-reverse' : ''}`}>
+                    <span className="flex-shrink-0 mt-0.5">🔓</span>
+                    <span>
+                      {uiArabic
+                        ? 'كانت بيانات حسابك ستُسرق'
+                        : 'Your account credentials would have been stolen'}
+                    </span>
+                  </li>
+                  <li className={`flex items-start gap-2 ${uiArabic ? 'flex-row-reverse' : ''}`}>
+                    <span className="flex-shrink-0 mt-0.5">💳</span>
+                    <span>
+                      {uiArabic
+                        ? 'كان بإمكان المهاجمين الوصول لحساباتك المالية'
+                        : 'Attackers could access your financial accounts'}
+                    </span>
+                  </li>
+                  <li className={`flex items-start gap-2 ${uiArabic ? 'flex-row-reverse' : ''}`}>
+                    <span className="flex-shrink-0 mt-0.5">🔄</span>
+                    <span>
+                      {uiArabic
+                        ? 'كان بإمكانهم انتحال شخصيتك لخداع زملائك'
+                        : 'They could impersonate you to phish your colleagues'}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 rounded p-3">
+                <p className="text-sm text-amber-800 dark:text-amber-300">
+                  <strong>{uiArabic ? 'تذكّر: ' : 'Remember: '}</strong>
+                  {uiArabic
+                    ? 'مرّر المؤشر فوق الروابط قبل النقر، وتحقّق دائماً من المُرسِل والنطاق.'
+                    : 'Hover over links before clicking, and always verify the sender and domain.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCaughtModal(false);
+                  handleAnswer('LEGITIMATE', []);
+                }}
+                className="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                {uiArabic ? 'متابعة التقييم' : 'Continue Assessment'}
+              </button>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
 
       {/* Red Flags Modal */}
       {showRedFlagsModal && (
@@ -1748,11 +2174,17 @@ function TakeQuiz() {
       <div className="flex items-center justify-end">
         {currentIndex < questions.length - 1 ? (
           <button
-            onClick={() => setCurrentIndex((prev) => prev + 1)}
-            disabled={!isAnswered}
+            onClick={() => {
+              setIsTransitioning(true);
+              setTimeout(() => {
+                setCurrentIndex((prev) => prev + 1);
+                setIsTransitioning(false);
+              }, 350);
+            }}
+            disabled={!isAnswered || isTransitioning}
             className={clsx(
               'btn-primary flex items-center gap-2',
-              !isAnswered && 'opacity-50 cursor-not-allowed'
+              (!isAnswered || isTransitioning) && 'opacity-50 cursor-not-allowed'
             )}
           >
             {t('quiz.nextQuestion')}
