@@ -16,8 +16,31 @@ logger = logging.getLogger(__name__)
 
 
 def _send_in_background(func, *args, **kwargs):
-    """Run an email helper in a daemon thread so the HTTP response is not blocked."""
-    t = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+    """Run an email helper in a daemon thread so the HTTP response is not blocked.
+
+    Wraps the target callable in a try/except so an uncaught exception inside
+    the thread is logged with a stack trace instead of vanishing silently.
+    Also closes the Django DB connection on exit so background ORM work
+    doesn't leak a connection from the request-thread pool.
+    """
+    def _runner():
+        try:
+            func(*args, **kwargs)
+        except Exception as exc:
+            logger.error(
+                'Background email task %s raised an exception: %s',
+                getattr(func, '__name__', repr(func)), exc, exc_info=True,
+            )
+        finally:
+            # Each background thread gets its own DB connection; close it
+            # so the pool isn't drained over time.
+            try:
+                from django.db import connection
+                connection.close()
+            except Exception:
+                pass
+
+    t = threading.Thread(target=_runner, daemon=True)
     t.start()
 
 

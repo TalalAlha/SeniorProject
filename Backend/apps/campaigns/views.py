@@ -50,15 +50,19 @@ class CampaignViewSet(viewsets.ModelViewSet):
         return CampaignListSerializer
 
     def get_queryset(self):
-        """Filter campaigns based on user role."""
+        """Filter campaigns based on user role.
+
+        Pre-joins company + created_by; serializers walk these FKs.
+        """
         user = self.request.user
+        base = Campaign.objects.select_related('company', 'created_by')
 
         if user.is_super_admin:
-            return Campaign.objects.all()
+            return base.all()
 
         # Company admins and employees see only their company's campaigns
         if user.has_company_access:
-            return Campaign.objects.filter(company=user.company)
+            return base.filter(company=user.company)
 
         return Campaign.objects.none()
 
@@ -263,13 +267,22 @@ class CampaignViewSet(viewsets.ModelViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
     def _get_risk_distribution(self, campaign):
-        """Get distribution of risk levels for campaign results."""
-        results = campaign.results.all()
+        """Get distribution of risk levels for campaign results.
+
+        Single SELECT with conditional COUNTs replaces 4 round-trips.
+        """
+        from django.db.models import Count, Q
+        agg = campaign.results.aggregate(
+            low=Count('id', filter=Q(risk_level='LOW')),
+            medium=Count('id', filter=Q(risk_level='MEDIUM')),
+            high=Count('id', filter=Q(risk_level='HIGH')),
+            critical=Count('id', filter=Q(risk_level='CRITICAL')),
+        )
         return {
-            'low': results.filter(risk_level='LOW').count(),
-            'medium': results.filter(risk_level='MEDIUM').count(),
-            'high': results.filter(risk_level='HIGH').count(),
-            'critical': results.filter(risk_level='CRITICAL').count()
+            'low': agg['low'],
+            'medium': agg['medium'],
+            'high': agg['high'],
+            'critical': agg['critical'],
         }
 
     def _get_top_performers(self, campaign, limit=5):
@@ -298,16 +311,21 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Filter quizzes based on user role."""
+        """Filter quizzes based on user role.
+
+        Pre-joins campaign + employee so list serializers don't trigger
+        one extra query per quiz row.
+        """
         user = self.request.user
+        base = Quiz.objects.select_related('campaign', 'campaign__company', 'employee')
 
         if user.is_super_admin:
-            qs = Quiz.objects.all()
+            qs = base.all()
         elif user.is_company_admin:
-            qs = Quiz.objects.filter(campaign__company=user.company)
+            qs = base.filter(campaign__company=user.company)
         else:
             # Employees see only their own quizzes
-            qs = Quiz.objects.filter(employee=user)
+            qs = base.filter(employee=user)
 
         status_param = self.request.query_params.get('status')
         if status_param:

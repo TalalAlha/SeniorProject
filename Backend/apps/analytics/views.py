@@ -111,20 +111,31 @@ class DashboardViewSet(viewsets.ViewSet):
         else:
             users = User.objects.all()
 
-        total_users = users.count()
-        total_employees = users.filter(role='EMPLOYEE').count()
-        total_admins = users.filter(role__in=['SUPER_ADMIN', 'COMPANY_ADMIN']).count()
-
         thirty_days_ago = timezone.now() - timedelta(days=30)
-        active_users_30_days = users.filter(last_login__gte=thirty_days_ago).count()
+        # Single SELECT with conditional COUNTs replaces 4 separate count queries.
+        user_counts = users.aggregate(
+            total=Count('id'),
+            employees=Count('id', filter=Q(role='EMPLOYEE')),
+            admins=Count('id', filter=Q(role__in=['SUPER_ADMIN', 'COMPANY_ADMIN'])),
+            active_30d=Count('id', filter=Q(last_login__gte=thirty_days_ago)),
+        )
+        total_users = user_counts['total']
+        total_employees = user_counts['employees']
+        total_admins = user_counts['admins']
+        active_users_30_days = user_counts['active_30d']
 
         # Campaign metrics
         try:
             from apps.campaigns.models import Campaign, QuizResult
             campaigns = Campaign.objects.filter(**company_filter)
-            total_campaigns = campaigns.count()
-            active_campaigns = campaigns.filter(status='ACTIVE').count()
-            completed_campaigns = campaigns.filter(status='COMPLETED').count()
+            campaign_counts = campaigns.aggregate(
+                total=Count('id'),
+                active=Count('id', filter=Q(status='ACTIVE')),
+                completed=Count('id', filter=Q(status='COMPLETED')),
+            )
+            total_campaigns = campaign_counts['total']
+            active_campaigns = campaign_counts['active']
+            completed_campaigns = campaign_counts['completed']
 
             results = QuizResult.objects.filter(
                 campaign__in=campaigns
@@ -142,9 +153,14 @@ class DashboardViewSet(viewsets.ViewSet):
         try:
             from apps.simulations.models import SimulationCampaign
             simulations = SimulationCampaign.objects.filter(**company_filter)
-            total_simulations = simulations.count()
-            active_simulations = simulations.filter(status='IN_PROGRESS').count()
-            completed_simulations = simulations.filter(status='COMPLETED').count()
+            sim_counts = simulations.aggregate(
+                total=Count('id'),
+                active=Count('id', filter=Q(status='IN_PROGRESS')),
+                completed=Count('id', filter=Q(status='COMPLETED')),
+            )
+            total_simulations = sim_counts['total']
+            active_simulations = sim_counts['active']
+            completed_simulations = sim_counts['completed']
 
             sim_stats = simulations.aggregate(
                 total_sent=Sum('total_sent'),
@@ -163,11 +179,18 @@ class DashboardViewSet(viewsets.ViewSet):
             from apps.training.models import RiskScore
             risk_filter = {k.replace('company', 'company'): v for k, v in company_filter.items()}
             risk_scores = RiskScore.objects.filter(**risk_filter)
-            avg_risk = risk_scores.aggregate(avg=Avg('score'))['avg']
-            low_risk = risk_scores.filter(risk_level='LOW').count()
-            medium_risk = risk_scores.filter(risk_level='MEDIUM').count()
-            high_risk = risk_scores.filter(risk_level='HIGH').count()
-            critical_risk = risk_scores.filter(risk_level='CRITICAL').count()
+            risk_stats = risk_scores.aggregate(
+                avg=Avg('score'),
+                low=Count('id', filter=Q(risk_level='LOW')),
+                medium=Count('id', filter=Q(risk_level='MEDIUM')),
+                high=Count('id', filter=Q(risk_level='HIGH')),
+                critical=Count('id', filter=Q(risk_level='CRITICAL')),
+            )
+            avg_risk = risk_stats['avg']
+            low_risk = risk_stats['low']
+            medium_risk = risk_stats['medium']
+            high_risk = risk_stats['high']
+            critical_risk = risk_stats['critical']
         except Exception:
             avg_risk = None
             low_risk = medium_risk = high_risk = critical_risk = 0
@@ -176,9 +199,14 @@ class DashboardViewSet(viewsets.ViewSet):
         try:
             from apps.training.models import RemediationTraining
             trainings = RemediationTraining.objects.filter(**company_filter)
-            total_trainings = trainings.count()
-            completed_trainings = trainings.filter(status__in=['COMPLETED', 'PASSED', 'FAILED']).count()
-            passed_trainings = trainings.filter(status='PASSED').count()
+            t_counts = trainings.aggregate(
+                total=Count('id'),
+                completed=Count('id', filter=Q(status__in=['COMPLETED', 'PASSED', 'FAILED'])),
+                passed=Count('id', filter=Q(status='PASSED')),
+            )
+            total_trainings = t_counts['total']
+            completed_trainings = t_counts['completed']
+            passed_trainings = t_counts['passed']
             training_completion_rate = (completed_trainings / total_trainings * 100) if total_trainings > 0 else None
             training_pass_rate = (passed_trainings / completed_trainings * 100) if completed_trainings > 0 else None
         except Exception:
@@ -544,13 +572,20 @@ class CampaignAnalyticsViewSet(viewsets.ViewSet):
                     'risk_level': result.risk_level,
                 })
 
-            # Score distribution
+            # Score distribution — single aggregate replaces 5 count queries.
+            sd = results.aggregate(
+                b1=Count('id', filter=Q(score__lt=20)),
+                b2=Count('id', filter=Q(score__gte=20, score__lt=40)),
+                b3=Count('id', filter=Q(score__gte=40, score__lt=60)),
+                b4=Count('id', filter=Q(score__gte=60, score__lt=80)),
+                b5=Count('id', filter=Q(score__gte=80)),
+            )
             score_distribution = {
-                '0-20': results.filter(score__lt=20).count(),
-                '21-40': results.filter(score__gte=20, score__lt=40).count(),
-                '41-60': results.filter(score__gte=40, score__lt=60).count(),
-                '61-80': results.filter(score__gte=60, score__lt=80).count(),
-                '81-100': results.filter(score__gte=80).count(),
+                '0-20': sd['b1'],
+                '21-40': sd['b2'],
+                '41-60': sd['b3'],
+                '61-80': sd['b4'],
+                '81-100': sd['b5'],
             }
 
             data = {
@@ -700,23 +735,22 @@ class SimulationAnalyticsViewSet(viewsets.ViewSet):
                 'compromise_rate': round(max(simulation.total_clicked, simulation.total_credentials_entered) / total_sent * 100, 2) if total_sent > 0 else None,
             }
 
-            # Employee details
+            # Employee details. select_related the OneToOne risk_score reverse
+            # relation so we don't issue one RiskScore.objects.get() per email.
             employee_details = []
             emails = EmailSimulation.objects.filter(
                 campaign=simulation
-            ).select_related('employee').order_by('-was_clicked', '-credentials_entered')
+            ).select_related('employee', 'employee__risk_score').order_by('-was_clicked', '-credentials_entered')
 
             for email in emails[:100]:
                 time_to_click = None
                 if email.sent_at and email.clicked_at:
                     time_to_click = int((email.clicked_at - email.sent_at).total_seconds())
 
-                risk_score = None
-                try:
-                    rs = RiskScore.objects.get(employee=email.employee)
-                    risk_score = rs.score
-                except RiskScore.DoesNotExist:
-                    pass
+                # Read the prefetched OneToOne; getattr returns None if the
+                # employee has no RiskScore yet.
+                rs = getattr(email.employee, 'risk_score', None)
+                risk_score = rs.score if rs else None
 
                 employee_details.append({
                     'employee_id': email.employee.id,
@@ -793,7 +827,15 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
             from apps.training.models import RiskScore
 
             scores = RiskScore.objects.filter(**company_filter)
-            total = scores.count()
+            stats = scores.aggregate(
+                total=Count('id'),
+                low=Count('id', filter=Q(risk_level='LOW')),
+                medium=Count('id', filter=Q(risk_level='MEDIUM')),
+                high=Count('id', filter=Q(risk_level='HIGH')),
+                critical=Count('id', filter=Q(risk_level='CRITICAL')),
+                avg=Avg('score'),
+            )
+            total = stats['total']
 
             if total == 0:
                 return Response({
@@ -805,12 +847,11 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
                     'average_score': None, 'median_score': None,
                 })
 
-            low = scores.filter(risk_level='LOW').count()
-            medium = scores.filter(risk_level='MEDIUM').count()
-            high = scores.filter(risk_level='HIGH').count()
-            critical = scores.filter(risk_level='CRITICAL').count()
-
-            avg = scores.aggregate(avg=Avg('score'))['avg']
+            low = stats['low']
+            medium = stats['medium']
+            high = stats['high']
+            critical = stats['critical']
+            avg = stats['avg']
 
             data = {
                 'total_employees': total,
@@ -847,21 +888,29 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
         try:
             from apps.training.models import RiskScore, RiskScoreHistory
 
-            # Current distribution
+            # Current distribution — single aggregate replaces 6 queries.
             scores = RiskScore.objects.filter(**company_filter)
-            total = scores.count()
+            agg = scores.aggregate(
+                total=Count('id'),
+                low=Count('id', filter=Q(risk_level='LOW')),
+                medium=Count('id', filter=Q(risk_level='MEDIUM')),
+                high=Count('id', filter=Q(risk_level='HIGH')),
+                critical=Count('id', filter=Q(risk_level='CRITICAL')),
+                avg=Avg('score'),
+            )
+            total = agg['total']
 
             distribution_end = {
                 'total_employees': total,
-                'low_risk': scores.filter(risk_level='LOW').count(),
+                'low_risk': agg['low'],
                 'low_risk_percentage': 0,
-                'medium_risk': scores.filter(risk_level='MEDIUM').count(),
+                'medium_risk': agg['medium'],
                 'medium_risk_percentage': 0,
-                'high_risk': scores.filter(risk_level='HIGH').count(),
+                'high_risk': agg['high'],
                 'high_risk_percentage': 0,
-                'critical_risk': scores.filter(risk_level='CRITICAL').count(),
+                'critical_risk': agg['critical'],
                 'critical_risk_percentage': 0,
-                'average_score': float(scores.aggregate(avg=Avg('score'))['avg'] or 0),
+                'average_score': float(agg['avg'] or 0),
                 'median_score': None,
             }
 
@@ -932,18 +981,27 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
         try:
             from apps.training.models import RiskScore, RemediationTraining
 
-            scores = RiskScore.objects.filter(
-                **company_filter,
-                risk_level__in=['HIGH', 'CRITICAL']
-            ).select_related('employee').order_by('-score')[:50]
+            # Annotate the pending-training count instead of issuing one
+            # query per high-risk employee. Saves up to 50 round-trips.
+            scores = (
+                RiskScore.objects.filter(
+                    **company_filter,
+                    risk_level__in=['HIGH', 'CRITICAL']
+                )
+                .select_related('employee')
+                .annotate(
+                    pending_trainings=Count(
+                        'employee__remediation_trainings',
+                        filter=Q(employee__remediation_trainings__status__in=['ASSIGNED', 'IN_PROGRESS']),
+                        distinct=True,
+                    )
+                )
+                .order_by('-score')[:50]
+            )
 
             employees = []
             for rs in scores:
-                # Get pending trainings
-                pending = RemediationTraining.objects.filter(
-                    employee=rs.employee,
-                    status__in=['ASSIGNED', 'IN_PROGRESS']
-                ).count()
+                pending = rs.pending_trainings
 
                 employees.append({
                     'employee_id': rs.employee.id,

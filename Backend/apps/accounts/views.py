@@ -14,7 +14,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from rest_framework.decorators import api_view, permission_classes as fn_permission_classes
 
-from apps.core.emails import send_verification_email, send_employee_invitation, send_password_reset_email
+from apps.core.emails import (
+    send_verification_email,
+    send_employee_invitation,
+    send_password_reset_email,
+    _send_in_background,
+)
 
 from .serializers import (
     UserSerializer,
@@ -49,11 +54,10 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Send verification email (fire-and-forget; log but don't fail on error)
-        try:
-            send_verification_email(user, str(user.verification_token))
-        except Exception as exc:
-            logger.error('Failed to send verification email to %s: %s', user.email, exc)
+        # Send verification email asynchronously so the registration response
+        # is not blocked on SendGrid SMTP (typically 200-1500ms). The helper
+        # already catches and logs its own errors.
+        _send_in_background(send_verification_email, user, str(user.verification_token))
 
         return Response({
             'message': (
@@ -155,13 +159,15 @@ class VerifyEmailView(views.APIView):
         user.is_active = True  # activates accounts created inactive (e.g. company admins)
         user.save(update_fields=['is_verified', 'is_active'])
 
-        # Send branded welcome email to newly verified company admins
+        # Send branded welcome email to newly verified company admins.
+        # Dispatched in the background so the verify request can return
+        # immediately — the user is already verified at this point.
         if user.role == 'COMPANY_ADMIN' and user.company:
             try:
                 from apps.core.emails import send_company_welcome_email
-                send_company_welcome_email(user, user.company)
+                _send_in_background(send_company_welcome_email, user, user.company)
             except Exception as exc:
-                logger.warning('Failed to send company welcome email to %s: %s', user.email, exc)
+                logger.warning('Failed to queue company welcome email to %s: %s', user.email, exc)
 
         return Response(
             {'message': 'Email verified successfully! You can now log in.', 'verified': True},
@@ -202,14 +208,12 @@ class ResendVerificationView(views.APIView):
         user.verification_token_created = timezone.now()
         user.save(update_fields=['verification_token', 'verification_token_created'])
 
-        try:
-            send_verification_email(user, str(user.verification_token))
-        except Exception as exc:
-            logger.error('Failed to resend verification email to %s: %s', user.email, exc)
-            return Response(
-                {'error': 'Failed to send email. Please try again later.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        # Queue the verification email in a background thread; the helper
+        # catches and logs its own errors. The 500 path that previously lived
+        # here was effectively dead code (send_verification_email never
+        # raises — it returns False on failure), so this preserves observable
+        # behavior while no longer making the user wait on SMTP.
+        _send_in_background(send_verification_email, user, str(user.verification_token))
 
         return Response(
             {'message': 'Verification email sent! Please check your inbox.'},
@@ -490,20 +494,17 @@ class ResendInvitationView(views.APIView):
         user.invitation_sent_at = timezone.now()
         user.save(update_fields=['invitation_token', 'invitation_sent_at'])
 
-        try:
-            send_employee_invitation(
-                inviting_admin=request.user,
-                employee_email=user.email,
-                employee_name=f'{user.first_name} {user.last_name}'.strip() or user.email,
-                company=request.user.company,
-                invitation_token=str(user.invitation_token),
-            )
-        except Exception as exc:
-            logger.error('Failed to resend invitation to %s: %s', user.email, exc)
-            return Response(
-                {'error': 'Failed to send email. Please try again.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        # Queue the invitation in the background. Matches the original
+        # InviteEmployeeView path (which also uses _send_in_background) so
+        # the resend behaves the same way as the initial invite.
+        _send_in_background(
+            send_employee_invitation,
+            inviting_admin=request.user,
+            employee_email=user.email,
+            employee_name=f'{user.first_name} {user.last_name}'.strip() or user.email,
+            company=request.user.company,
+            invitation_token=str(user.invitation_token),
+        )
 
         return Response({'message': 'Invitation resent successfully.'})
 

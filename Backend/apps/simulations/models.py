@@ -566,9 +566,13 @@ class TrackingEvent(models.Model):
             self._update_campaign_stats()
 
     def _update_simulation_stats(self):
-        """Update EmailSimulation tracking flags based on event type."""
+        """Update EmailSimulation tracking flags based on event type.
+
+        Tracks which fields changed so the resulting UPDATE only rewrites
+        the affected columns (instead of all 20+ EmailSimulation fields).
+        """
         sim = self.email_simulation
-        updated = False
+        changed_fields = []
 
         # If we're receiving tracking events, the email must have been sent.
         # Mark it as SENT if still PENDING (handles manual sending workflow).
@@ -576,72 +580,110 @@ class TrackingEvent(models.Model):
             'EMAIL_OPENED', 'LINK_CLICKED', 'CREDENTIALS_ENTERED', 'EMAIL_REPORTED'
         ):
             sim.status = 'SENT'
+            changed_fields.append('status')
             if not sim.sent_at:
                 sim.sent_at = self.created_at
-            updated = True
+                changed_fields.append('sent_at')
 
         if self.event_type == 'EMAIL_OPENED' and not sim.was_opened:
             sim.was_opened = True
             sim.first_opened_at = self.created_at
-            updated = True
+            changed_fields += ['was_opened', 'first_opened_at']
 
         elif self.event_type == 'LINK_CLICKED' and not sim.was_clicked:
             sim.was_clicked = True
             sim.clicked_at = self.created_at
             sim.ip_address = self.ip_address
             sim.user_agent = self.user_agent
-            updated = True
+            changed_fields += ['was_clicked', 'clicked_at', 'ip_address', 'user_agent']
 
         elif self.event_type == 'CREDENTIALS_ENTERED' and not sim.credentials_entered:
             sim.credentials_entered = True
             sim.credentials_entered_at = self.created_at
-            updated = True
+            changed_fields += ['credentials_entered', 'credentials_entered_at']
 
         elif self.event_type == 'EMAIL_REPORTED' and not sim.was_reported:
             sim.was_reported = True
             sim.reported_at = self.created_at
-            updated = True
+            changed_fields += ['was_reported', 'reported_at']
 
-        if updated:
-            sim.save()
+        if changed_fields:
+            # `updated_at` has auto_now=True, so include it so the timestamp
+            # advances even with update_fields specified.
+            sim.save(update_fields=changed_fields + ['updated_at'])
 
     def _update_campaign_stats(self):
-        """Update SimulationCampaign aggregate statistics."""
+        """Update SimulationCampaign aggregate statistics.
+
+        Tracks dirty fields so the UPDATE statement only rewrites changed
+        columns, and consolidates the auto-complete check into one
+        aggregate call instead of two count queries.
+        """
         campaign = self.campaign
+        dirty = []
 
         # Always recount total_sent from actual EmailSimulation statuses
-        campaign.total_sent = campaign.email_simulations.exclude(
+        new_total_sent = campaign.email_simulations.exclude(
             status__in=['PENDING', 'FAILED']
         ).count()
+        if new_total_sent != campaign.total_sent:
+            campaign.total_sent = new_total_sent
+            dirty.append('total_sent')
 
         if self.event_type == 'EMAIL_OPENED':
-            campaign.total_opened = campaign.email_simulations.filter(was_opened=True).count()
+            new_val = campaign.email_simulations.filter(was_opened=True).count()
+            if new_val != campaign.total_opened:
+                campaign.total_opened = new_val
+                dirty.append('total_opened')
 
         elif self.event_type == 'LINK_CLICKED':
-            campaign.total_clicked = campaign.email_simulations.filter(was_clicked=True).count()
+            new_val = campaign.email_simulations.filter(was_clicked=True).count()
+            if new_val != campaign.total_clicked:
+                campaign.total_clicked = new_val
+                dirty.append('total_clicked')
 
         elif self.event_type == 'CREDENTIALS_ENTERED':
-            campaign.total_credentials_entered = campaign.email_simulations.filter(credentials_entered=True).count()
+            new_val = campaign.email_simulations.filter(credentials_entered=True).count()
+            if new_val != campaign.total_credentials_entered:
+                campaign.total_credentials_entered = new_val
+                dirty.append('total_credentials_entered')
 
         elif self.event_type == 'EMAIL_REPORTED':
-            campaign.total_reported = campaign.email_simulations.filter(was_reported=True).count()
+            new_val = campaign.email_simulations.filter(was_reported=True).count()
+            if new_val != campaign.total_reported:
+                campaign.total_reported = new_val
+                dirty.append('total_reported')
 
         # Update campaign status to IN_PROGRESS if still in DRAFT/SCHEDULED
         if campaign.status in ('DRAFT', 'SCHEDULED') and campaign.total_sent > 0:
             campaign.status = 'IN_PROGRESS'
+            dirty.append('status')
             if not campaign.sent_at:
                 campaign.sent_at = self.created_at
+                dirty.append('sent_at')
 
         # Auto-complete: mark COMPLETED when every sent email has a final action
         # (employee clicked the link or actively reported it as phishing).
+        # Single aggregate replaces two count() queries.
         if campaign.status == 'IN_PROGRESS' and campaign.total_sent > 0:
-            sent_sims = campaign.email_simulations.exclude(status__in=['PENDING', 'FAILED'])
-            total = sent_sims.count()
-            resolved = sent_sims.filter(
-                models.Q(was_clicked=True) | models.Q(was_reported=True)
-            ).count()
-            if total > 0 and resolved >= total:
+            from django.db.models import Count
+            agg = campaign.email_simulations.exclude(
+                status__in=['PENDING', 'FAILED']
+            ).aggregate(
+                total=Count('id'),
+                resolved=Count(
+                    'id',
+                    filter=models.Q(was_clicked=True) | models.Q(was_reported=True),
+                ),
+            )
+            if agg['total'] > 0 and agg['resolved'] >= agg['total']:
                 campaign.status = 'COMPLETED'
                 campaign.completed_at = self.created_at
+                dirty += ['status', 'completed_at']
 
-        campaign.save()
+        # Always save (preserves original behavior — updated_at advances on
+        # every event), but only rewrite the changed columns when possible.
+        if dirty:
+            campaign.save(update_fields=list(set(dirty)) + ['updated_at'])
+        else:
+            campaign.save(update_fields=['updated_at'])

@@ -189,10 +189,18 @@ class CompanyUserSerializer(serializers.ModelSerializer):
         read_only_fields = ['date_joined', 'last_login']
 
     def get_risk_score(self, obj):
-        """Get user's current risk score and stats if available."""
+        """Get user's current risk score and stats if available.
+
+        Reads the OneToOne `risk_score` reverse relation. Callers should
+        pre-fetch this with `.select_related('risk_score')` to avoid an
+        extra query per row.
+        """
         try:
-            from apps.training.models import RiskScore
-            risk = RiskScore.objects.filter(employee=obj).first()
+            # Prefer the prefetched reverse OneToOne; fall back to a query.
+            risk = getattr(obj, 'risk_score', None)
+            if risk is None:
+                from apps.training.models import RiskScore
+                risk = RiskScore.objects.filter(employee=obj).first()
             if risk:
                 return {
                     'score': risk.score,
@@ -211,6 +219,12 @@ class CompanyUserSerializer(serializers.ModelSerializer):
             return None
 
     def get_quizzes_completed(self, obj):
+        # Read annotated value if the queryset was annotated by the view;
+        # otherwise fall back to a count query (keeps single-object retrieves
+        # working when no annotation is present).
+        annotated = getattr(obj, '_quizzes_completed', None)
+        if annotated is not None:
+            return annotated
         try:
             from apps.campaigns.models import QuizResult
             return QuizResult.objects.filter(employee=obj).count()
@@ -218,6 +232,9 @@ class CompanyUserSerializer(serializers.ModelSerializer):
             return 0
 
     def get_trainings_completed(self, obj):
+        annotated = getattr(obj, '_trainings_completed', None)
+        if annotated is not None:
+            return annotated
         try:
             from apps.training.models import RemediationTraining
             return RemediationTraining.objects.filter(
@@ -228,6 +245,9 @@ class CompanyUserSerializer(serializers.ModelSerializer):
             return 0
 
     def get_badges_earned(self, obj):
+        annotated = getattr(obj, '_badges_earned', None)
+        if annotated is not None:
+            return annotated
         try:
             from apps.gamification.models import EmployeeBadge
             return EmployeeBadge.objects.filter(employee=obj).count()

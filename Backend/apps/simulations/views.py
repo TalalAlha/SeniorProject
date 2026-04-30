@@ -65,18 +65,23 @@ class SimulationTemplateViewSet(viewsets.ModelViewSet):
         return SimulationTemplateListSerializer
 
     def get_queryset(self):
-        """Filter templates based on user role."""
+        """Filter templates based on user role.
+
+        Pre-joins company + created_by so list serializer field reads don't
+        fire one extra query per row.
+        """
         user = self.request.user
+        base = SimulationTemplate.objects.select_related('company', 'created_by')
 
         if user.is_super_admin:
-            return SimulationTemplate.objects.all()
+            return base.all()
 
         # Company admins and employees see:
         # - Templates belonging to their company
         # - Public templates (is_public=True)
         # - Global templates (company=None)
         if user.has_company_access:
-            return SimulationTemplate.objects.filter(
+            return base.filter(
                 Q(company=user.company) |
                 Q(is_public=True) |
                 Q(company__isnull=True)
@@ -129,32 +134,48 @@ class SimulationTemplateViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, HasCompanyAccess])
     def by_attack_vector(self, request):
-        """Get templates grouped by attack vector."""
-        queryset = self.get_queryset()
-        attack_vectors = {}
+        """Get templates grouped by attack vector.
 
+        Was running 14 queries (one .filter().count() + one full serialize
+        per attack vector). Now: one fetch of the visible templates plus
+        in-Python grouping.
+        """
+        queryset = self.get_queryset()
+        # Materialize once; group in Python keeps it O(N).
+        all_templates = list(queryset)
+        groups = {code: [] for code, _ in SimulationTemplate.ATTACK_VECTOR_CHOICES}
+        for tpl in all_templates:
+            if tpl.attack_vector in groups:
+                groups[tpl.attack_vector].append(tpl)
+
+        attack_vectors = {}
         for vector_code, vector_name in SimulationTemplate.ATTACK_VECTOR_CHOICES:
-            templates = queryset.filter(attack_vector=vector_code)
+            bucket = groups[vector_code]
             attack_vectors[vector_code] = {
                 'name': str(vector_name),
-                'count': templates.count(),
-                'templates': SimulationTemplateListSerializer(templates, many=True).data
+                'count': len(bucket),
+                'templates': SimulationTemplateListSerializer(bucket, many=True).data,
             }
 
         return Response(attack_vectors, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, HasCompanyAccess])
     def by_difficulty(self, request):
-        """Get templates grouped by difficulty level."""
+        """Get templates grouped by difficulty level. See by_attack_vector for rationale."""
         queryset = self.get_queryset()
-        difficulties = {}
+        all_templates = list(queryset)
+        groups = {code: [] for code, _ in SimulationTemplate.DIFFICULTY_CHOICES}
+        for tpl in all_templates:
+            if tpl.difficulty in groups:
+                groups[tpl.difficulty].append(tpl)
 
+        difficulties = {}
         for diff_code, diff_name in SimulationTemplate.DIFFICULTY_CHOICES:
-            templates = queryset.filter(difficulty=diff_code)
+            bucket = groups[diff_code]
             difficulties[diff_code] = {
                 'name': str(diff_name),
-                'count': templates.count(),
-                'templates': SimulationTemplateListSerializer(templates, many=True).data
+                'count': len(bucket),
+                'templates': SimulationTemplateListSerializer(bucket, many=True).data,
             }
 
         return Response(difficulties, status=status.HTTP_200_OK)
@@ -185,15 +206,21 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         return SimulationCampaignListSerializer
 
     def get_queryset(self):
-        """Filter campaigns based on user role."""
+        """Filter campaigns based on user role.
+
+        Pre-joins the FKs the list/detail serializers walk
+        (template, company, created_by) so each row in a list response
+        no longer triggers 3 lazy lookups.
+        """
         user = self.request.user
+        base = SimulationCampaign.objects.select_related('template', 'company', 'created_by')
 
         if user.is_super_admin:
-            return SimulationCampaign.objects.all()
+            return base.all()
 
         # Company admins and employees see only their company's campaigns
         if user.has_company_access:
-            return SimulationCampaign.objects.filter(company=user.company)
+            return base.filter(company=user.company)
 
         return SimulationCampaign.objects.none()
 
@@ -271,7 +298,9 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Create EmailSimulation records and send emails
+        # Create EmailSimulation records inside the transaction. Email
+        # delivery is deferred to a background thread (after commit) so the
+        # admin's HTTP request doesn't sit through N sequential SMTP sends.
         with transaction.atomic():
             created_simulations = []
             errors = []
@@ -295,57 +324,108 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
                 except Exception as e:
                     errors.append(f"Error creating simulation for {employee.email}: {str(e)}")
 
-            # Update campaign statistics
+            # Update campaign statistics. total_sent reflects what was queued;
+            # if any individual send fails later the EmailSimulation.status
+            # is flipped to FAILED by the background batch and the
+            # _update_campaign_stats path will reconcile counters.
             campaign.total_sent = len(created_simulations)
 
             if send_immediately:
-                # Send emails now
-                sent_count = 0
-                for email_sim in created_simulations:
-                    try:
-                        self._send_simulation_email(email_sim)
-                        sent_count += 1
-                    except Exception as e:
-                        email_sim.status = 'FAILED'
-                        email_sim.save()
-                        errors.append(f"Failed to send to {email_sim.recipient_email}: {str(e)}")
-
                 campaign.status = 'IN_PROGRESS'
                 campaign.sent_at = timezone.now()
-
-                # Notify admin that simulation emails were sent
-                try:
-                    from apps.notifications.services import NotificationService
-                    admin = campaign.created_by
-                    if admin and sent_count > 0:
-                        NotificationService.notify_simulation_sent(
-                            admin=admin,
-                            simulation=campaign,
-                            count=sent_count,
-                        )
-                except Exception as exc:
-                    import logging
-                    logging.getLogger(__name__).warning('Failed to create simulation-sent notification: %s', exc)
             else:
                 campaign.status = 'SCHEDULED'
 
             campaign.save()
 
+        # Kick off background delivery once the transaction has committed
+        # (so the worker thread sees the new EmailSimulation rows).
+        if send_immediately and created_simulations:
+            sim_ids = [s.id for s in created_simulations]
+            from apps.core.emails import _send_in_background
+            transaction.on_commit(
+                lambda: _send_in_background(self._send_simulation_batch, sim_ids, campaign.id)
+            )
+
         return Response({
             'message': f'Campaign {"sent" if send_immediately else "scheduled"} successfully',
             'total_targeted': target_employees.count(),
             'simulations_created': len(created_simulations),
-            'emails_sent': sent_count if send_immediately else 0,
+            # In the immediate-send path, every created simulation is queued
+            # for delivery. Actual per-recipient send results are tracked on
+            # the EmailSimulation rows (status SENT / FAILED) and surface in
+            # the analytics endpoints.
+            'emails_sent': len(created_simulations) if send_immediately else 0,
             'errors': errors
         }, status=status.HTTP_200_OK)
 
-    def _send_simulation_email(self, email_simulation):
+    def _send_simulation_batch(self, simulation_ids, campaign_id):
+        """Background batch send for a list of EmailSimulation IDs.
+
+        Opens a single SMTP connection and reuses it across every recipient
+        — the previous per-email loop opened/closed a connection 100 times
+        for a 100-employee campaign. Per-recipient failures are recorded on
+        the EmailSimulation row but don't abort the batch.
+        """
+        from django.core.mail import get_connection
+        import logging
+        log = logging.getLogger(__name__)
+
+        try:
+            sims = list(
+                EmailSimulation.objects
+                .filter(id__in=simulation_ids)
+                .select_related('campaign__template', 'employee')
+            )
+        except Exception as exc:
+            log.error('Failed to load simulations for batch send: %s', exc, exc_info=True)
+            return
+
+        sent_count = 0
+        try:
+            with get_connection() as connection:
+                for sim in sims:
+                    try:
+                        self._send_simulation_email(sim, connection=connection)
+                        sent_count += 1
+                    except Exception as exc:
+                        log.error(
+                            'Background simulation send failed for %s: %s',
+                            sim.recipient_email, exc, exc_info=True,
+                        )
+                        try:
+                            sim.status = 'FAILED'
+                            sim.save(update_fields=['status', 'updated_at'])
+                        except Exception:
+                            pass
+        except Exception as exc:
+            log.error('Failed to open SMTP connection for batch: %s', exc, exc_info=True)
+
+        # Notify admin once the batch finishes, mirroring the previous
+        # synchronous notification but with the actual sent count.
+        try:
+            from apps.notifications.services import NotificationService
+            campaign = SimulationCampaign.objects.select_related('created_by').get(pk=campaign_id)
+            admin = campaign.created_by
+            if admin and sent_count > 0:
+                NotificationService.notify_simulation_sent(
+                    admin=admin,
+                    simulation=campaign,
+                    count=sent_count,
+                )
+        except Exception as exc:
+            log.warning('Failed to create simulation-sent notification: %s', exc)
+
+    def _send_simulation_email(self, email_simulation, connection=None):
         """
         Send a single simulation email to an employee.
 
         Replaces placeholders with unique tracking URLs and sends the email.
         The envelope From address uses the verified SendGrid sender so delivery
         succeeds, while the display name still matches the phishing template.
+
+        If `connection` is provided (e.g. by the background batch sender), the
+        message reuses it instead of opening a new SMTP connection per call.
         """
         from django.core.mail import EmailMultiAlternatives
 
@@ -384,21 +464,24 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
 
         from_email = f"{template.sender_name} <{verified_email}>" if verified_email else f"{template.sender_name} <{template.sender_email}>"
 
-        # Create and send email
+        # Create and send email. Reuse an existing SMTP connection when one
+        # was passed in (batch send) so we don't pay the TCP+TLS+HELO cost
+        # per recipient.
         email = EmailMultiAlternatives(
             subject=template.subject,
             body=body_plain,
             from_email=from_email,
             to=[email_simulation.recipient_email],
-            reply_to=[template.reply_to_email] if template.reply_to_email else None
+            reply_to=[template.reply_to_email] if template.reply_to_email else None,
+            connection=connection,
         )
         email.attach_alternative(body_html, "text/html")
         email.send(fail_silently=False)
 
-        # Update simulation status
+        # Update simulation status; only rewrite the changed columns.
         email_simulation.status = 'SENT'
         email_simulation.sent_at = timezone.now()
-        email_simulation.save()
+        email_simulation.save(update_fields=['status', 'sent_at', 'updated_at'])
 
         # Create tracking event
         TrackingEvent.objects.create(
@@ -799,14 +882,19 @@ class EmailSimulationViewSet(viewsets.ReadOnlyModelViewSet):
         return EmailSimulationListSerializer
 
     def get_queryset(self):
-        """Filter simulations based on user role."""
+        """Filter simulations based on user role.
+
+        Pre-joins employee + campaign so list serializer walks
+        (employee.email, campaign.name, etc.) don't fire extra queries.
+        """
         user = self.request.user
+        base = EmailSimulation.objects.select_related('employee', 'campaign', 'campaign__template')
 
         if user.is_super_admin:
-            return EmailSimulation.objects.all()
+            return base.all()
 
         if user.has_company_access:
-            return EmailSimulation.objects.filter(campaign__company=user.company)
+            return base.filter(campaign__company=user.company)
 
         return EmailSimulation.objects.none()
 

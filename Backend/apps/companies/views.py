@@ -327,7 +327,24 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 Q(last_name__icontains=search)
             )
 
-        users = users.order_by('-date_joined')
+        # Pre-fetch reverse OneToOne risk_score and annotate the per-user
+        # counts the serializer reads. Without this CompanyUserSerializer
+        # issues 4 queries per row (risk_score + 3 counts), making a 50-row
+        # page run ~200 queries.
+        users = (
+            users
+            .select_related('risk_score')
+            .annotate(
+                _quizzes_completed=Count('quiz_results', distinct=True),
+                _trainings_completed=Count(
+                    'remediation_trainings',
+                    filter=Q(remediation_trainings__status__in=['COMPLETED', 'PASSED', 'FAILED']),
+                    distinct=True,
+                ),
+                _badges_earned=Count('employee_badges', distinct=True),
+            )
+            .order_by('-date_joined')
+        )
 
         # Paginate
         page = self.paginate_queryset(users)

@@ -597,6 +597,11 @@ function CompanyEmployees() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [employees, setEmployees] = useState([]);
+  // searchInput is what the user is currently typing (drives the input value
+  // and the local client-side filter, so typing feels instant). searchQuery
+  // is the debounced version that drives the backend API call — this avoids
+  // firing one request per keystroke against the icontains-on-3-columns query.
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -679,6 +684,12 @@ function CompanyEmployees() {
     }
   };
 
+  // Debounce the search input → searchQuery so API isn't hit per keystroke.
+  useEffect(() => {
+    const handle = setTimeout(() => setSearchQuery(searchInput), 300);
+    return () => clearTimeout(handle);
+  }, [searchInput]);
+
   useEffect(() => {
     fetchEmployees();
     fetchPendingInvitations();
@@ -707,9 +718,10 @@ function CompanyEmployees() {
   const filteredAndSortedEmployees = useMemo(() => {
     let result = [...employees];
 
-    // Filter by search
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    // Filter by search — uses the immediate input value so typing feels
+    // instant; the debounced searchQuery refreshes the server-side list.
+    if (searchInput) {
+      const query = searchInput.toLowerCase();
       result = result.filter(e =>
         `${e.first_name} ${e.last_name} ${e.email}`.toLowerCase().includes(query)
       );
@@ -740,7 +752,7 @@ function CompanyEmployees() {
     });
 
     return result;
-  }, [employees, searchQuery, sortConfig]);
+  }, [employees, searchInput, sortConfig]);
 
   // Pagination
   const paginatedEmployees = useMemo(() => {
@@ -968,8 +980,8 @@ function CompanyEmployees() {
           <input
             type="text"
             placeholder={t('employee.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            value={searchInput}
+            onChange={(e) => { setSearchInput(e.target.value); setCurrentPage(1); }}
             className="input pl-10"
           />
         </div>
@@ -1157,7 +1169,7 @@ function CompanyEmployees() {
                     <Users className="h-12 w-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('employee.noEmployeesFound')}</h3>
                     <p className="text-gray-500 dark:text-gray-400">
-                      {searchQuery || statusFilter !== 'ALL'
+                      {searchInput || statusFilter !== 'ALL'
                         ? t('employee.adjustFilters')
                         : t('employee.inviteToOrg')}
                     </p>

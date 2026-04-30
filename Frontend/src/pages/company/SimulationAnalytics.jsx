@@ -130,10 +130,17 @@ export default function SimulationAnalytics() {
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh every 15 seconds while campaign is active
+  }, [id]);
+
+  // Auto-refresh every 15 seconds while campaign is non-terminal.
+  // Stops polling once status reaches COMPLETED or CANCELLED so a left-open
+  // tab on a finished simulation doesn't hammer the API every 15s.
+  useEffect(() => {
+    const terminal = ['COMPLETED', 'CANCELLED'];
+    if (analytics && terminal.includes(analytics.status)) return;
     intervalRef.current = setInterval(() => fetchData(true), 15000);
     return () => clearInterval(intervalRef.current);
-  }, [id]);
+  }, [analytics?.status]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) {

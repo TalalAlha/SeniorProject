@@ -73,7 +73,7 @@ function ConvoLine({ speaker, text, isScammer, visible = true }) {
 
 function Scene0() {
   const [step, setStep] = useState(0);
-  useEffect(() => { const t = setInterval(() => setStep(s => s < 3 ? s + 1 : s), 1000); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setInterval(() => setStep(s => s < 3 ? s + 1 : s), 1000); return () => clearInterval(t); }, []);
   const hooks = [{"icon":"👔","t":"Email from \"CEO\" requesting urgent transfer"},{"icon":"📄","t":"Invoice from \"supplier\" with new account"},{"icon":"👥","t":"\"HR\" asking for your password"}];
   return (<div style={{ textAlign: "center", padding: "20px 0" }}>
     <FadeIn><div style={{ width: 80, height: 80, borderRadius: "50%", margin: "0 auto 20px", background: "linear-gradient(135deg, #0D9488, #3B82F6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🏢</div></FadeIn>

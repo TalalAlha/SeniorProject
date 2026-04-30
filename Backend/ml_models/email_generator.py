@@ -340,6 +340,23 @@ def _fix_word_case(match):
     return w
 
 
+def _is_low_quality(body: str, min_words: int = 15) -> bool:
+    """
+    Reject obvious junk outputs that should trigger a retry.
+    Catches: too short, mostly punctuation, leaked label control tokens.
+    """
+    if not body:
+        return True
+    if len(body.split()) < min_words:
+        return True
+    if '[PHISH]' in body or '[LEGIT]' in body:
+        return True
+    letters = sum(1 for c in body if c.isalpha())
+    if letters < 30:
+        return True
+    return False
+
+
 def _normalize_numbers(text: str) -> str:
     """Collapse stray whitespace inside numbers ('10, 000' -> '10,000', '175. 00' -> '175.00').
 
@@ -367,46 +384,13 @@ def _apply_capitalization(text: str) -> str:
     return text
 
 
-def _generate_sample(model, vocab, device, email_type='phishing',
-                     max_len=120, temperature=0.8):
-    model.eval()
-    with torch.inference_mode():
-        tokens = [vocab.word2idx.get(vocab.START_TOKEN, 1)]
-        if email_type == 'phishing' and '[PHISH]' in vocab.word2idx:
-            tokens.append(vocab.word2idx['[PHISH]'])
-        elif email_type == 'legitimate' and '[LEGIT]' in vocab.word2idx:
-            tokens.append(vocab.word2idx['[LEGIT]'])
-
-        hidden = model.init_hidden(1, device)
-        for token in tokens:
-            x = torch.tensor([[token]], device=device)
-            output, hidden = model(x, hidden)
-
-        for _ in range(max_len):
-            logits = output[0, -1] / temperature
-            top_vals, top_ids = torch.topk(logits, 50)
-            probs = torch.softmax(top_vals, dim=0)
-            chosen_idx = torch.multinomial(probs, 1).item()
-            next_token = top_ids[chosen_idx].item()
-            if next_token == vocab.word2idx.get(vocab.END_TOKEN, 2):
-                break
-            if next_token == vocab.word2idx.get(vocab.PAD_TOKEN, 0):
-                continue
-            tokens.append(next_token)
-            x = torch.tensor([[next_token]], device=device)
-            output, hidden = model(x, hidden)
-
-    raw = vocab.decode(tokens)
-    # Strip label control tokens that appear at start of decoded text
-    return _LABEL_STRIP_RE.sub('', raw).strip()
-
-
-def _generate_batch(model, vocab, device, tasks, max_len=120):
+def _generate_batch(model, vocab, device, tasks, max_len=120,
+                    repetition_penalty=1.15, repetition_window=20, top_k=50):
     """
-    Batched autoregressive inference — generate len(tasks) email bodies in one
-    LSTM pass instead of len(tasks) sequential passes.
+    Batched autoregressive inference with vectorized sampling and a
+    HuggingFace-style repetition penalty.
 
-    tasks  : list of (email_type, temperature) for the same model/vocab.
+    tasks : list of (email_type, temperature) for the same model/vocab.
     Returns: list of raw decoded strings, same order and length as tasks.
     """
     B = len(tasks)
@@ -425,7 +409,9 @@ def _generate_batch(model, vocab, device, tasks, max_len=120):
         else None
         for et, _ in tasks
     ]
-    temperatures = torch.tensor([t for _, t in tasks], device=device)  # (B,)
+    temperatures = torch.tensor(
+        [t for _, t in tasks], device=device
+    ).unsqueeze(1)  # (B, 1)
 
     tokens = [[start_idx] for _ in range(B)]
 
@@ -447,38 +433,79 @@ def _generate_batch(model, vocab, device, tasks, max_len=120):
                 if idx is not None:
                     tokens[i].append(idx)
 
-        done = [False] * B
+        done = torch.zeros(B, dtype=torch.bool, device=device)
 
-        # ── Autoregressive loop ──
+        # ── Autoregressive loop (vectorized sampling) ──
         for _ in range(max_len):
-            last_logits = output[:, -1, :]                    # (B, vocab_size)
-            scaled = last_logits / temperatures.unsqueeze(1)  # (B, vocab_size)
+            # Clone so we don't mutate the model's internal output buffer
+            last_logits = output[:, -1, :].clone()  # (B, vocab_size)
 
-            next_token_list = []
+            # Repetition penalty (HuggingFace formula): for tokens recently seen,
+            # divide if logit > 0, multiply if logit < 0 — both reduce probability.
+            if repetition_penalty != 1.0:
+                done_cpu = done.tolist()
+                pen_batch_idx = []
+                pen_token_idx = []
+                for i in range(B):
+                    if done_cpu[i]:
+                        continue
+                    recent = tokens[i][-repetition_window:]
+                    for t in set(recent):
+                        pen_batch_idx.append(i)
+                        pen_token_idx.append(t)
+                if pen_batch_idx:
+                    bi = torch.tensor(pen_batch_idx, device=device, dtype=torch.long)
+                    ti = torch.tensor(pen_token_idx, device=device, dtype=torch.long)
+                    cur = last_logits[bi, ti]
+                    last_logits[bi, ti] = torch.where(
+                        cur > 0, cur / repetition_penalty, cur * repetition_penalty,
+                    )
+
+            scaled = last_logits / temperatures  # (B, V)
+
+            # Vectorized top-k → softmax → multinomial (one call each, not B calls)
+            top_vals, top_ids = torch.topk(scaled, top_k, dim=-1)  # (B, top_k)
+            probs = torch.softmax(top_vals, dim=-1)                # (B, top_k)
+            chosen = torch.multinomial(probs, 1)                   # (B, 1)
+            sampled = top_ids.gather(1, chosen).squeeze(1)         # (B,)
+
+            prev_done = done.clone()
+            done = done | (sampled == end_idx)
+
+            # Feed pad to LSTM for any sequence that's done (incl. just-finished)
+            next_input = torch.where(
+                done, torch.full_like(sampled, pad_idx), sampled,
+            )
+
+            # CPU-side append: only for sequences that weren't already done
+            # AND didn't sample end/pad
+            sampled_cpu = sampled.tolist()
+            prev_done_cpu = prev_done.tolist()
             for i in range(B):
-                if done[i]:
-                    next_token_list.append(pad_idx)
+                if prev_done_cpu[i]:
                     continue
-                top_vals, top_ids = torch.topk(scaled[i], 50)
-                probs = torch.softmax(top_vals, dim=0)
-                chosen = torch.multinomial(probs, 1).item()
-                nt = top_ids[chosen].item()
-                if nt == end_idx:
-                    done[i] = True
-                    next_token_list.append(pad_idx)
-                elif nt == pad_idx:
-                    next_token_list.append(pad_idx)
-                else:
-                    tokens[i].append(nt)
-                    next_token_list.append(nt)
+                nt = sampled_cpu[i]
+                if nt == end_idx or nt == pad_idx:
+                    continue
+                tokens[i].append(nt)
 
-            if all(done):
+            if bool(done.all().item()):
                 break
 
-            x = torch.tensor(next_token_list, dtype=torch.long, device=device).unsqueeze(1)
-            output, hidden = model(x, hidden)
+            output, hidden = model(next_input.unsqueeze(1), hidden)
 
     return [_LABEL_STRIP_RE.sub('', vocab.decode(tok)).strip() for tok in tokens]
+
+
+def _generate_sample(model, vocab, device, email_type='phishing',
+                     max_len=120, temperature=0.8):
+    """Generate a single email body — thin wrapper around _generate_batch."""
+    results = _generate_batch(
+        model, vocab, device,
+        tasks=[(email_type, temperature)],
+        max_len=max_len,
+    )
+    return results[0] if results else ''
 
 
 def _pick_sender(email_type: str, language: str, body: str = ''):
@@ -705,64 +732,107 @@ def generate_campaign_emails(campaign, num_phishing: int, num_legitimate: int):
             body = _apply_capitalization(body)
         bodies[i] = body
 
-    # ── Similarity check; individually regenerate short / near-duplicate ──────
-    accepted_bodies = {}
+    # ── Quality + similarity check; batched retries for failures ─────────────
+    # accepted_lower stores pre-lowercased copies so we don't re-lowercase
+    # every accepted body on every comparison.
+    accepted_lower = {}            # (email_type, language) -> [str.lower() ...]
+    best_bodies   = list(bodies)   # best candidate so far per index
+    best_sims     = [1.0] * len(tasks)
+    needs_retry   = []
+
+    def _max_sim_lower(cand_lower, lower_list):
+        if not lower_list:
+            return 0.0
+        return max(
+            difflib.SequenceMatcher(None, cand_lower, b).ratio()
+            for b in lower_list
+        )
+
+    # Initial pass: classify each generated body as accepted / needs retry
     for i, (email_type, language) in enumerate(tasks):
         body = bodies[i]
-        needs_regen = not body or len(body.split()) < 15
+        if _is_low_quality(body):
+            needs_retry.append(i)
+            best_bodies[i] = None
+            best_sims[i]   = 1.0
+            continue
+        body_lower = body.lower()
+        sim = _max_sim_lower(body_lower, accepted_lower.get((email_type, language), []))
+        if sim <= _SIMILARITY_THRESHOLD:
+            accepted_lower.setdefault((email_type, language), []).append(body_lower)
+            best_bodies[i] = body
+            best_sims[i]   = sim
+        else:
+            needs_retry.append(i)
+            best_bodies[i] = body
+            best_sims[i]   = sim
 
-        if not needs_regen:
-            accepted = accepted_bodies.get((email_type, language), [])
-            if accepted:
-                max_sim = max(_similarity(body, b) for b in accepted)
-                if max_sim > _SIMILARITY_THRESHOLD:
-                    needs_regen = True
+    # Retry rounds — one batched LSTM pass per language per round
+    for retry_round in range(_MAX_RETRIES):
+        if not needs_retry:
+            break
 
-        if needs_regen:
-            temperature = 0.75 if language == 'ar' else 0.8
-            max_len = generator._config.get(f'max_seq_len_{language}', 120)
-            model = generator._ar_model if language == 'ar' else generator._en_model
-            vocab = generator._ar_vocab if language == 'ar' else generator._en_vocab
-            accepted = accepted_bodies.get((email_type, language), [])
+        en_temp = min(0.8 + 0.1 * (retry_round + 1), 1.0)
+        ar_temp = min(0.75 + 0.1 * (retry_round + 1), 1.0)
 
-            best_body = body
-            best_sim  = (
-                max((_similarity(body, b) for b in accepted), default=0.0)
-                if body else 1.0
-            )
+        en_idx = [i for i in needs_retry if tasks[i][1] == 'en']
+        ar_idx = [i for i in needs_retry if tasks[i][1] == 'ar']
 
-            for attempt in range(_MAX_RETRIES + 1):
-                try:
-                    candidate = _generate_sample(
-                        model, vocab, generator._device,
-                        email_type=email_type, max_len=max_len,
-                        temperature=min(temperature + 0.1 * attempt, 1.0),
-                    )
-                    candidate = _normalize_numbers(candidate)
-                    if language == 'en':
-                        candidate = _apply_capitalization(candidate)
-                    if len(candidate.split()) < 15:
-                        continue
-                    sim = max((_similarity(candidate, b) for b in accepted), default=0.0)
-                    if sim <= _SIMILARITY_THRESHOLD:
-                        best_body = candidate
-                        break
-                    if best_body is None or sim < best_sim:
-                        best_body = candidate
-                        best_sim  = sim
-                except Exception as exc:
-                    logger.warning(
-                        "Regen failed for (%s, %s) attempt %d: %s",
-                        email_type, language, attempt, exc,
-                    )
+        en_results = []
+        ar_results = []
+        try:
+            if en_idx:
+                en_results = _generate_batch(
+                    generator._en_model, generator._en_vocab, generator._device,
+                    [(tasks[i][0], en_temp) for i in en_idx],
+                    max_len=generator._config.get('max_seq_len_en', 120),
+                )
+            if ar_idx:
+                ar_results = _generate_batch(
+                    generator._ar_model, generator._ar_vocab, generator._device,
+                    [(tasks[i][0], ar_temp) for i in ar_idx],
+                    max_len=generator._config.get('max_seq_len_ar', 100),
+                )
+        except Exception as exc:
+            logger.warning("Batched retry round %d failed: %s", retry_round, exc)
+            break
 
-            if best_body is None:
-                bodies[i] = None
-                continue
-            bodies[i] = best_body
-            body = best_body
+        still_failing = []
 
-        accepted_bodies.setdefault((email_type, language), []).append(body)
+        def _process_retry(indices, results):
+            for j, i in enumerate(indices):
+                email_type, language = tasks[i]
+                candidate = results[j]
+                candidate = _normalize_numbers(candidate)
+                if language == 'en':
+                    candidate = _apply_capitalization(candidate)
+                if _is_low_quality(candidate):
+                    still_failing.append(i)
+                    return
+                cand_lower = candidate.lower()
+                sim = _max_sim_lower(cand_lower, accepted_lower.get((email_type, language), []))
+                if sim <= _SIMILARITY_THRESHOLD:
+                    accepted_lower.setdefault((email_type, language), []).append(cand_lower)
+                    bodies[i]      = candidate
+                    best_bodies[i] = candidate
+                    best_sims[i]   = sim
+                else:
+                    still_failing.append(i)
+                    if sim < best_sims[i]:
+                        best_bodies[i] = candidate
+                        best_sims[i]   = sim
+
+        _process_retry(en_idx, en_results)
+        _process_retry(ar_idx, ar_results)
+
+        needs_retry = still_failing
+
+    # Fallback: for indices still failing, accept the least-bad attempt seen
+    for i in needs_retry:
+        if best_bodies[i] and not _is_low_quality(best_bodies[i]):
+            bodies[i] = best_bodies[i]
+        else:
+            bodies[i] = None
 
     # ── Build objects and bulk-insert in one query ────────────────────────────
     template_objects = []
@@ -802,11 +872,6 @@ def generate_campaign_emails(campaign, num_phishing: int, num_legitimate: int):
         campaign.name, len(created), num_phishing + num_legitimate,
     )
     return list(created)
-
-
-def _similarity(a: str, b: str) -> float:
-    """Return a similarity ratio between 0.0 and 1.0 using SequenceMatcher."""
-    return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 
 def _pick_difficulty() -> str:

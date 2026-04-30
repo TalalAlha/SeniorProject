@@ -21,10 +21,15 @@ export default function NotificationDropdown() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Poll unread count every 30 seconds
+  // Poll unread count every 30 seconds, but skip ticks while the tab is
+  // hidden. Saves bandwidth on background tabs without changing perceived UX.
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        fetchUnreadCount();
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
