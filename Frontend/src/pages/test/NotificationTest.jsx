@@ -1,3 +1,10 @@
+/**
+ * NotificationTest — Developer test page for the notification system.
+ *
+ * Provides a manual UI to fetch, mark-read, and clear notifications so
+ * the notification pipeline can be exercised without going through the full app flow.
+ * Not linked in production navigation.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, CheckCheck, Trash2, Bell, BellOff } from 'lucide-react';
 import notificationsAPI from '../../api/notifications';

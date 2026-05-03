@@ -1,3 +1,10 @@
+/**
+ * NotificationDropdown — Bell icon with dropdown panel showing recent notifications.
+ *
+ * Polls for unread count every 30 seconds, fetches the full list on open,
+ * and provides mark-read / clear-all actions.  Clicking a notification
+ * with a link navigates to that route.
+ */
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

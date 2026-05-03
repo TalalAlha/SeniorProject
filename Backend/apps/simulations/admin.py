@@ -1,3 +1,10 @@
+"""
+Simulations admin.
+Registers SimulationTemplate, SimulationCampaign, EmailSimulation, and TrackingEvent
+with Django's admin site, including color-coded rate displays and collapsible fieldsets.
+Part of the 'simulations' app.
+"""
+
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
@@ -96,12 +103,12 @@ class SimulationCampaignAdmin(admin.ModelAdmin):
     )
 
     def template_name(self, obj):
-        """Display template name."""
+        """Return the name of the campaign's phishing template."""
         return obj.template.name
     template_name.short_description = 'Template'
 
     def click_rate_display(self, obj):
-        """Display click rate with color coding."""
+        """Return color-coded HTML for the campaign's link click rate."""
         rate = obj.click_rate
         if rate == 0:
             color = 'green'
@@ -117,7 +124,7 @@ class SimulationCampaignAdmin(admin.ModelAdmin):
     click_rate_display.short_description = 'Click Rate'
 
     def compromise_rate_display(self, obj):
-        """Display compromise rate with color coding."""
+        """Return color-coded HTML for the campaign's compromise rate."""
         rate = obj.compromise_rate
         if rate == 0:
             color = 'green'
@@ -175,7 +182,7 @@ class EmailSimulationAdmin(admin.ModelAdmin):
     )
 
     def campaign_name(self, obj):
-        """Display campaign name."""
+        """Return the name of the simulation's parent campaign."""
         return obj.campaign.name
     campaign_name.short_description = 'Campaign'
 
@@ -204,6 +211,6 @@ class TrackingEventAdmin(admin.ModelAdmin):
     )
 
     def campaign_name(self, obj):
-        """Display campaign name."""
+        """Return the name of the tracking event's parent campaign."""
         return obj.campaign.name
     campaign_name.short_description = 'Campaign'

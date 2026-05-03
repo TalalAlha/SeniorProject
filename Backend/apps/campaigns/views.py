@@ -1,3 +1,11 @@
+"""
+Campaigns views.
+Provides CampaignViewSet and QuizViewSet for managing quiz campaigns and
+employee quiz sessions, including AI email generation, quiz assignment,
+answer submission, and result calculation.
+Part of the 'campaigns' app.
+"""
+
 from rest_framework import viewsets, status, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -74,9 +82,11 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Create campaign and auto-generate AI email templates."""
+        # Save campaign first so it has a PK before passing it to the generator
         campaign = serializer.save()
 
         try:
+            # ml_models is an optional package; import deferred to avoid startup errors
             from ml_models import generate_campaign_emails
 
             templates = generate_campaign_emails(
@@ -89,6 +99,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
                 len(templates), campaign.name,
             )
         except Exception as e:
+            # Non-fatal: campaign is created without templates; admin can add manually
             logger.error(
                 "AI email generation failed for campaign '%s': %s",
                 campaign.name, e,
@@ -99,13 +110,14 @@ class CampaignViewSet(viewsets.ModelViewSet):
         """Activate a campaign and set it to active status."""
         campaign = self.get_object()
 
+        # Prevent double-activation
         if campaign.status == 'ACTIVE':
             return Response(
                 {'error': 'Campaign is already active'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Check if campaign has enough emails
+        # Ensure the email pool is fully populated before going live
         total_emails = campaign.email_templates.count()
         if total_emails < campaign.num_emails:
             return Response(
@@ -114,6 +126,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
             )
 
         campaign.status = 'ACTIVE'
+        # Record the actual activation time if no explicit start_date was set
         if not campaign.start_date:
             campaign.start_date = timezone.now()
         campaign.save()
@@ -127,6 +140,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
     def assign_to_employees(self, request, pk=None):
         """Assign campaign to employees by creating quiz instances."""
         campaign = self.get_object()
+        # Expect a JSON array of User PKs in the request body
         employee_ids = request.data.get('employee_ids', [])
 
         if not employee_ids:
@@ -135,6 +149,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Accumulate successes and per-employee error messages separately
         created_quizzes = []
         errors = []
 
@@ -142,16 +157,17 @@ class CampaignViewSet(viewsets.ModelViewSet):
             try:
                 from django.contrib.auth import get_user_model
                 User = get_user_model()
+                # Scoped lookup: only employees belonging to this campaign's company
                 employee = User.objects.get(id=employee_id, role='EMPLOYEE', company=campaign.company)
 
-                # Check if quiz already exists
+                # Idempotent: skip if a quiz already exists for this (campaign, employee) pair
                 quiz, created = Quiz.objects.get_or_create(
                     campaign=campaign,
                     employee=employee
                 )
 
                 if created:
-                    # Generate quiz questions for this employee
+                    # Populate the quiz with a randomized question set from the email pool
                     self._generate_quiz_questions(quiz)
                     created_quizzes.append(QuizSerializer(quiz).data)
                 else:
@@ -160,10 +176,10 @@ class CampaignViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 errors.append(f"Error creating quiz for employee {employee_id}: {str(e)}")
 
-        # Update campaign statistics
+        # Refresh denormalized participant count from the database
         campaign.total_participants = campaign.quizzes.count()
 
-        # Auto-activate campaign when first employees are assigned
+        # Auto-activate campaign when first employees are assigned so quizzes become accessible
         if campaign.status == 'DRAFT' and created_quizzes:
             campaign.status = 'ACTIVE'
             if not campaign.start_date:
@@ -181,23 +197,23 @@ class CampaignViewSet(viewsets.ModelViewSet):
         """Generate randomized questions for a quiz from campaign's email pool."""
         campaign = quiz.campaign
 
-        # Get all email templates for this campaign
+        # Fetch each type separately so we can enforce the phishing_ratio split
         phishing_emails = list(campaign.email_templates.filter(email_type='PHISHING'))
         legitimate_emails = list(campaign.email_templates.filter(email_type='LEGITIMATE'))
 
-        # Randomize selection
+        # Shuffle in-place so every employee gets a different ordering
         random.shuffle(phishing_emails)
         random.shuffle(legitimate_emails)
 
-        # Select required number of each type
+        # Slice to the exact counts derived from num_emails and phishing_ratio
         selected_phishing = phishing_emails[:campaign.num_phishing_emails]
         selected_legitimate = legitimate_emails[:campaign.num_legitimate_emails]
 
-        # Combine and shuffle
+        # Interleave phishing and legitimate emails randomly to prevent positional bias
         all_emails = selected_phishing + selected_legitimate
         random.shuffle(all_emails)
 
-        # Create quiz questions
+        # Persist each email as an ordered QuizQuestion; question_number starts at 1
         for index, email_template in enumerate(all_emails, start=1):
             QuizQuestion.objects.create(
                 quiz=quiz,
@@ -234,11 +250,13 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign = self.get_object()
         from django.db.models import Count, Q
 
+        # Single query: join employee, count all questions, count only answered ones
         quizzes = (
             campaign.quizzes
             .select_related('employee')
             .annotate(
                 total_q=Count('questions'),
+                # Conditional count: questions where the employee has submitted an answer
                 answered_q=Count('questions', filter=Q(questions__answer__isnull=False)),
             )
             .order_by('created_at')
@@ -248,9 +266,11 @@ class CampaignViewSet(viewsets.ModelViewSet):
         for quiz in quizzes:
             score = None
             try:
+                # result is a OneToOne; raises RelatedObjectDoesNotExist if quiz not completed
                 score = float(quiz.result.score)
             except Exception:
                 pass
+            # Progress as a percentage; guard against quizzes with no questions yet
             progress = round(quiz.answered_q / quiz.total_q * 100, 1) if quiz.total_q > 0 else 0
             data.append({
                 'id': quiz.employee.id,
@@ -338,20 +358,22 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         """Get all questions for a quiz (without answers)."""
         quiz = self.get_object()
 
-        # Only the assigned employee can view their quiz questions
+        # Ownership check: employees can only access their own quiz questions
         if quiz.employee != request.user and not request.user.is_company_admin and not request.user.is_super_admin:
             return Response(
                 {'error': 'You do not have permission to view this quiz'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        # Ordered by question_number to render in consistent sequence on the frontend
         questions = quiz.questions.all().order_by('question_number')
         serializer = QuizQuestionSimpleSerializer(questions, many=True)
 
-        # Replace {employee_name} placeholder with the actual employee name
+        # Resolve the personalisation placeholder; prefer first_name then full name then fallback
         employee_name = quiz.employee.first_name or quiz.employee.get_full_name() or 'User'
         questions_data = serializer.data
         for q in questions_data:
+            # Mutate serialized data in-place; original EmailTemplate record is unchanged
             if q.get('email_body'):
                 q['email_body'] = q['email_body'].replace('{employee_name}', employee_name)
 
@@ -402,20 +424,21 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         """Submit an answer to a specific question."""
         quiz = self.get_object()
 
-        # Only the assigned employee can answer their quiz
+        # Ownership check: only the assigned employee may submit answers
         if quiz.employee != request.user:
             return Response(
                 {'error': 'You can only answer your own quiz questions'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        # Prevent answers being recorded after the quiz is finalised
         if quiz.status == 'COMPLETED':
             return Response(
                 {'error': 'Quiz has already been completed'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Get question number from request
+        # question_number is the user-facing 1-based index, not the DB PK
         question_number = request.data.get('question_number')
         if not question_number:
             return Response(
@@ -424,6 +447,7 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         try:
+            # Scoped lookup ensures the question belongs to this quiz
             question = quiz.questions.get(question_number=question_number)
         except QuizQuestion.DoesNotExist:
             return Response(
@@ -431,7 +455,7 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Validate and save answer
+        # Validate the answer payload (choice, confidence, timing, red flags)
         serializer = AnswerQuestionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -439,19 +463,21 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         question.confidence_level = serializer.validated_data.get('confidence_level')
         question.time_spent_seconds = serializer.validated_data.get('time_spent_seconds')
         question.answered_at = timezone.now()
-        # Store red flags only when the answer is PHISHING
+        # Red flag fields are only meaningful when the employee suspects PHISHING
         if question.answer == 'PHISHING':
             question.selected_flags = serializer.validated_data.get('selected_flags', [])
             question.flag_score = serializer.validated_data.get('flag_score', 0)
             question.flag_max_score = serializer.validated_data.get('flag_max_score', 0)
         else:
+            # Clear any stale flag data if the employee changes their answer to LEGITIMATE
             question.selected_flags = []
             question.flag_score = 0
             question.flag_max_score = 0
-        question.check_answer()  # Check if answer is correct
+        # Evaluate correctness and set requires_training flag if needed
+        question.check_answer()
         question.save()
 
-        # Update quiz progress
+        # Advance the high-water mark so the frontend knows the furthest answered question
         quiz.current_question_index = max(quiz.current_question_index, question_number)
         quiz.save()
 
@@ -466,20 +492,21 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         """Submit and finalize the quiz, calculate results."""
         quiz = self.get_object()
 
-        # Only the assigned employee can submit their quiz
+        # Ownership check: only the assigned employee may finalise their quiz
         if quiz.employee != request.user:
             return Response(
                 {'error': 'You can only submit your own quiz'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        # Guard against double-submission
         if quiz.status == 'COMPLETED':
             return Response(
                 {'error': 'Quiz has already been completed'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Check if all questions are answered
+        # Enforce all-questions-answered before scoring to maintain data integrity
         unanswered = quiz.questions.filter(answer__isnull=True).count()
         if unanswered > 0:
             return Response(
@@ -487,18 +514,19 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Calculate results
+        # Wrap result creation + quiz/campaign updates in a single transaction
         with transaction.atomic():
+            # Score the quiz and persist a QuizResult record
             result = self._calculate_quiz_result(quiz)
             quiz.status = 'COMPLETED'
             quiz.completed_at = timezone.now()
             quiz.save()
 
-            # Update campaign statistics
+            # Refresh denormalised campaign stats so the dashboard stays accurate
             campaign = quiz.campaign
             campaign.completed_participants = campaign.quizzes.filter(status='COMPLETED').count()
 
-            # Recalculate average score
+            # Recompute running average score across all completed results
             completed_results = campaign.results.all()
             if completed_results.exists():
                 from django.db.models import Avg
@@ -520,48 +548,57 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         - Legitimate question, correct answer: 100 (50 base + 50, no flags needed)
         - Legitimate question, wrong answer: 0
         """
+        # Eager-load email_template on each question to avoid N+1 queries during scoring
         questions = list(quiz.questions.select_related('email_template').all())
         total_questions = len(questions)
 
+        # Simple binary correct/incorrect counts (used for QuizResult fields)
         correct_answers = sum(1 for q in questions if q.is_correct)
         incorrect_answers = total_questions - correct_answers
 
-        # Hybrid score calculation
+        # Hybrid score: each question is worth 0-100 points, then averaged
         total_hybrid_score = 0.0
         for q in questions:
+            # 50-point base: rewarded only for a correct classification
             base = 50 if q.is_correct else 0
 
             if q.email_template.email_type == 'PHISHING':
                 if q.answer == 'PHISHING' and q.flag_max_score > 0:
-                    # Score red flags contribution (0-50)
+                    # Bonus proportional to red-flag accuracy; clamped to [0, 1]
                     rf_ratio = min(1.0, max(0.0, q.flag_score / q.flag_max_score))
                     bonus = rf_ratio * 50
                 elif q.answer == 'PHISHING':
-                    # No detectable flags in this email — give full bonus
+                    # Email has no scorable flags — award full bonus to avoid penalising the employee
                     bonus = 50
                 else:
-                    # Answered LEGITIMATE (wrong) — no red flag bonus
+                    # Employee classified phishing as legitimate; no red-flag bonus
                     bonus = 0
             else:
-                # Legitimate question: full bonus if answered correctly, else 0
+                # Legitimate question: flag bonus is binary (50 for correct, 0 for wrong)
                 bonus = 50 if q.is_correct else 0
 
             total_hybrid_score += base + bonus
 
+        # Final score is the mean per-question score (0-100 scale)
         score = total_hybrid_score / total_questions if total_questions > 0 else 0
 
-        # Phishing detection metrics (unchanged)
+        # --- Phishing detection breakdown ---
         phishing_questions = [q for q in questions if q.email_template.email_type == 'PHISHING']
+        # Correctly flagged phishing emails (true positives)
         phishing_identified = sum(1 for q in phishing_questions if q.answer == 'PHISHING' and q.is_correct)
+        # Phishing emails the employee missed (false negatives)
         phishing_missed = sum(1 for q in phishing_questions if q.answer == 'LEGITIMATE' and not q.is_correct)
 
         legitimate_questions = [q for q in questions if q.email_template.email_type == 'LEGITIMATE']
+        # Legitimate emails wrongly flagged as phishing (false positives)
         false_positives = sum(1 for q in legitimate_questions if q.answer == 'PHISHING' and not q.is_correct)
 
-        # Time metrics
+        # --- Time metrics ---
+        # None values default to 0 so partially-timed quizzes don't break the sum
         total_time = sum(q.time_spent_seconds or 0 for q in questions)
         avg_time = total_time / total_questions if total_questions > 0 else 0
 
+        # Map score + miss counts to a risk category
         risk_level = self._determine_risk_level(score, phishing_missed, false_positives)
 
         result = QuizResult.objects.create(

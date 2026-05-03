@@ -1,3 +1,11 @@
+"""
+Simulations URLs.
+Registers ViewSet routers for templates, campaigns, and email simulations.
+Also adds public token-based tracking endpoints for phishing link clicks,
+landing page, reporting, credential submission, and React feedback.
+Part of the 'simulations' app.
+"""
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (

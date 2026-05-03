@@ -1,9 +1,19 @@
+/**
+ * axios.js — Configured Axios instance and token management utilities.
+ *
+ * Sets up a shared `api` instance with:
+ *  - JWT Bearer token injection on every request
+ *  - Automatic silent token refresh on 401 responses (with request queuing)
+ *  - Global error toasts for 403 / 404 / 500 responses
+ *
+ * Exports: api (default), getAccessToken, getRefreshToken, setTokens, clearTokens
+ */
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
-// Create axios instance
+// Create the shared Axios instance with base URL and default JSON headers
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

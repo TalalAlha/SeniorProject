@@ -1,3 +1,13 @@
+/**
+ * DashboardLayout — Authenticated application shell.
+ *
+ * Renders a collapsible sidebar with role-aware navigation links, a top bar with
+ * the notification bell, theme toggle, language switcher, and user avatar/logout.
+ * The current route's page renders inside the <Outlet />.
+ *
+ * Navigation sections adapt automatically based on the logged-in user's role
+ * (SUPER_ADMIN / COMPANY_ADMIN / EMPLOYEE).
+ */
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';

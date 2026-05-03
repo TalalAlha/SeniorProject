@@ -1,3 +1,8 @@
+"""
+Notifications models.
+Defines the Notification model used to surface in-app alerts to employees and admins.
+Part of the 'notifications' app.
+"""
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -5,6 +10,7 @@ User = get_user_model()
 
 
 class Notification(models.Model):
+    """A single in-app notification record delivered to one user."""
     NOTIFICATION_TYPES = [
         # Employee - Training
         ('TRAINING_ASSIGNED', 'Training Assigned'),

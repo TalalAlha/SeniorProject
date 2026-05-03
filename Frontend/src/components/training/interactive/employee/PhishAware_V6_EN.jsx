@@ -1,3 +1,9 @@
+/**
+ * PhishAware_V6_EN.jsx — Interactive voice phishing (vishing) remediation training lesson (English, employee).
+ *
+ * Self-contained slide-deck style lesson. Progress is managed externally
+ * by InteractiveLessonWrapper.
+ */
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../../contexts/ThemeContext";
 

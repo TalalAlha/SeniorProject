@@ -1,3 +1,16 @@
+/**
+ * eslint.config.js — ESLint flat-config for the PhishAware frontend.
+ *
+ * Applies to all .js and .jsx files. Extends:
+ *  - @eslint/js recommended — standard JS best-practice rules
+ *  - eslint-plugin-react-hooks recommended — exhaustive-deps and rules-of-hooks
+ *  - eslint-plugin-react-refresh/vite — warns when non-component exports break HMR
+ *
+ * Custom rules:
+ *  - no-unused-vars: error, but ignores names matching /^[A-Z_]/ (constants/components)
+ *
+ * The 'dist' output folder is excluded from linting.
+ */
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

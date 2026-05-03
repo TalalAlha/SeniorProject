@@ -1,8 +1,23 @@
 """
-URL configuration for phishaware_backend project.
+urls.py — Root URL dispatcher for the PhishAware backend.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Maps URL prefixes to each app's router:
+  /admin/                  → Django admin
+  /api/docs/               → Swagger UI (drf-yasg)
+  /api/redoc/              → ReDoc UI
+  /api/v1/auth/            → accounts.urls      (login, register, tokens)
+  /api/v1/employees/       → accounts.urls_employees (invite, accept)
+  /api/v1/companies/       → companies.urls
+  /api/v1/campaigns/       → campaigns.urls
+  /api/v1/assessments/     → assessments.urls   (email quiz)
+  /api/v1/simulations/     → simulations.urls   (phishing simulation + tracking)
+  /api/v1/training/        → training.urls      (modules, progress, quiz)
+  /api/v1/gamification/    → gamification.urls  (badges, points, leaderboard)
+  /api/v1/analytics/       → analytics.urls     (risk scores, dashboard stats)
+  /api/v1/community/       → community.urls     (public portal, no auth required)
+  /api/v1/notifications/   → notifications.urls (in-app notification feed)
+
+Media and static files are served directly by Django only in DEBUG mode.
 """
 from django.contrib import admin
 from django.urls import path, include

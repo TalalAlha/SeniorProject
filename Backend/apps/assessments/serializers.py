@@ -1,3 +1,9 @@
+"""
+Assessments serializers.
+Provides serializers for EmailTemplate CRUD, AI email generation requests,
+and QuizQuestion read/write operations.
+Part of the 'assessments' app.
+"""
 from rest_framework import serializers
 from .models import EmailTemplate, QuizQuestion
 

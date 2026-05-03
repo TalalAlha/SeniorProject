@@ -1,3 +1,10 @@
+/**
+ * TopicTraining — Interactive training lesson page (/training/:topic).
+ *
+ * Loads the correct bilingual interactive lesson component based on the
+ * topic slug (email-phishing, sms-phishing, voice-phishing) and the active
+ * language (en / ar) from i18n.
+ */
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight } from 'lucide-react';

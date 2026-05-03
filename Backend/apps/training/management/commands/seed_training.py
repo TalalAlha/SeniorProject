@@ -1,11 +1,24 @@
+"""
+Management command: seed_training.
+
+Populates the database with three bilingual phishing-awareness training modules
+(Email, SMS/Smishing, Voice/Vishing), each with five English and five Arabic questions.
+All modules are seeded as global (company=None) so every company can use them.
+
+Usage:
+    python manage.py seed_training
+"""
 from django.core.management.base import BaseCommand
 from apps.training.models import TrainingModule, TrainingQuestion
 
 
 class Command(BaseCommand):
+    """Management command that seeds the three core phishing-awareness training modules."""
+
     help = 'Seed phishing awareness training modules with bilingual content'
 
     def handle(self, *args, **options):
+        """Create or update TrainingModule and TrainingQuestion records for all three topics."""
         VIDEO_URL = 'https://www.youtube.com/embed/XBkzBrXlle0'
 
         modules_data = [

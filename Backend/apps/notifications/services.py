@@ -1,11 +1,18 @@
+"""
+Notifications services.
+Provides NotificationService, a static helper layer that creates typed Notification records
+for every event in the platform (training, simulation, account, admin, super-admin).
+Part of the 'notifications' app.
+"""
 from .models import Notification
 
 
 class NotificationService:
-    """Service layer for creating notifications."""
+    """Centralised factory for creating in-app notifications for all platform events."""
 
     @staticmethod
     def create_notification(user, notification_type, title, message, priority='MEDIUM', link=None):
+        """Create and persist a single Notification record."""
         return Notification.objects.create(
             user=user,
             notification_type=notification_type,
@@ -21,6 +28,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_assigned(employee, training_module):
+        """Notify an employee that a new training module has been assigned to them."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='TRAINING_ASSIGNED',
@@ -32,6 +40,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_due_soon(employee, training_assignment, days_left):
+        """Notify an employee that their training deadline is approaching."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='TRAINING_DUE_SOON',
@@ -43,6 +52,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_due_tomorrow(employee, training_assignment):
+        """Notify an employee that their training is due the following day."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='TRAINING_DUE_TOMORROW',
@@ -54,6 +64,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_overdue(employee, training_assignment):
+        """Notify an employee that a training module has passed its deadline."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='TRAINING_OVERDUE',
@@ -65,6 +76,7 @@ class NotificationService:
 
     @staticmethod
     def notify_quiz_passed(employee, training_module, score):
+        """Congratulate an employee for passing a training quiz."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='QUIZ_PASSED',
@@ -76,6 +88,7 @@ class NotificationService:
 
     @staticmethod
     def notify_quiz_failed(employee, training_module, score):
+        """Notify an employee that they failed a training quiz and can retry."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='QUIZ_FAILED',
@@ -91,6 +104,7 @@ class NotificationService:
 
     @staticmethod
     def notify_simulation_launched(employee, simulation):
+        """Notify an employee that a new phishing simulation campaign is active."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='SIMULATION_LAUNCHED',
@@ -102,6 +116,7 @@ class NotificationService:
 
     @staticmethod
     def notify_simulation_safe(employee, simulation):
+        """Congratulate an employee for not clicking on a phishing simulation email."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='SIMULATION_SAFE',
@@ -117,6 +132,7 @@ class NotificationService:
 
     @staticmethod
     def notify_welcome(employee):
+        """Send a welcome notification when a new employee account is activated."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='WELCOME',
@@ -128,6 +144,7 @@ class NotificationService:
 
     @staticmethod
     def notify_password_changed(user):
+        """Alert a user that their password was changed, prompting them to act if it wasn't them."""
         return NotificationService.create_notification(
             user=user,
             notification_type='PASSWORD_CHANGED',
@@ -143,6 +160,7 @@ class NotificationService:
 
     @staticmethod
     def notify_employee_clicked_phishing(admin, employee, simulation):
+        """Alert an admin that an employee clicked a phishing simulation link."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='EMPLOYEE_CLICKED',
@@ -154,6 +172,7 @@ class NotificationService:
 
     @staticmethod
     def notify_employee_reported_phishing(admin, employee, simulation):
+        """Inform an admin that an employee correctly reported a phishing simulation."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='EMPLOYEE_REPORTED',
@@ -165,6 +184,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_completed(admin, employee, training_module):
+        """Inform an admin that an employee finished a training module."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='TRAINING_COMPLETED',
@@ -176,6 +196,7 @@ class NotificationService:
 
     @staticmethod
     def notify_employee_failed_quiz(admin, employee, training_module, score):
+        """Alert an admin that an employee failed a training quiz."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='EMPLOYEE_FAILED_QUIZ',
@@ -187,6 +208,7 @@ class NotificationService:
 
     @staticmethod
     def notify_high_risk_employee(admin, employee, risk_score):
+        """Alert an admin that an employee's risk score has crossed the high-risk threshold."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='HIGH_RISK_EMPLOYEE',
@@ -202,6 +224,7 @@ class NotificationService:
 
     @staticmethod
     def notify_campaign_completed(admin, campaign):
+        """Notify an admin that a simulation campaign has finished."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='CAMPAIGN_COMPLETED',
@@ -213,6 +236,7 @@ class NotificationService:
 
     @staticmethod
     def notify_high_click_rate(admin, simulation, click_rate):
+        """Alert an admin that a simulation's click rate exceeds acceptable levels."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='HIGH_CLICK_RATE',
@@ -224,6 +248,7 @@ class NotificationService:
 
     @staticmethod
     def notify_simulation_progress(admin, simulation, sent, clicked, reported):
+        """Send an admin a progress snapshot of a running simulation campaign."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='SIMULATION_PROGRESS',
@@ -239,6 +264,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_deadline_approaching(admin, count):
+        """Warn an admin that training deadlines for multiple employees are within 3 days."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='TRAINING_DEADLINE_APPROACHING',
@@ -250,6 +276,7 @@ class NotificationService:
 
     @staticmethod
     def notify_overdue_trainings(admin, count):
+        """Alert an admin that employees have overdue training assignments."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='OVERDUE_TRAININGS',
@@ -265,6 +292,7 @@ class NotificationService:
 
     @staticmethod
     def notify_employee_joined(admin, employee):
+        """Notify an admin that an invited employee has accepted their invitation."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='EMPLOYEE_JOINED',
@@ -276,6 +304,7 @@ class NotificationService:
 
     @staticmethod
     def notify_invitation_expired(admin, employee_email):
+        """Notify an admin that an invitation was not accepted before it expired."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='INVITATION_EXPIRED',
@@ -291,6 +320,7 @@ class NotificationService:
 
     @staticmethod
     def notify_training_completed_employee(employee, training_module, score):
+        """Congratulate an employee on completing a training module and show their score."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='TRAINING_COMPLETED_EMPLOYEE',
@@ -306,6 +336,7 @@ class NotificationService:
 
     @staticmethod
     def notify_simulation_clicked(employee, simulation):
+        """Inform an employee (post-click) that the email they clicked was a security test."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='SIMULATION_CLICKED',
@@ -317,6 +348,7 @@ class NotificationService:
 
     @staticmethod
     def notify_simulation_reported(employee, simulation):
+        """Praise an employee who correctly identified and reported a phishing simulation."""
         return NotificationService.create_notification(
             user=employee,
             notification_type='SIMULATION_REPORTED',
@@ -332,6 +364,7 @@ class NotificationService:
 
     @staticmethod
     def notify_profile_updated(user):
+        """Confirm to a user that their profile information was updated successfully."""
         return NotificationService.create_notification(
             user=user,
             notification_type='PROFILE_UPDATED',
@@ -343,6 +376,8 @@ class NotificationService:
 
     @staticmethod
     def notify_security_score_up(employee, old_score, new_score):
+        """Inform an employee that their security risk score improved."""
+        # Compute percentage-point improvement for the notification message
         improvement = round(new_score - old_score, 1)
         return NotificationService.create_notification(
             user=employee,
@@ -355,6 +390,8 @@ class NotificationService:
 
     @staticmethod
     def notify_security_score_down(employee, old_score, new_score):
+        """Warn an employee that their security risk score has worsened."""
+        # Compute percentage-point decrease for the notification message
         decrease = round(old_score - new_score, 1)
         return NotificationService.create_notification(
             user=employee,
@@ -371,6 +408,7 @@ class NotificationService:
 
     @staticmethod
     def notify_multiple_failures(admin, employee_count, simulation):
+        """Alert an admin that a significant number of employees clicked a phishing link."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='MULTIPLE_FAILURES',
@@ -386,6 +424,7 @@ class NotificationService:
 
     @staticmethod
     def notify_low_report_rate(admin, simulation, report_rate):
+        """Warn an admin that employees are not reporting phishing emails in sufficient numbers."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='LOW_REPORT_RATE',
@@ -397,6 +436,7 @@ class NotificationService:
 
     @staticmethod
     def notify_simulation_sent(admin, simulation, count):
+        """Confirm to an admin that simulation emails were dispatched successfully."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='SIMULATION_SENT',
@@ -412,6 +452,7 @@ class NotificationService:
 
     @staticmethod
     def notify_monthly_report_ready(admin, month, year):
+        """Notify an admin that the monthly training completion report is available."""
         return NotificationService.create_notification(
             user=admin,
             notification_type='MONTHLY_REPORT_READY',
@@ -427,6 +468,7 @@ class NotificationService:
 
     @staticmethod
     def notify_new_company(super_admin, company_name):
+        """Notify a super-admin that a new company has registered on the platform."""
         return NotificationService.create_notification(
             user=super_admin,
             notification_type='NEW_COMPANY',
@@ -438,6 +480,7 @@ class NotificationService:
 
     @staticmethod
     def notify_system_alert(super_admin, alert_message):
+        """Send a high-priority system alert to a super-admin."""
         return NotificationService.create_notification(
             user=super_admin,
             notification_type='SYSTEM_ALERT',
@@ -449,6 +492,7 @@ class NotificationService:
 
     @staticmethod
     def notify_backup_completed(super_admin, backup_size):
+        """Notify a super-admin that a database backup completed successfully."""
         return NotificationService.create_notification(
             user=super_admin,
             notification_type='BACKUP_COMPLETED',

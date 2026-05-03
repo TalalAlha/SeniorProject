@@ -740,9 +740,12 @@ TEMPLATES = [
 
 
 class Command(BaseCommand):
+    """Management command that seeds phishing simulation templates into the database."""
+
     help = 'Seed phishing simulation templates (EN + AR) into the database'
 
     def add_arguments(self, parser):
+        """Register --clear flag to optionally wipe existing global templates first."""
         parser.add_argument(
             '--clear',
             action='store_true',
@@ -750,6 +753,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Iterate TEMPLATES list and upsert each template via get_or_create."""
         if options['clear']:
             deleted, _ = SimulationTemplate.objects.filter(company__isnull=True).delete()
             self.stdout.write(self.style.WARNING(f'Deleted {deleted} existing global templates.'))

@@ -1,3 +1,9 @@
+"""
+Companies models.
+Defines the Company model representing organisations registered on the PhishAware platform.
+Each company owns its users (admins + employees) and simulation campaigns.
+Part of the 'companies' app.
+"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import URLValidator

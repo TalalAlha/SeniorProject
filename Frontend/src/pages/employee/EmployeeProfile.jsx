@@ -1,3 +1,9 @@
+/**
+ * EmployeeProfile — Personal profile and settings page for employees (/employee/profile).
+ *
+ * Allows employees to view and edit their display name, department, and profile picture,
+ * as well as change their password. Also shows the current security score and risk level.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

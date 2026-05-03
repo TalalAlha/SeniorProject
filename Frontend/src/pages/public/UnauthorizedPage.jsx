@@ -1,3 +1,9 @@
+/**
+ * UnauthorizedPage — 403 access-denied page.
+ *
+ * Displayed when an authenticated user navigates to a route they do not have
+ * the required role for.  Shows a role-aware link back to their home dashboard.
+ */
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ShieldX, ArrowLeft, Home } from 'lucide-react';

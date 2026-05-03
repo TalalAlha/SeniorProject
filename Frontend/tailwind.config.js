@@ -1,4 +1,18 @@
-/** @type {import('tailwindcss').Config} */
+/**
+ * tailwind.config.js — Tailwind CSS configuration for the PhishAware frontend.
+ *
+ * Extends the default theme with:
+ *  - dark.*   — custom dark-mode background/card/border palette (slate-900 family)
+ *  - primary  — blue scale used for primary actions and highlights
+ *  - secondary — slate scale used for text, borders, and muted elements
+ *  - success / warning / danger — status colour scales
+ *  - fontFamily.arabic — Cairo + Noto Sans Arabic for bilingual RTL support
+ *  - animation.fade-in — 0.4 s ease-out slide-up reveal
+ *
+ * Dark mode is toggled via the 'class' strategy (ThemeProvider adds/removes 'dark' on <html>).
+ *
+ * @type {import('tailwindcss').Config}
+ */
 export default {
   content: [
     "./index.html",

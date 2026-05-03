@@ -54,19 +54,24 @@ class BadgeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, HasCompanyAccess]
 
     def get_serializer_class(self):
+        """Return the appropriate serializer based on the current action."""
+        # Write actions use a leaner serializer that exposes all editable fields
         if self.action in ['create', 'update', 'partial_update']:
             return BadgeCreateSerializer
         elif self.action == 'retrieve':
+            # Detail view includes times_awarded count via SerializerMethodField
             return BadgeDetailSerializer
         return BadgeListSerializer
 
     def get_queryset(self):
+        """Filter badges by company visibility and user role."""
         user = self.request.user
 
         if user.is_super_admin:
+            # Super admins see all badges across all companies
             queryset = Badge.objects.all()
         else:
-            # Show global badges + company-specific badges
+            # Regular users see global badges (company=None) plus their company's custom badges
             queryset = Badge.objects.filter(
                 Q(company__isnull=True) | Q(company=user.company)
             )
@@ -77,14 +82,17 @@ class BadgeViewSet(viewsets.ModelViewSet):
             earned_badge_ids = EmployeeBadge.objects.filter(
                 employee=user
             ).values_list('badge_id', flat=True)
+            # Hidden badges become visible once the employee has earned them
             queryset = queryset.filter(
                 Q(is_hidden=False) | Q(id__in=earned_badge_ids)
             )
 
+        # Always exclude deactivated badges from the public-facing queryset
         queryset = queryset.filter(is_active=True)
         return queryset
 
     def get_permissions(self):
+        """Restrict mutating actions to admins; allow read access to all authenticated users."""
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsSuperAdminOrCompanyAdmin()]
         return [IsAuthenticated(), HasCompanyAccess()]
@@ -121,6 +129,7 @@ class BadgeViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def bulk_award(self, request, pk=None):
         """Award a badge to multiple employees."""
+        # pk resolves to the Badge the action is nested under
         badge = self.get_object()
         serializer = BulkBadgeAwardSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -129,16 +138,17 @@ class BadgeViewSet(viewsets.ModelViewSet):
 
         from apps.accounts.models import User
 
-        # Filter to company employees if not super admin
+        # Scope to the requesting admin's company unless they are a super admin
         if not request.user.is_super_admin:
             employees = User.objects.filter(
                 id__in=employee_ids,
                 role='EMPLOYEE',
-                company=request.user.company
+                company=request.user.company  # prevent cross-company awards
             )
         else:
             employees = User.objects.filter(id__in=employee_ids, role='EMPLOYEE')
 
+        # check_and_award_badge returns None if the employee already has the badge
         awarded = []
         skipped = []
 
@@ -147,11 +157,12 @@ class BadgeViewSet(viewsets.ModelViewSet):
                 employee=employee,
                 badge_type=badge.badge_type,
                 source_type='AdminAward',
-                source_id=request.user.id
+                source_id=request.user.id  # track which admin triggered the award
             )
             if emp_badge:
                 awarded.append(employee.email)
             else:
+                # Already had the badge or badge is inactive — skip silently
                 skipped.append(employee.email)
 
         return Response({
@@ -179,23 +190,30 @@ class PointsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = EmployeePointsSerializer
 
     def get_queryset(self):
+        """Scope the queryset to what the requesting user is allowed to see."""
         user = self.request.user
 
         if user.is_super_admin:
+            # Super admins can inspect all records
             queryset = EmployeePoints.objects.all()
         elif user.is_company_admin:
+            # Company admins see their whole company's leaderboard data
             queryset = EmployeePoints.objects.filter(company=user.company)
         else:
+            # Regular employees only see their own points record
             queryset = EmployeePoints.objects.filter(employee=user)
 
+        # select_related avoids N+1 queries when serializing employee/company fields
         return queryset.select_related('employee', 'company')
 
     @action(detail=False, methods=['get'])
     def my_summary(self, request):
         """Get current user's points summary."""
+        # get_or_create ensures a record exists even for brand-new employees
         emp_points, _ = get_or_create_employee_points(request.user)
 
         if not emp_points:
+            # Employee has no company assigned; return a safe zero-state response
             return Response({
                 'total_points': 0,
                 'weekly_points': 0,
@@ -213,6 +231,7 @@ class PointsViewSet(viewsets.ReadOnlyModelViewSet):
             'weekly_points': emp_points.weekly_points,
             'monthly_points': emp_points.monthly_points,
             'badge_count': emp_points.badge_count,
+            # Rank is computed on-the-fly by counting employees with higher points
             'rank_all_time': get_employee_rank(request.user, 'all_time'),
             'rank_weekly': get_employee_rank(request.user, 'weekly'),
             'rank_monthly': get_employee_rank(request.user, 'monthly'),
@@ -246,31 +265,32 @@ class PointsViewSet(viewsets.ReadOnlyModelViewSet):
         from apps.accounts.models import User
 
         employee_id = serializer.validated_data['employee_id']
-        points = serializer.validated_data['points']
+        points = serializer.validated_data['points']  # may be negative for deductions
         description = serializer.validated_data['description']
         description_ar = serializer.validated_data.get('description_ar', '')
 
-        # Get employee
+        # 404 if employee doesn't exist or is not an EMPLOYEE-role user
         employee = get_object_or_404(User, id=employee_id, role='EMPLOYEE')
 
-        # Check company access
+        # Enforce company boundary — company admins cannot touch other companies' employees
         if not request.user.is_super_admin and employee.company != request.user.company:
             return Response(
                 {'error': 'You can only adjust points for your company employees'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Create adjustment
+        # award_points handles aggregate updates and transaction creation atomically
         pt = award_points(
             employee=employee,
             transaction_type='ADMIN_ADJUSTMENT',
             points=points,
             source_type='AdminAdjustment',
-            source_id=request.user.id,
+            source_id=request.user.id,  # record which admin made the adjustment
             description=description
         )
 
         if pt:
+            # Save Arabic description in a separate update to avoid re-triggering any signals
             pt.description_ar = description_ar
             pt.save(update_fields=['description_ar'])
 
@@ -312,7 +332,7 @@ class LeaderboardViewSet(viewsets.ViewSet):
         limit = min(int(request.query_params.get('limit', 10)), 100)
         offset = int(request.query_params.get('offset', 0))
 
-        # Determine company filter
+        # Super admins may pass an explicit company_id; others are scoped to their own company
         if user.is_super_admin:
             company_id = request.query_params.get('company')
             if company_id:
@@ -320,7 +340,7 @@ class LeaderboardViewSet(viewsets.ViewSet):
         else:
             company_id = user.company_id
 
-        # Get leaderboard entries
+        # Retrieve paginated EmployeePoints rows ordered by the chosen period field
         entries = get_leaderboard(
             company_id=company_id,
             period=period,
@@ -332,25 +352,28 @@ class LeaderboardViewSet(viewsets.ViewSet):
         entries_with_rank = []
         for idx, entry in enumerate(entries):
             entry_data = LeaderboardEntrySerializer(entry).data
+            # Rank is 1-based and respects the offset for pagination
             entry_data['rank'] = offset + idx + 1
 
-            # Resolve points for the requested period
+            # Resolve points for the requested period — the model stores all three periods
             if period == 'weekly':
                 entry_data['points'] = entry.weekly_points
             elif period == 'monthly':
                 entry_data['points'] = entry.monthly_points
             else:
+                # Default to all-time total
                 entry_data['points'] = entry.total_points
 
-            # Flag the requesting user's own row
+            # Let the frontend highlight the current user's row without a separate API call
             entry_data['is_current_user'] = (entry.employee_id == user.id)
 
             entries_with_rank.append(entry_data)
 
-        # Get current user's rank and points
+        # Admins don't participate in the employee leaderboard; rank is None for them
         my_rank = get_employee_rank(user, period) if user.role == 'EMPLOYEE' else None
         try:
             my_points_obj = EmployeePoints.objects.get(employee=user)
+            # Pick the correct period-specific counter to match what the leaderboard shows
             if period == 'weekly':
                 my_points = my_points_obj.weekly_points
             elif period == 'monthly':
@@ -358,9 +381,10 @@ class LeaderboardViewSet(viewsets.ViewSet):
             else:
                 my_points = my_points_obj.total_points
         except EmployeePoints.DoesNotExist:
+            # User has never earned points — return 0 rather than error
             my_points = 0
 
-        # Get company name
+        # Resolve a human-readable company name for the response header
         company_name = None
         if company_id:
             from apps.companies.models import Company
@@ -369,7 +393,7 @@ class LeaderboardViewSet(viewsets.ViewSet):
             except Company.DoesNotExist:
                 pass
 
-        # Get total participants
+        # Total participants = all EmployeePoints rows for the company (or global)
         total_query = EmployeePoints.objects.all()
         if company_id:
             total_query = total_query.filter(company_id=company_id)
@@ -382,6 +406,7 @@ class LeaderboardViewSet(viewsets.ViewSet):
             'total_participants': total_participants,
             'entries': entries_with_rank,
             'my_rank': my_rank,
+            # my_points is null for admins who aren't tracked on the leaderboard
             'my_points': my_points if user.role == 'EMPLOYEE' else None,
         })
 
@@ -390,11 +415,14 @@ class LeaderboardViewSet(viewsets.ViewSet):
         """Get current user's position in leaderboard."""
         user = request.user
 
+        # Admins are excluded from employee-facing leaderboards
         if user.role != 'EMPLOYEE':
             return Response({'error': 'Only employees have leaderboard positions'}, status=400)
 
+        # Use .first() instead of .get() to avoid DoesNotExist exceptions for new employees
         emp_points = EmployeePoints.objects.filter(employee=user).first()
 
+        # Count all employees in the same company to show "rank X of Y" context
         total_participants = EmployeePoints.objects.filter(
             company=user.company
         ).count() if user.company else 0

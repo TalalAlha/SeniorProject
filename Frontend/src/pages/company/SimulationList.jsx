@@ -1,3 +1,9 @@
+/**
+ * SimulationList — Phishing simulation template library page (/company/simulations/list).
+ *
+ * Displays all available simulation templates with search and filter controls.
+ * Company admins can preview templates and initiate a new simulation campaign from here.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

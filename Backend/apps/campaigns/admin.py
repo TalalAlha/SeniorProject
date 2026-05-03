@@ -1,3 +1,9 @@
+"""
+Campaigns admin configuration.
+Registers Campaign, Quiz, and QuizResult models in the Django admin site
+with fieldsets, filters, and computed read-only stats.
+Part of the 'campaigns' app.
+"""
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from .models import Campaign, Quiz, QuizResult

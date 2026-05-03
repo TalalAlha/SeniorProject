@@ -1,3 +1,13 @@
+/**
+ * ThemeToggle — Dark/light mode toggle control.
+ *
+ * Three visual variants:
+ *  - 'icon'   — compact icon button (Moon/Sun)
+ *  - 'switch' — iOS-style toggle switch with Sun/Moon flanking icons
+ *  - default  — labelled button showing the opposite mode name
+ *
+ * @param {'icon'|'switch'|string} variant - Visual style of the toggle
+ */
 import { useTheme } from '../../contexts/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
 

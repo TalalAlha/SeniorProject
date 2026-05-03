@@ -1,3 +1,9 @@
+"""
+Campaigns serializers.
+Provides serializers for Campaign CRUD, Quiz progress, QuizResult reporting,
+and the AnswerQuestion payload used when an employee submits a quiz answer.
+Part of the 'campaigns' app.
+"""
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Campaign, Quiz, QuizResult

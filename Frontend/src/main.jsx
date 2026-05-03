@@ -1,3 +1,10 @@
+/**
+ * main.jsx — Application entry point.
+ *
+ * Mounts the React root inside ThemeProvider so the dark/light preference
+ * is available before any route renders.  StrictMode is enabled for development
+ * double-render checks.
+ */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

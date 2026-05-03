@@ -1,3 +1,9 @@
+/**
+ * EmployeeList — Read-only employee directory for company admins (/company/employees/list).
+ *
+ * Lists all employees with their department, role, and risk level.
+ * For full management (invite, remove, role change) see CompanyEmployees.
+ */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Users, Mail, AlertTriangle, UserPlus } from 'lucide-react';

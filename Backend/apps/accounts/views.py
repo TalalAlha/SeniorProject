@@ -1,3 +1,9 @@
+"""
+Accounts views.
+Handles user registration, login, email verification, password reset, profile management,
+and the full employee invitation lifecycle (invite / inspect / accept / resend / cancel).
+Part of the 'accounts' app.
+"""
 import uuid
 import logging
 from datetime import timedelta
@@ -29,61 +35,75 @@ from .serializers import (
     UserUpdateSerializer
 )
 
+# Module-level logger; messages appear under the 'apps.accounts.views' namespace
 logger = logging.getLogger(__name__)
 
+# Resolve the active User model at import time (accounts.User in this project)
 User = get_user_model()
 
+# How long an email-verification link stays valid before the user must request a new one
 VERIFICATION_TOKEN_EXPIRY_HOURS = 24
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """Custom login view with JWT tokens and user information."""
+    """Login view that issues JWT access + refresh tokens and embeds user profile claims."""
 
+    # Swap in the custom serializer that adds role, email, and company_id to the token
     serializer_class = CustomTokenObtainPairSerializer
 
 
 class RegisterView(generics.CreateAPIView):
-    """User registration endpoint — sends a verification email after creation."""
+    """User registration endpoint — creates a PUBLIC_USER and sends a verification email."""
 
     queryset = User.objects.all()
+    # Registration is open to the public; no authentication required
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
+        """Validate registration data, create the user, and dispatch a verification email."""
         serializer = self.get_serializer(data=request.data)
+        # raise_exception=True converts validation failures into a 400 response automatically
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
         # Send verification email asynchronously so the registration response
-        # is not blocked on SendGrid SMTP (typically 200-1500ms). The helper
+        # is not blocked on SendGrid SMTP (typically 200–1500 ms). The helper
         # already catches and logs its own errors.
         _send_in_background(send_verification_email, user, str(user.verification_token))
 
+        # Return a minimal response; the frontend shows a "check your email" state
         return Response({
             'message': (
                 'Registration successful! '
                 'Please check your email to verify your account before logging in.'
             ),
             'email': user.email,
+            # Tells the frontend that the email was queued (not necessarily delivered yet)
             'verification_sent': True,
         }, status=status.HTTP_201_CREATED)
 
 
 class LogoutView(views.APIView):
-    """Logout endpoint to blacklist refresh token."""
+    """Logout endpoint that blacklists the submitted refresh token via SimpleJWT."""
 
+    # Only authenticated users can log out (access token required in Authorization header)
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """Blacklist the provided refresh token, preventing future token refreshes."""
         try:
             refresh_token = request.data.get('refresh_token')
+            # Without a refresh token we cannot blacklist anything; fail fast
             if not refresh_token:
                 return Response(
                     {'error': 'Refresh token is required.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
+            # Wrap the raw token string in a RefreshToken object so we can call .blacklist()
             token = RefreshToken(refresh_token)
+            # Adds the token's JTI to the OutstandingToken blacklist table
             token.blacklist()
 
             return Response(
@@ -91,6 +111,7 @@ class LogoutView(views.APIView):
                 status=status.HTTP_200_OK
             )
         except Exception as e:
+            # Covers invalid token format, already-blacklisted tokens, etc.
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -98,27 +119,35 @@ class LogoutView(views.APIView):
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    """Get and update user profile."""
+    """Retrieve (GET) or update (PATCH/PUT) the currently authenticated user's profile."""
 
     permission_classes = [IsAuthenticated]
+    # GET responses use the full read serializer; updates use UserUpdateSerializer (see update())
     serializer_class = UserSerializer
 
     def get_object(self):
+        """Return the authenticated user as the target object (no pk lookup needed)."""
         return self.request.user
 
     def update(self, request, *args, **kwargs):
+        """Update allowed profile fields and fire a profile-updated notification."""
+        # partial=True enables PATCH semantics (omitted fields are not cleared)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        # Use the restricted update serializer so users cannot change role/company via this endpoint
         serializer = UserUpdateSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
+        # Fire an in-app notification; wrapped in try/except so a notification
+        # failure never breaks the profile update response
         try:
             from apps.notifications.services import NotificationService
             NotificationService.notify_profile_updated(user=instance)
         except Exception as exc:
             logger.warning('Failed to create profile-updated notification: %s', exc)
 
+        # Return the full profile (not just the updated subset) for the frontend
         return Response(
             UserSerializer(instance).data,
             status=status.HTTP_200_OK

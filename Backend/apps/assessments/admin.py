@@ -1,3 +1,9 @@
+"""
+Assessments admin configuration.
+Registers EmailTemplate and QuizQuestion in the Django admin with full fieldsets
+and inline subject display for quiz question records.
+Part of the 'assessments' app.
+"""
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from .models import EmailTemplate, QuizQuestion

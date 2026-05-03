@@ -134,6 +134,7 @@ class Badge(models.Model):
         ]
 
     def __str__(self):
+        """Return a human-readable representation including rarity label."""
         return f"{self.name} ({self.get_rarity_display()})"
 
 
@@ -207,12 +208,15 @@ class EmployeeBadge(models.Model):
         ]
 
     def __str__(self):
+        """Return a human-readable representation of the badge award."""
         return f"{self.employee.email} - {self.badge.name}"
 
     def save(self, *args, **kwargs):
         """Auto-set company and points from employee/badge."""
+        # Derive company from the employee's profile so callers don't have to pass it explicitly
         if not self.company_id and self.employee_id:
             self.company = self.employee.company
+        # Snapshot badge points at award time so later badge edits don't alter historical records
         if not self.points_awarded and self.badge_id:
             self.points_awarded = self.badge.points_awarded
         super().save(*args, **kwargs)
@@ -314,11 +318,13 @@ class PointsTransaction(models.Model):
         ]
 
     def __str__(self):
+        """Return signed points and transaction type for quick identification."""
+        # Prefix positive transactions with '+' for readability in list views
         sign = '+' if self.points > 0 else ''
         return f"{self.employee.email}: {sign}{self.points} ({self.transaction_type})"
 
     def save(self, *args, **kwargs):
-        """Auto-set company from employee."""
+        """Auto-set company from employee so callers only need to pass the employee."""
         if not self.company_id and self.employee_id:
             self.company = self.employee.company
         super().save(*args, **kwargs)
@@ -409,10 +415,11 @@ class EmployeePoints(models.Model):
         ]
 
     def __str__(self):
+        """Return employee email and current total points."""
         return f"{self.employee.email}: {self.total_points} points"
 
     def save(self, *args, **kwargs):
-        """Auto-set company from employee."""
+        """Auto-set company from employee so callers only need to pass the employee."""
         if not self.company_id and self.employee_id:
             self.company = self.employee.company
         super().save(*args, **kwargs)

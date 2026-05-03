@@ -1,3 +1,10 @@
+"""
+Simulations views.
+Provides ViewSets and function-based views for managing simulation templates,
+campaigns, email simulations, and public phishing tracking endpoints.
+Part of the 'simulations' app.
+"""
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response

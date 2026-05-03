@@ -1,3 +1,9 @@
+"""
+Companies admin configuration.
+Registers the Company model in the Django admin site with fieldsets,
+list filters, and deactivation support.
+Part of the 'companies' app.
+"""
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from .models import Company

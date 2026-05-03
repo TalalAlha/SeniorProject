@@ -76,10 +76,12 @@ class ArticleCategory(models.Model):
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not provided."""
         if not self.slug:
+            # Convert the English name to a URL-safe slug (e.g. "Email Security" -> "email-security")
             self.slug = slugify(self.name)
-            # Ensure uniqueness
+            # Preserve the base slug so we can append a counter when duplicates exist
             original_slug = self.slug
             counter = 1
+            # Keep incrementing the suffix until we find a unique slug
             while ArticleCategory.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
@@ -87,10 +89,12 @@ class ArticleCategory(models.Model):
 
     def update_article_count(self):
         """Update the denormalized article count."""
+        # Only count articles that are published AND active so draft/archived don't inflate the total
         self.article_count = self.articles.filter(
             status='PUBLISHED',
             is_active=True
         ).count()
+        # Use update_fields to avoid a full model save and prevent overwriting unrelated changes
         self.save(update_fields=['article_count', 'updated_at'])
 
 
@@ -254,14 +258,17 @@ class Article(models.Model):
     def save(self, *args, **kwargs):
         """Auto-generate slug and set published_at."""
         if not self.slug:
+            # Derive a slug from the English title for SEO-friendly URLs
             self.slug = slugify(self.title)
             original_slug = self.slug
             counter = 1
+            # Append incrementing counter until the slug is unique across all articles
             while Article.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
                 self.slug = f"{original_slug}-{counter}"
                 counter += 1
 
         # Auto-set published_at when publishing
+        # Only set it if not already provided (allows backdating by setting published_at explicitly)
         if self.status == 'PUBLISHED' and not self.published_at:
             self.published_at = timezone.now()
 
@@ -270,8 +277,10 @@ class Article(models.Model):
     @property
     def is_published(self):
         """Check if article is currently published."""
+        # Guard: must be in PUBLISHED status and marked active
         if self.status != 'PUBLISHED' or not self.is_active:
             return False
+        # Guard: scheduled future articles are not yet visible
         if self.published_at and self.published_at > timezone.now():
             return False
         return True
@@ -279,10 +288,12 @@ class Article(models.Model):
     @property
     def display_author(self):
         """Get author display name."""
+        # Prefer the explicit override name, then fall back to the linked user's full name or email
         if self.author_name:
             return self.author_name
         if self.author:
             return self.author.get_full_name() or self.author.email
+        # Default when no author information is available
         return _('PhishAware Team')
 
     @property
@@ -290,6 +301,7 @@ class Article(models.Model):
         """Get tags as a list."""
         if not self.tags:
             return []
+        # Split comma-separated string and strip whitespace; skip empty tokens
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
 
     def increment_view_count(self):
@@ -468,23 +480,29 @@ class PublicQuiz(models.Model):
 
     def update_statistics(self):
         """Recalculate quiz statistics from attempts."""
+        # Only consider attempts that reached the completion state
         completions = self.attempts.filter(is_completed=True)
         total_completions = completions.count()
 
         if total_completions > 0:
             from django.db.models import Avg
+            # Aggregate average score across all completions in a single DB query
             avg_score = completions.aggregate(avg=Avg('score'))['avg']
             passed = completions.filter(passed=True).count()
 
             self.total_completions = total_completions
             self.average_score = avg_score
+            # pass_rate is stored as a percentage (0-100), not a fraction
             self.pass_rate = (passed / total_completions) * 100
         else:
+            # Reset to null to signal no data yet rather than showing 0%
             self.total_completions = 0
             self.average_score = None
             self.pass_rate = None
 
+        # total_attempts includes incomplete attempts (started but not submitted)
         self.total_attempts = self.attempts.count()
+        # Use update_fields to avoid unnecessary column writes
         self.save(update_fields=[
             'total_attempts', 'total_completions',
             'average_score', 'pass_rate', 'updated_at'
@@ -574,6 +592,7 @@ class PublicQuizQuestion(models.Model):
     @property
     def correct_answer(self):
         """Get the correct answer text."""
+        # Guard against empty options list or an out-of-range index stored in the DB
         if self.options and 0 <= self.correct_answer_index < len(self.options):
             return self.options[self.correct_answer_index]
         return None
@@ -708,15 +727,18 @@ class PublicQuizAttempt(models.Model):
         Returns:
             dict with score, passed, and detailed results
         """
+        # Only grade active questions; inactive questions are excluded from scoring
         questions = self.quiz.questions.filter(is_active=True)
         total_questions = questions.count()
         correct = 0
         total_points = 0
-        max_points = 0
+        max_points = 0  # Sum of all question point values
         results = []
 
         for question in questions:
+            # Accumulate the maximum possible points for percentage-independent scoring
             max_points += question.points
+            # answers_dict keys are strings because JSON serialization coerces int keys
             selected = answers_dict.get(str(question.id))
             is_correct = selected == question.correct_answer_index
 
@@ -730,15 +752,17 @@ class PublicQuizAttempt(models.Model):
                 'selected': selected,
                 'correct_answer': question.correct_answer_index,
                 'is_correct': is_correct,
+                # Only expose the explanation if the quiz is configured to show correct answers
                 'explanation': question.explanation if self.quiz.show_correct_answers else None,
                 'points_earned': question.points if is_correct else 0
             })
 
-        # Calculate score
+        # Score is percentage of correct answers (0-100); guard against zero-question quiz
         score = (correct / total_questions * 100) if total_questions > 0 else 0
+        # Compare raw score percentage against the quiz's configured passing threshold
         passed = score >= self.quiz.passing_score
 
-        # Update attempt record
+        # Persist all result fields on the attempt record
         self.answers = answers_dict
         self.total_questions = total_questions
         self.correct_answers = correct
@@ -749,12 +773,13 @@ class PublicQuizAttempt(models.Model):
         self.is_completed = True
         self.completed_at = timezone.now()
 
+        # Calculate elapsed time only when started_at is set (it always should be)
         if self.started_at:
             self.time_taken_seconds = int((self.completed_at - self.started_at).total_seconds())
 
         self.save()
 
-        # Update quiz statistics
+        # Refresh the denormalized aggregate stats on the parent quiz
         self.quiz.update_statistics()
 
         return {
@@ -764,6 +789,7 @@ class PublicQuizAttempt(models.Model):
             'total': total_questions,
             'total_points': total_points,
             'max_points': max_points,
+            # Suppress per-question results when the quiz hides correct answers
             'results': results if self.quiz.show_correct_answers else None,
             'time_taken': self.time_taken_formatted
         }
@@ -946,10 +972,12 @@ class Resource(models.Model):
         if not self.file_size_bytes:
             return None
         size = self.file_size_bytes
+        # Iteratively divide by 1024 until we find the largest appropriate unit
         for unit in ['B', 'KB', 'MB', 'GB']:
             if size < 1024:
                 return f"{size:.1f} {unit}"
             size /= 1024
+        # Anything remaining after GB is TB
         return f"{size:.1f} TB"
 
     @property

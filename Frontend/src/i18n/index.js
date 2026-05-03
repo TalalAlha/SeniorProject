@@ -1,3 +1,13 @@
+/**
+ * i18n/index.js — Internationalisation configuration.
+ *
+ * Initialises i18next with English and Arabic translation bundles.
+ * Language preference is persisted in localStorage under 'phishaware-language'.
+ * RTL/LTR direction and the <html lang> attribute are updated whenever the
+ * language changes so the layout responds correctly to Arabic text.
+ *
+ * Exports: i18n (default), changeLanguage
+ */
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';

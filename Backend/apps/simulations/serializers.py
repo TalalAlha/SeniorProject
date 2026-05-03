@@ -1,3 +1,10 @@
+"""
+Simulations serializers.
+Serializers for SimulationTemplate, SimulationCampaign, EmailSimulation,
+TrackingEvent, and related analytics/action payloads.
+Part of the 'simulations' app.
+"""
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone

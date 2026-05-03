@@ -1,3 +1,10 @@
+/**
+ * App — Root application component.
+ *
+ * Wraps the entire app in AuthProvider (auth state) and RouterProvider (routing).
+ * Also renders the global Toaster with dark-mode-aware styles so every page can
+ * fire toast notifications without additional setup.
+ */
 import { Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import toast, { Toaster, ToastBar } from 'react-hot-toast';
@@ -6,7 +13,9 @@ import { useTheme } from './contexts/ThemeContext';
 import router from './routes';
 import './i18n';
 
-// Loading fallback component
+/**
+ * LoadingFallback — Centered spinner shown while lazy-loaded route chunks are fetching.
+ */
 function LoadingFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -18,7 +27,11 @@ function LoadingFallback() {
   );
 }
 
+/**
+ * App — Reads the active theme and passes dark-mode colours into react-hot-toast config.
+ */
 function App() {
+  // Read global dark/light mode so the toast styles match the current theme
   const { isDark } = useTheme();
 
   return (

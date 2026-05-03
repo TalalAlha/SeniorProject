@@ -1,3 +1,9 @@
+"""
+Accounts models.
+Defines the custom User model and its manager for the PhishAware platform.
+Email is used as the primary identifier instead of a username.
+Part of the 'accounts' app.
+"""
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
@@ -12,20 +18,24 @@ class UserManager(BaseUserManager):
         """Create and save a regular user with the given email and password."""
         if not email:
             raise ValueError(_('The Email field must be set'))
+        # Lowercase the domain part of the address for consistent storage
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
+        # Hash the password before persisting; set_password handles None safely
         user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
         """Create and save a superuser with the given email and password."""
+        # Ensure required permission flags are set before delegating to create_user
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('role', 'SUPER_ADMIN')
         extra_fields.setdefault('is_verified', True)  # superusers skip email verification
 
+        # Guard: raise early rather than silently creating a non-superuser
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Superuser must have is_staff=True.'))
         if extra_fields.get('is_superuser') is not True:
@@ -139,6 +149,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         """Return the first_name plus the last_name, with a space in between."""
         full_name = f'{self.first_name} {self.last_name}'
+        # strip() removes leading/trailing whitespace when either name is blank
         return full_name.strip()
 
     def get_short_name(self):
@@ -147,25 +158,27 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_super_admin(self):
-        """Check if user is a super admin."""
+        """Return True if the user holds the SUPER_ADMIN platform role."""
         return self.role == 'SUPER_ADMIN'
 
     @property
     def is_company_admin(self):
-        """Check if user is a company admin."""
+        """Return True if the user holds the COMPANY_ADMIN role."""
         return self.role == 'COMPANY_ADMIN'
 
     @property
     def is_employee(self):
-        """Check if user is an employee."""
+        """Return True if the user holds the EMPLOYEE role."""
         return self.role == 'EMPLOYEE'
 
     @property
     def is_public_user(self):
-        """Check if user is a public user."""
+        """Return True if the user holds the PUBLIC_USER role."""
         return self.role == 'PUBLIC_USER'
 
     @property
     def has_company_access(self):
-        """Check if user has access to company features."""
+        """Return True if the user is linked to a company as an admin or employee."""
+        # Both conditions are required: the role must be company-scoped AND a
+        # company FK must be set (guards against orphaned role assignments)
         return self.role in ['COMPANY_ADMIN', 'EMPLOYEE'] and self.company is not None

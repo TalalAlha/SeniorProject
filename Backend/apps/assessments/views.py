@@ -1,3 +1,9 @@
+"""
+Assessments views.
+Provides EmailTemplateViewSet for CRUD access to email quiz templates and
+AIEmailGenerationView, a placeholder for the AI-powered email generation pipeline.
+Part of the 'assessments' app.
+"""
 from rest_framework import viewsets, status, views
 from rest_framework.decorators import action
 from rest_framework.response import Response

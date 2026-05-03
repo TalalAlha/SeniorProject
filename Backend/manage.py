@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
+"""
+manage.py — Django management script for the PhishAware backend.
+
+Entry point for all Django management commands (runserver, migrate, seed_*, etc.).
+Usage: python manage.py <command> [options]
+"""
 import os
 import sys
 

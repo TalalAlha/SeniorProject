@@ -43,8 +43,10 @@ class PublicViewSetMixin:
         for field in filter_fields:
             value = self.request.query_params.get(field)
             if value is not None:
+                # Coerce string 'true'/'false' to Python booleans for BooleanField lookups
                 if value.lower() in ('true', 'false'):
                     value = value.lower() == 'true'
+                # Build a dynamic filter using the field name from the allowed list
                 queryset = queryset.filter(**{field: value})
         return queryset
 
@@ -152,11 +154,12 @@ class ArticleViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Filter by publication date and query parameters."""
         queryset = super().get_queryset()
-        # Only show articles that have been published (not future-dated)
+        # Exclude scheduled articles whose published_at is in the future;
+        # articles with no published_at are shown immediately
         queryset = queryset.filter(
             Q(published_at__isnull=True) | Q(published_at__lte=timezone.now())
         )
-        # Apply manual filters
+        # Apply category and featured filters from query params if provided
         return self.filter_queryset_by_params(queryset, ['category', 'is_featured'])
 
     def get_serializer_class(self):
@@ -168,10 +171,10 @@ class ArticleViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
         """Get article and increment view count."""
         instance = self.get_object()
 
-        # Increment view count (thread-safe)
+        # Use a direct queryset update with F() expression for atomic, race-condition-safe increment
         Article.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
 
-        # Refresh to get updated count
+        # Re-fetch the row so the serializer sees the newly incremented view_count
         instance.refresh_from_db()
 
         serializer = self.get_serializer(instance)
@@ -291,7 +294,7 @@ class PublicQuizViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
         """
         quiz = self.get_object()
 
-        # Prepare data
+        # Build the attempt payload; the serializer will handle metadata extraction (IP hash, UA)
         data = {
             'quiz': quiz.id,
             'session_id': request.data.get('session_id', ''),
@@ -300,19 +303,20 @@ class PublicQuizViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
         serializer = PublicQuizAttemptCreateSerializer(
             data=data,
-            context={'request': request}
+            context={'request': request}  # needed by serializer to extract IP/user-agent
         )
         serializer.is_valid(raise_exception=True)
         attempt = serializer.save()
 
-        # Increment total attempts counter
+        # Atomically increment the denormalized total_attempts counter on the quiz
         PublicQuiz.objects.filter(pk=quiz.pk).update(
             total_attempts=F('total_attempts') + 1
         )
 
-        # Return attempt info with questions
+        # Fetch active questions ordered by number; optionally shuffle for randomized quizzes
         questions = quiz.questions.filter(is_active=True).order_by('question_number')
         if quiz.randomize_questions:
+            # Convert to list so we can mutate the order in-memory
             questions = list(questions)
             import random
             random.shuffle(questions)
@@ -344,12 +348,12 @@ class PublicQuizViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
         """
         quiz = self.get_object()
 
-        # Get the attempt
+        # Look up the attempt; reject if it doesn't belong to this quiz or is already done
         try:
             attempt = PublicQuizAttempt.objects.get(
                 id=attempt_id,
                 quiz=quiz,
-                is_completed=False
+                is_completed=False  # prevent double-submission
             )
         except PublicQuizAttempt.DoesNotExist:
             return Response(
@@ -357,17 +361,17 @@ class PublicQuizViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Validate answers
+        # Validate that submitted question IDs map to real active questions for this quiz
         serializer = PublicQuizAttemptSubmitSerializer(
             data=request.data,
-            context={'attempt': attempt}
+            context={'attempt': attempt}  # serializer needs the attempt to validate question IDs
         )
         serializer.is_valid(raise_exception=True)
 
-        # Submit and get results
+        # Delegate scoring logic to the model method; returns a result summary dict
         results = attempt.submit(serializer.validated_data['answers'])
 
-        # Build response
+        # Core response fields present in all cases
         response_data = {
             'attempt_id': attempt.id,
             'score': results['score'],
@@ -380,9 +384,9 @@ class PublicQuizViewSet(PublicViewSetMixin, viewsets.ReadOnlyModelViewSet):
             'time_taken': results['time_taken']
         }
 
-        # Include detailed results if quiz allows showing correct answers
+        # Append per-question breakdown only when the quiz is configured to reveal answers
         if quiz.show_correct_answers and results['results']:
-            # Get questions with explanations
+            # Fetch questions fresh so we can include correct_answer_index and explanations
             questions = quiz.questions.filter(is_active=True)
             questions_with_answers = PublicQuizQuestionWithAnswerSerializer(
                 questions, many=True

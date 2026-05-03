@@ -1,3 +1,9 @@
+/**
+ * PublicHome — Home page for authenticated public users (/home).
+ *
+ * Entry point for PUBLIC_USER accounts (community portal access only).
+ * Shows quick-access cards to training topics, the public quiz, and the community portal.
+ */
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {

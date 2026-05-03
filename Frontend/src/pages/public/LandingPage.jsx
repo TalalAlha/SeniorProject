@@ -1,3 +1,9 @@
+/**
+ * LandingPage — Marketing landing page for unauthenticated visitors (/).
+ *
+ * Showcases PhishAware's value proposition with a hero section, feature highlights,
+ * and CTAs pointing to /login and /register.
+ */
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, Mail, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';

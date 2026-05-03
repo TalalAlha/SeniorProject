@@ -1,3 +1,10 @@
+/**
+ * LoadingSpinner — Animated circular loading indicator.
+ *
+ * @param {'sm'|'md'|'lg'|'xl'} size - Diameter of the spinner
+ * @param {string}  className  - Additional Tailwind classes for the spinner element
+ * @param {boolean} fullScreen - When true, centres the spinner on a full-screen overlay
+ */
 import clsx from 'clsx';
 
 const sizes = {

@@ -1,3 +1,11 @@
+"""
+Campaigns models.
+Defines Campaign, Quiz, and QuizResult models that together represent the
+interactive phishing-awareness quiz workflow: admins create campaigns with
+AI-generated email pools, assign quizzes to employees, and track results.
+Part of the 'campaigns' app.
+"""
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -100,26 +108,32 @@ class Campaign(models.Model):
         ]
 
     def __str__(self):
+        """Return human-readable campaign string including company name."""
         return f"{self.name} - {self.company.name}"
 
     @property
     def num_phishing_emails(self):
         """Calculate number of phishing emails based on ratio."""
+        # Convert Decimal phishing_ratio to float before multiplying to avoid TypeError
         return int(self.num_emails * float(self.phishing_ratio))
 
     @property
     def num_legitimate_emails(self):
         """Calculate number of legitimate emails."""
+        # Derived from total minus phishing so the two counts always sum to num_emails
         return self.num_emails - self.num_phishing_emails
 
     @property
     def is_active(self):
         """Check if campaign is currently active."""
         from django.utils import timezone
+        # Status must be ACTIVE first; date bounds are optional refinements
         if self.status != 'ACTIVE':
             return False
+        # Campaign hasn't started yet
         if self.start_date and self.start_date > timezone.now():
             return False
+        # Campaign has already ended
         if self.end_date and self.end_date < timezone.now():
             return False
         return True
@@ -127,6 +141,7 @@ class Campaign(models.Model):
     @property
     def completion_rate(self):
         """Calculate campaign completion rate."""
+        # Guard against division by zero when no participants have been assigned
         if self.total_participants == 0:
             return 0
         return (self.completed_participants / self.total_participants) * 100
@@ -188,11 +203,13 @@ class Quiz(models.Model):
         ]
 
     def __str__(self):
+        """Return human-readable quiz string including employee email and campaign name."""
         return f"Quiz: {self.employee.email} - {self.campaign.name}"
 
     @property
     def time_taken(self):
         """Calculate time taken to complete the quiz."""
+        # Both timestamps must be set; returns a timedelta or None for incomplete quizzes
         if self.started_at and self.completed_at:
             return self.completed_at - self.started_at
         return None
@@ -200,17 +217,20 @@ class Quiz(models.Model):
     @property
     def total_questions(self):
         """Get total number of questions in this quiz."""
+        # Issues a COUNT query against the related QuizQuestion set
         return self.questions.count()
 
     @property
     def answered_questions(self):
         """Get number of answered questions."""
+        # Filters questions where the employee has submitted any answer (not null)
         return self.questions.filter(answer__isnull=False).count()
 
     @property
     def progress_percentage(self):
         """Calculate quiz progress percentage."""
         total = self.total_questions
+        # Guard against empty quiz (no questions assigned yet)
         if total == 0:
             return 0
         return (self.answered_questions / total) * 100
@@ -314,11 +334,13 @@ class QuizResult(models.Model):
         ]
 
     def __str__(self):
+        """Return human-readable result string with employee, campaign, and score."""
         return f"Result: {self.employee.email} - {self.campaign.name} - {self.score}%"
 
     @property
     def accuracy(self):
         """Calculate accuracy percentage."""
+        # Guard against a result created with zero questions
         if self.total_questions == 0:
             return 0
         return (self.correct_answers / self.total_questions) * 100
@@ -326,7 +348,9 @@ class QuizResult(models.Model):
     @property
     def phishing_detection_rate(self):
         """Calculate phishing detection accuracy."""
+        # total_phishing excludes legitimate emails from the denominator
         total_phishing = self.phishing_emails_identified + self.phishing_emails_missed
+        # Guard when campaign contained no phishing emails
         if total_phishing == 0:
             return 0
         return (self.phishing_emails_identified / total_phishing) * 100
@@ -334,4 +358,5 @@ class QuizResult(models.Model):
     @property
     def passed(self):
         """Check if employee passed the quiz (score >= 70%)."""
+        # 70% is the project-wide passing threshold
         return self.score >= 70

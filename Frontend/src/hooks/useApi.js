@@ -1,3 +1,10 @@
+/**
+ * useApi.js — Generic React hooks for API call lifecycle management.
+ *
+ * Provides useApi (single call) and usePaginatedApi (paged list) hooks that
+ * wrap any API function with loading, error, and data state so components
+ * don't need to manage this boilerplate themselves.
+ */
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 

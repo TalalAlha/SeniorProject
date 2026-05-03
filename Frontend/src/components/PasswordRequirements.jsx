@@ -1,3 +1,10 @@
+/**
+ * PasswordRequirements — Live password strength checklist.
+ *
+ * Renders a list of password rules (length, uppercase, number, special char)
+ * and highlights each one green as the user's password satisfies it.
+ * Used in RegisterPage and ResetPassword.
+ */
 import { CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';

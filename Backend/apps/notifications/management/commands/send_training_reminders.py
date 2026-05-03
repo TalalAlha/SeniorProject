@@ -1,3 +1,16 @@
+"""
+Management command: send_training_reminders.
+
+Scans RemediationTraining assignments and fires deadline-reminder notifications:
+  - 3 days before due date → notify employee (due soon) + admin (deadline approaching)
+  - 1 day before due date  → notify employee (due tomorrow)
+  - After due date         → notify employee and admin (overdue)
+
+Intended to be run daily via a scheduled task or cron job.
+
+Usage:
+    python manage.py send_training_reminders
+"""
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
@@ -7,9 +20,12 @@ from apps.notifications.services import NotificationService
 
 
 class Command(BaseCommand):
+    """Management command that fires training deadline notifications for all active assignments."""
+
     help = 'Send training deadline reminders to employees and summary alerts to admins'
 
     def handle(self, *args, **kwargs):
+        """Iterate over pending training assignments and send appropriate reminder notifications."""
         now = timezone.now()
 
         # ── Due in 3 days ────────────────────────────────────────────────────

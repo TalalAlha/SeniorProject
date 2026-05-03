@@ -1,3 +1,10 @@
+/**
+ * PublicLayout — Unauthenticated / public-facing page shell.
+ *
+ * Provides a top navigation bar with the PhishAware logo, public navigation links,
+ * a language switcher (EN / AR), and a theme toggle.  The current route's page
+ * renders inside the <Outlet />.  A footer with contact info is always shown.
+ */
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X, Globe, Mail, ExternalLink } from 'lucide-react';

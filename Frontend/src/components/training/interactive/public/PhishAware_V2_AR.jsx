@@ -1,3 +1,9 @@
+/**
+ * PhishAware_V2_AR.jsx — Interactive SMS phishing (smishing) awareness lesson (Arabic, public).
+ *
+ * Self-contained slide-deck style lesson. Progress is managed externally
+ * by InteractiveLessonWrapper.
+ */
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../../contexts/ThemeContext";
 

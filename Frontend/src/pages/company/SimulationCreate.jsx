@@ -1,3 +1,9 @@
+/**
+ * SimulationCreate — New simulation campaign creation form (/company/simulations/create).
+ *
+ * Allows company admins to create a phishing simulation campaign by selecting a template,
+ * setting a name, and choosing target employees. Submits to the simulations API.
+ */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

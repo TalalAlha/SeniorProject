@@ -1,3 +1,10 @@
+"""
+Simulations models.
+Defines SimulationTemplate, SimulationCampaign, EmailSimulation, and TrackingEvent models
+used across the phishing simulation flow.
+Part of the 'simulations' app.
+"""
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _

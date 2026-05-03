@@ -1,3 +1,9 @@
+"""
+Assessments models.
+Defines EmailTemplate (phishing/legitimate email content used in quizzes) and
+QuizQuestion (an employee's answer to a single email in a quiz session).
+Part of the 'assessments' app.
+"""
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _

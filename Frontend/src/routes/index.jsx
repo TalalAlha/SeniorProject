@@ -1,3 +1,14 @@
+/**
+ * routes/index.jsx — Application route tree.
+ *
+ * Defines the full client-side routing configuration using React Router v6
+ * createBrowserRouter.  Routes are grouped by access level:
+ *  - GuestRoute   — unauthenticated only (login, register)
+ *  - PublicRoute  — open to everyone (landing, training topics, community)
+ *  - ProtectedRoute — authenticated + optional role guard
+ *
+ * Role constants come from AuthContext (SUPER_ADMIN, COMPANY_ADMIN, EMPLOYEE).
+ */
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { USER_ROLES } from '../contexts';
 import { ProtectedRoute, PublicRoute, GuestRoute } from './ProtectedRoute';

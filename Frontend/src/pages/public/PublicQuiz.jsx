@@ -1,3 +1,9 @@
+/**
+ * PublicQuiz — Guest-accessible phishing awareness quiz (/quiz).
+ *
+ * Lets unauthenticated or PUBLIC_USER visitors test their phishing detection skills.
+ * Uses URL search params (?lang=en|ar) to switch between English and Arabic modes.
+ */
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

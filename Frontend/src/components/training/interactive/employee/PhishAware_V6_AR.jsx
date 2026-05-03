@@ -1,3 +1,9 @@
+/**
+ * PhishAware_V6_AR.jsx — Interactive voice phishing (vishing) remediation training lesson (Arabic, employee).
+ *
+ * Self-contained slide-deck style lesson. Progress is managed externally
+ * by InteractiveLessonWrapper.
+ */
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../../contexts/ThemeContext";
 

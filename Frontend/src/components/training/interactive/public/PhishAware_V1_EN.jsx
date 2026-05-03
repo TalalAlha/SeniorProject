@@ -1,3 +1,9 @@
+/**
+ * PhishAware_V1_EN.jsx — Interactive email phishing awareness lesson (English, public).
+ *
+ * Self-contained slide-deck style lesson. Progress is managed externally
+ * by InteractiveLessonWrapper.
+ */
 import { useState, useEffect } from "react";
 import { useTheme } from "../../../../contexts/ThemeContext";
 

@@ -1,3 +1,10 @@
+/**
+ * InteractiveLessonWrapper — HOC that integrates interactive lesson components
+ * with the backend training API (progress load, auto-save, completion tracking).
+ *
+ * Used by TopicTraining (public) and TakeTraining (employee) to wrap each
+ * PhishAware_VX_XX lesson component without the lesson knowing about API calls.
+ */
 import { useState, useEffect, useRef } from 'react';
 import { trainingAPI } from '../../api';
 

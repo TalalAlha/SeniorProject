@@ -1,10 +1,9 @@
 """
-WSGI config for phishaware_backend project.
+wsgi.py — WSGI entry point for the PhishAware backend.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
+Exposes the WSGI callable as ``application`` so that synchronous WSGI servers
+(Gunicorn, uWSGI) can serve the Django application in production.
+Set DJANGO_SETTINGS_MODULE before importing if a non-default settings file is needed.
 """
 
 import os

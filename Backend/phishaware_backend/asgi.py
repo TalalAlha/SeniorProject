@@ -1,10 +1,10 @@
 """
-ASGI config for phishaware_backend project.
+asgi.py — ASGI entry point for the PhishAware backend.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
+Exposes the ASGI callable as ``application`` so that async-capable servers
+(Uvicorn, Daphne) can serve the Django application.
+The project currently uses synchronous views only; ASGI is provided for
+future WebSocket or async view support.
 """
 
 import os

@@ -1,3 +1,9 @@
+"""
+Assessments URL configuration.
+Registers EmailTemplateViewSet and the AI email generation endpoint.
+Mounted at api/v1/ by the root URL configuration.
+Part of the 'assessments' app.
+"""
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import EmailTemplateViewSet, AIEmailGenerationView

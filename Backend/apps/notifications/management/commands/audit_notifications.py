@@ -1,3 +1,12 @@
+"""
+Management command: audit_notifications.
+
+Inspects the NotificationService class and Notification model to report which
+notification types are implemented and which are still missing service methods.
+
+Usage:
+    python manage.py audit_notifications
+"""
 from django.core.management.base import BaseCommand
 from apps.notifications.models import Notification
 from apps.notifications.services import NotificationService
@@ -5,9 +14,12 @@ import inspect
 
 
 class Command(BaseCommand):
+    """Management command that audits the notification system for completeness."""
+
     help = 'Audit notification system - show what is implemented and what is missing'
 
     def handle(self, *args, **options):
+        """Print a report comparing NOTIFICATION_TYPES constants against NotificationService methods."""
         self.stdout.write(self.style.SUCCESS('=' * 80))
         self.stdout.write(self.style.SUCCESS('NOTIFICATION SYSTEM AUDIT'))
         self.stdout.write(self.style.SUCCESS('=' * 80))

@@ -167,36 +167,40 @@ class RiskScore(models.Model):
         - Reported phishing: -10 per report
         - Training completion: -15 for passed training
         """
+        # Start from a neutral midpoint so first-time employees begin at MEDIUM risk
         base_score = 50
 
         # Quiz performance adjustment (-20 to +20)
         if self.total_quiz_questions > 0:
             accuracy = self.correct_quiz_answers / self.total_quiz_questions
-            # 100% accuracy = -20, 0% accuracy = +20
+            # Formula: (0.5 - accuracy) * 40  →  perfect accuracy gives -20, zero accuracy gives +20
             quiz_adjustment = int((0.5 - accuracy) * 40)
         else:
+            # No quiz data yet — no adjustment
             quiz_adjustment = 0
 
         # Missed phishing emails penalty (+5 each, max +25)
         phishing_penalty = min(self.phishing_emails_missed * 5, 25)
 
-        # Simulation click penalty (+10 each, max +30)
+        # Simulation click penalty — proportion of received simulations that were clicked
         if self.total_simulations_received > 0:
             click_rate = self.simulations_clicked / self.total_simulations_received
+            # Scale 0-100% click rate to 0-30 point penalty
             simulation_adjustment = int(click_rate * 30)
         else:
+            # Guard: skip simulation adjustment if no simulations have been received
             simulation_adjustment = 0
 
         # Credentials entered penalty (+15 each, max +20)
         credential_penalty = min(self.credentials_entered * 15, 20)
 
-        # Reported phishing bonus (-5 each, max -15)
+        # Reported phishing bonus (-5 each, max -15) — good security behaviour reduces score
         report_bonus = min(self.simulations_reported * 5, 15)
 
-        # Training completion bonus (-10 per passed, max -25)
+        # Training completion bonus (-10 per passed, max -25) — passed training lowers risk
         training_bonus = min(self.trainings_passed * 10, 25)
 
-        # Calculate final score
+        # Sum all factors; bonuses are subtracted, penalties are added
         new_score = (
             base_score
             + quiz_adjustment
@@ -207,11 +211,11 @@ class RiskScore(models.Model):
             - training_bonus
         )
 
-        # Clamp to 0-100
+        # Clamp result to valid 0-100 range
         self.score = max(0, min(100, new_score))
         self.risk_level = self.calculate_risk_level()
 
-        # Set remediation flag if score > 70
+        # Trigger remediation flag so auto-assign signal can act
         self.requires_remediation = self.score > 70
 
         return self.score
@@ -748,14 +752,15 @@ class RemediationTraining(models.Model):
         return f"{minutes}m {seconds}s"
 
     def start_training(self):
-        """Mark training as started."""
+        """Transition this training assignment from ASSIGNED to IN_PROGRESS and record the start time."""
         if self.status == 'ASSIGNED':
             self.status = 'IN_PROGRESS'
             self.started_at = timezone.now()
+            # Only rewrite the changed columns to avoid unnecessary DB load
             self.save(update_fields=['status', 'started_at', 'updated_at'])
 
     def mark_content_viewed(self):
-        """Mark training content as viewed."""
+        """Record that the employee has viewed the training content, setting content_viewed_at timestamp."""
         if not self.content_viewed:
             self.content_viewed = True
             self.content_viewed_at = timezone.now()
@@ -773,12 +778,14 @@ class RemediationTraining(models.Model):
         """
         from django.db.models import F
 
+        # Fetch only active questions to match what the employee was shown
         questions = self.training_module.questions.filter(is_active=True)
         total = questions.count()
         correct = 0
         results = []
 
         for question in questions:
+            # Keys in answers dict are strings (JSON); convert question.id to str for lookup
             selected = answers.get(str(question.id))
             is_correct = selected == question.correct_answer_index
             if is_correct:
@@ -791,11 +798,11 @@ class RemediationTraining(models.Model):
                 'explanation': question.explanation
             })
 
-        # Calculate score
+        # Percentage score; guard against zero-question modules
         score = (correct / total * 100) if total > 0 else 0
         passed = score >= self.training_module.passing_score
 
-        # Update record
+        # Use F() expression to safely increment quiz_attempts without a race condition
         self.quiz_attempts = F('quiz_attempts') + 1
         self.quiz_score = score
         self.correct_answers = correct
@@ -804,7 +811,7 @@ class RemediationTraining(models.Model):
         self.status = 'PASSED' if passed else 'FAILED'
         self.save()
 
-        # Refresh to get actual quiz_attempts value
+        # Refresh from DB so quiz_attempts reflects the actual database value, not the F() expression
         self.refresh_from_db()
 
         return {
@@ -823,9 +830,7 @@ class RemediationTraining(models.Model):
 
 
 class TrainingQuizAnswer(models.Model):
-    """
-    Records individual question answers during training quiz.
-    """
+    """Records the answer a trainee selected for one question in a training quiz."""
 
     remediation_training = models.ForeignKey(
         RemediationTraining,
@@ -868,7 +873,7 @@ class TrainingQuizAnswer(models.Model):
 
 
 class InteractiveLessonProgress(models.Model):
-    """Track progress in interactive lessons (separate from video training)."""
+    """Tracks a user's scene position, quiz results, and completion for an interactive lesson."""
 
     LESSON_TYPES = [
         ('PHISHING', 'Phishing'),
@@ -916,6 +921,8 @@ class InteractiveLessonProgress(models.Model):
 
     @property
     def completion_percentage(self):
+        """Return the percentage of scenes completed, 0 if no scenes are defined."""
+        # Guard against division by zero when total_scenes has not been set yet
         if self.total_scenes == 0:
             return 0
         return int((self.current_scene / self.total_scenes) * 100)

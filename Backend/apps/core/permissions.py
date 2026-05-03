@@ -1,3 +1,9 @@
+"""
+Core permissions.
+Reusable DRF permission classes for role-based access control across all apps.
+Roles: SUPER_ADMIN > COMPANY_ADMIN > EMPLOYEE > PUBLIC_USER.
+Part of the 'core' app.
+"""
 from rest_framework import permissions
 
 

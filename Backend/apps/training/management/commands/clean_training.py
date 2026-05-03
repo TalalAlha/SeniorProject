@@ -1,10 +1,25 @@
+"""
+Management command: clean_training.
+
+Removes legacy or extra training modules and remediation assignments,
+keeping only the three core phishing-awareness modules:
+  - Email Phishing Awareness
+  - SMS Phishing (Smishing) Awareness
+  - Voice Phishing (Vishing) Awareness
+
+Usage:
+    python manage.py clean_training
+"""
 from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
+    """Management command that prunes training data to the canonical three modules."""
+
     help = 'Remove old training modules, keep only 3 phishing awareness modules'
 
     def handle(self, *args, **options):
+        """Delete all TrainingModule and RemediationTraining rows not in the keep list."""
         keep_titles_en = [
             'Email Phishing Awareness',
             'SMS Phishing (Smishing) Awareness',

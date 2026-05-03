@@ -1,3 +1,9 @@
+/**
+ * TrainingTopics — Public training catalogue page (/training).
+ *
+ * Lists the three available phishing-awareness topic areas (Email, SMS, Voice).
+ * Accessible to unauthenticated visitors and all authenticated roles.
+ */
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {

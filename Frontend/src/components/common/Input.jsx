@@ -1,3 +1,15 @@
+/**
+ * Input — Reusable labelled text input with error state support.
+ *
+ * Forwards its ref so parent forms can focus or validate programmatically.
+ * Renders an optional label and an error message below the field.
+ *
+ * @param {string}  label     - Field label text
+ * @param {string}  error     - Validation error message (shown in red below the input)
+ * @param {string}  className - Additional classes for the input element
+ * @param {string}  id        - HTML id (falls back to props.name)
+ * @param {boolean} required  - Shows a red asterisk next to the label when true
+ */
 import { forwardRef } from 'react';
 import clsx from 'clsx';
 

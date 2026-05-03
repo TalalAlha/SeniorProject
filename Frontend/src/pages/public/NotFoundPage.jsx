@@ -1,3 +1,9 @@
+/**
+ * NotFoundPage — 404 error page.
+ *
+ * Shown when no route matches the current URL.  Provides role-aware "go home"
+ * links so each user type is redirected to their correct dashboard.
+ */
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FileQuestion, ArrowLeft, Home } from 'lucide-react';
