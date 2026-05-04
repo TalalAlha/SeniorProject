@@ -422,22 +422,30 @@ const getSignatureData = (index, isRtl) => ({
  */
 const DECOY_FLAGS = {
   en: [
-    { id: 'decoy_spelling',     label: 'Multiple spelling or grammar errors',                          points: -10, category: 'format',  isDecoy: true },
-    { id: 'decoy_attachments',  label: 'Contains a suspicious attachment',                             points: -10, category: 'content', isDecoy: true },
-    { id: 'decoy_sender_name',  label: "Sender name doesn't match the email address",                  points: -10, category: 'sender',  isDecoy: true },
-    { id: 'decoy_time',         label: 'Email sent at an unusual time (late night / early morning)',   points: -10, category: 'format',  isDecoy: true },
-    { id: 'decoy_images',       label: 'Contains suspicious images or fake logos',                     points: -10, category: 'content', isDecoy: true },
-    { id: 'decoy_reply',        label: 'Reply-to address is different from the sender address',        points: -10, category: 'sender',  isDecoy: true },
-    { id: 'decoy_cc',           label: "CC'd to multiple unknown recipients",                          points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_spelling',       label: 'Multiple spelling or grammar errors',                          points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_attachments',    label: 'Contains a suspicious attachment',                             points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_sender_name',    label: "Sender name doesn't match the email address",                  points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_time',           label: 'Email sent at an unusual time (late night / early morning)',   points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_images',         label: 'Contains suspicious images or fake logos',                     points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_reply',          label: 'Reply-to address is different from the sender address',        points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_cc',             label: "CC'd to multiple unknown recipients",                          points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_tracking_pixel', label: 'Email contains a hidden tracking pixel',                       points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_uppercase_subj', label: 'Subject line is written entirely in uppercase',                points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_no_privacy',     label: 'Email is missing a privacy policy link',                       points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_short_sig',      label: "Sender's signature is shorter than expected",                  points: -10, category: 'format',  isDecoy: true },
   ],
   ar: [
-    { id: 'decoy_spelling',     label: 'أخطاء إملائية أو نحوية متعددة',                              points: -10, category: 'format',  isDecoy: true },
-    { id: 'decoy_attachments',  label: 'يحتوي على ملف مرفق مشبوه',                                   points: -10, category: 'content', isDecoy: true },
-    { id: 'decoy_sender_name',  label: 'اسم المرسل لا يتطابق مع عنوان البريد الإلكتروني',           points: -10, category: 'sender',  isDecoy: true },
-    { id: 'decoy_time',         label: 'تم الإرسال في وقت غير عادي (في وقت متأخر من الليل)',         points: -10, category: 'format',  isDecoy: true },
-    { id: 'decoy_images',       label: 'يحتوي على صور مشبوهة أو شعارات مزيفة',                      points: -10, category: 'content', isDecoy: true },
-    { id: 'decoy_reply',        label: 'عنوان الرد يختلف عن عنوان المرسل',                           points: -10, category: 'sender',  isDecoy: true },
-    { id: 'decoy_cc',           label: 'نسخة إلى عدة مستلمين غير معروفين',                           points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_spelling',       label: 'أخطاء إملائية أو نحوية متعددة',                              points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_attachments',    label: 'يحتوي على ملف مرفق مشبوه',                                   points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_sender_name',    label: 'اسم المرسل لا يتطابق مع عنوان البريد الإلكتروني',           points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_time',           label: 'تم الإرسال في وقت غير عادي (في وقت متأخر من الليل)',         points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_images',         label: 'يحتوي على صور مشبوهة أو شعارات مزيفة',                      points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_reply',          label: 'عنوان الرد يختلف عن عنوان المرسل',                           points: -10, category: 'sender',  isDecoy: true },
+    { id: 'decoy_cc',             label: 'نسخة إلى عدة مستلمين غير معروفين',                           points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_tracking_pixel', label: 'يحتوي البريد على بكسل تتبع مخفي',                            points: -10, category: 'content', isDecoy: true },
+    { id: 'decoy_uppercase_subj', label: 'سطر الموضوع مكتوب بالكامل بأحرف كبيرة',                      points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_no_privacy',     label: 'البريد لا يحتوي على رابط سياسة الخصوصية',                    points: -10, category: 'format',  isDecoy: true },
+    { id: 'decoy_short_sig',      label: 'توقيع المرسل أقصر من المتوقع',                              points: -10, category: 'format',  isDecoy: true },
   ],
 };
 
@@ -524,9 +532,9 @@ const detectRealFlagsOnly = (question, language = 'en') => {
     });
   }
 
-  // 5. Requests personal / sensitive information
+  // 5. Requests personal / sensitive information (broadened to catch LSTM patterns)
   if (
-    /password|credit card|debit card|ssn|social security|pin|otp|cvv|account number|routing number|كلمة المرور|كلمة السر|رقم سري|بطاقة ائتمان|رقم الحساب/i.test(
+    /password|credit card|debit card|ssn|social security|pin|otp|cvv|account number|routing number|account details|banking (details|information)|personal (details|information)|verify your identity|confirm your (information|details|identity)|update your records|كلمة المرور|كلمة السر|رقم سري|بطاقة ائتمان|رقم الحساب|بيانات حساب|معلومات (شخصية|بنكية|الحساب)|تحقق من هويتك|تأكيد (هويتك|بياناتك|معلوماتك)/i.test(
       body
     )
   ) {
@@ -534,8 +542,8 @@ const detectRealFlagsOnly = (question, language = 'en') => {
       id: 'personal_info',
       label:
         language === 'ar'
-          ? 'طلب معلومات شخصية حساسة (كلمة المرور، بطاقة ائتمان، رقم حساب)'
-          : 'Requests sensitive personal information (password, credit card, account number)',
+          ? 'طلب معلومات شخصية حساسة (بيانات الحساب، كلمة المرور، تحقق من الهوية)'
+          : 'Requests sensitive personal information (account details, password, identity verification)',
       points: 25,
       category: 'content',
     });
@@ -605,6 +613,125 @@ const detectRealFlagsOnly = (question, language = 'en') => {
     });
   }
 
+  // 10. Claims of unusual / suspicious activity (manufactured pretext)
+  if (
+    /unusual activity|suspicious activity|flagged for|has been flagged|unauthorized (access|attempt|login)|multiple (login|sign[- ]in|sim) (attempts|registrations)|نشاط (غير عادي|مشبوه)|تم تعليم|محاولات (تسجيل|دخول) متعددة/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'unusual_activity_claim',
+      label:
+        language === 'ar'
+          ? 'ادعاء وجود نشاط غير عادي أو محاولات دخول مشبوهة'
+          : 'Claims of unusual activity or unauthorized access attempts',
+      points: 20,
+      category: 'content',
+    });
+  }
+
+  // 11. Authority impersonation phrasing
+  if (
+    /our records indicate|we have detected|on behalf of|important notice from|notification from|إشعار من|وفقاً لسجلاتنا|تشير سجلاتنا|بناءً على سجلاتنا|نيابة عن/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'authority_impersonation',
+      label:
+        language === 'ar'
+          ? 'انتحال صفة جهة رسمية ("تشير سجلاتنا"، "إشعار من...")'
+          : 'Authority impersonation phrasing ("Our records indicate", "Notice from...")',
+      points: 15,
+      category: 'sender',
+    });
+  }
+
+  // 12. Too-good-to-be-true offer
+  if (
+    /\b(you (have )?won|congratulations|chosen as|selected (as|in)|lucky winner|prize|reward|gift card|free (gift|reward|prize)|entered to win|draw)\b|تهانينا|فزت|اخترت في|تم اختيارك|جائزة|سحب|فائز/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'too_good_offer',
+      label:
+        language === 'ar'
+          ? 'عرض مغرٍ أكثر من اللازم (فزت، جائزة، تم اختيارك)'
+          : 'Too-good-to-be-true offer (you won, prize, you were chosen)',
+      points: 20,
+      category: 'content',
+    });
+  }
+
+  // 13. Government / official body impersonation
+  if (
+    /\b(ministry of|federal authority|customs|tax authority|emirates id|national id|iqama|absher|tawakkalna|saudi (electricity|customs|traffic))\b|وزارة|الهيئة (العامة|الاتحادية)|الجمارك|الزكاة|المرور|أبشر|توكلنا|الإقامة|الهوية الوطنية/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'government_impersonation',
+      label:
+        language === 'ar'
+          ? 'انتحال صفة جهة حكومية أو رسمية'
+          : 'Impersonation of a government or official body',
+      points: 20,
+      category: 'sender',
+    });
+  }
+
+  // 14. Document / account expiry pretext
+  if (
+    /\b(expire[ds]?|expiring|scheduled to expire|renewal required|before (the )?(deadline|expiration)|past due|overdue)\b|انتهاء (الصلاحية|المدة)|على وشك الانتهاء|التجديد مطلوب|متأخر|قبل (الموعد|انتهاء)/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'document_expiry',
+      label:
+        language === 'ar'
+          ? 'ذريعة انتهاء صلاحية مستند أو حساب'
+          : 'Manufactured "expiring document/account" pretext',
+      points: 15,
+      category: 'content',
+    });
+  }
+
+  // 15. Conditional penalty / consequence-if-you-don't language
+  if (
+    /failure to (verify|comply|respond|update|act)|will result in|otherwise (your|the)|may (lead to|result in)|if you (don'?t|do not|fail)|to avoid|قد يؤدي إلى|سيؤدي إلى|عدم (التحقق|الاستجابة|التحديث)|في حال (عدم|لم)|لتجنب/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'penalty_threat',
+      label:
+        language === 'ar'
+          ? 'تهديد بعواقب في حال عدم التنفيذ ("سيؤدي إلى...", "لتجنب...")'
+          : 'Conditional penalty language ("Failure to..., will result in...")',
+      points: 15,
+      category: 'content',
+    });
+  }
+
+  // 16. Fake refund / overcharge / financial-incentive pretext
+  if (
+    /\b(refund|overcharged|overpayment|you (are|were) owed|reimburse[ds]?|compensation due|tax (refund|return))\b|استرداد|تعويض|مبالغ مستردة|دفعة زائدة|إعادة (دفع|سداد)/i.test(
+      body
+    )
+  ) {
+    flags.push({
+      id: 'refund_owed',
+      label:
+        language === 'ar'
+          ? 'ذريعة "استرداد مبلغ" أو تعويض مالي مزعوم'
+          : '"Refund / money owed" pretext to lure clicks',
+      points: 15,
+      category: 'content',
+    });
+  }
+
   return flags;
 };
 
@@ -614,7 +741,14 @@ const detectRealFlagsOnly = (question, language = 'en') => {
  * Points are NOT shown in the modal — they are revealed only in results.
  */
 const detectRedFlags = (question, language = 'en') => {
-  const realFlags = detectRealFlagsOnly(question, language);
+  const allRealFlags = detectRealFlagsOnly(question, language);
+
+  // Cap real flags shown to the top 4 by point value (highest-impact signals).
+  // Keeps the modal in the 5-9 option sweet spot and forces the user to focus
+  // on the strongest cues rather than every minor signal.
+  const realFlags = [...allRealFlags]
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 4);
   const realFlagIdSet = new Set(realFlags.map((f) => f.id));
 
   // Exclude decoys that conceptually overlap with an already-detected real flag
@@ -623,10 +757,9 @@ const detectRedFlags = (question, language = 'en') => {
     return !conflictId || !realFlagIdSet.has(conflictId);
   });
 
-  // Pick 3-4 random decoys
+  // Pick 3 random decoys → total ≤ 7 options in the modal (sweet spot).
   const shuffled = [...decoyPool].sort(() => Math.random() - 0.5);
-  const count = 3 + Math.floor(Math.random() * 2); // 3 or 4
-  const selectedDecoys = shuffled.slice(0, count);
+  const selectedDecoys = shuffled.slice(0, 3);
 
   // Merge and shuffle so decoys aren't bunched at the end
   const allFlags = [...realFlags, ...selectedDecoys].sort(() => Math.random() - 0.5);
