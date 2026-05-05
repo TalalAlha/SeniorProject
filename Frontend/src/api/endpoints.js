@@ -209,8 +209,10 @@ export const communityAPI = {
   getArticles: (params) => api.get('/community/articles/', { params }),
   getArticle: (slug) => api.get(`/community/articles/${slug}/`),
   getResources: (params) => api.get('/community/resources/', { params }),
-  getTips: (params) => api.get('/community/tips/', { params }),
   getPublicQuizzes: () => api.get('/community/quizzes/'),
+  getHomepage: () => api.get('/community/portal/homepage/'),
+  getDailyChallenge: (lang = 'en') => api.get('/community/portal/daily_challenge/', { params: { lang } }),
+  searchContent: (query, type = 'all') => api.get('/community/portal/search/', { params: { q: query, type } }),
 };
 
 export default {

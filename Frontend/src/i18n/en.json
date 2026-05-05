@@ -635,29 +635,59 @@
   },
   "community": {
     "title": "Community Portal",
-    "subtitle": "Free resources, articles, and tips to help you stay safe from phishing attacks",
-    "articles": "Articles",
-    "resources": "Resources",
-    "tips": "Security Tips",
-    "latestNews": "Latest News",
+    "subtitle": "MENA-focused cybersecurity awareness — real threats, real tools, two languages",
     "readMore": "Read More",
-    "article1Title": "How to Identify Phishing Emails",
-    "article1Excerpt": "Learn the key signs of phishing emails and how to protect yourself from cyber threats.",
-    "article1Category": "Security Tips",
-    "article2Title": "Social Engineering: What You Need to Know",
-    "article2Excerpt": "Understanding social engineering attacks and how to defend against them.",
-    "article2Category": "Education",
-    "article3Title": "Protecting Your Business from Cyber Threats",
-    "article3Excerpt": "Essential cybersecurity practices for businesses in the MENA region.",
-    "article3Category": "Business",
-    "tip1": "Always verify the sender's email address before clicking any links",
-    "tip2": "Look for spelling and grammar mistakes in suspicious emails",
-    "tip3": "Never share your password via email or phone",
-    "tip4": "Enable two-factor authentication on all accounts",
-    "tip5": "Report suspicious emails to your IT department immediately",
-    "resource1": "Phishing Detection Guide",
-    "resource2": "Security Best Practices",
-    "resource3": "Email Security Checklist"
+    "challenge": {
+      "title": "Daily Phishing Challenge",
+      "subtitle": "A new phishing email to analyze every day. Can you spot all the red flags?",
+      "from": "From",
+      "subject": "Subject",
+      "revealBtn": "Reveal Red Flags",
+      "hideBtn": "Hide Red Flags",
+      "redFlagsTitle": "Red Flags Found",
+      "loadingMsg": "Loading today's challenge…",
+      "errorMsg": "Could not load today's challenge. Try again later.",
+      "difficultyLabel": "Difficulty",
+      "difficulty": {
+        "EASY": "Easy",
+        "MEDIUM": "Medium",
+        "HARD": "Hard",
+        "EXPERT": "Expert"
+      }
+    },
+    "threatWatch": {
+      "title": "MENA Threat Watch",
+      "subtitle": "Real phishing campaigns actively targeting users in Saudi Arabia, UAE, and across the region",
+      "learnMore": "What to do",
+      "redFlagsLabel": "Red flags"
+    },
+    "urlInspector": {
+      "title": "URL Inspector",
+      "subtitle": "Paste a suspicious link to analyze it before clicking",
+      "placeholder": "Paste a URL here, e.g. https://absher-update.tk/login",
+      "analyzeBtn": "Analyze",
+      "clearBtn": "Clear",
+      "safe": "Looks Clean",
+      "warning": "Suspicious",
+      "danger": "High Risk",
+      "noFindings": "No obvious threats detected — but always stay cautious.",
+      "sections": {
+        "domain": "Domain",
+        "protocol": "Protocol",
+        "findings": "Findings"
+      }
+    },
+    "glossary": {
+      "title": "Security Glossary",
+      "subtitle": "Key cybersecurity terms explained in plain language — English and Arabic",
+      "searchPlaceholder": "Search terms…",
+      "noResults": "No matching terms"
+    },
+    "resources": {
+      "title": "Trusted Resources",
+      "subtitle": "Official cybersecurity authorities and tools — all links verified",
+      "visitBtn": "Visit"
+    }
   },
   "analytics": {
     "title": "Analytics & Reports",

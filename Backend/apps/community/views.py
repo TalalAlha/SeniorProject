@@ -5,6 +5,9 @@ Public-facing API endpoints for awareness portal.
 All endpoints allow public access (no authentication required).
 """
 
+import datetime
+import random
+
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -693,6 +696,65 @@ class CommunityPortalViewSet(PublicViewSetMixin, viewsets.ViewSet):
         )
 
         return Response(results)
+
+    @action(detail=False, methods=['get'])
+    def daily_challenge(self, request):
+        """
+        Return today's phishing simulation template as a public daily challenge.
+        Accepts ?lang=en|ar to return a template whose red_flags are in the
+        requested language. AR and EN each get their own daily rotation so the
+        seed differs per language.
+        """
+        from apps.simulations.models import SimulationTemplate
+
+        lang = request.query_params.get('lang', 'en')
+        if lang not in ('en', 'ar'):
+            lang = 'en'
+
+        fields = (
+            'id', 'name', 'name_ar', 'subject', 'sender_name', 'sender_email',
+            'attack_vector', 'difficulty', 'red_flags',
+            'landing_page_message', 'landing_page_message_ar', 'language',
+            'body_html',
+        )
+
+        templates = list(
+            SimulationTemplate.objects.filter(
+                is_active=True, company__isnull=True, language=lang
+            ).values(*fields)
+        )
+
+        # Fallback: if no language-specific templates exist, use all global ones
+        if not templates:
+            templates = list(
+                SimulationTemplate.objects.filter(is_active=True, company__isnull=True)
+                .values(*fields)
+            )
+
+        if not templates:
+            return Response(
+                {'error': 'No challenges available'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        today = datetime.date.today()
+        # AR and EN use different seeds so each language gets its own daily template
+        lang_offset = 100 if lang == 'ar' else 0
+        seed = today.year * 10000 + today.month * 100 + today.day + lang_offset
+        random.seed(seed)
+        template = random.choice(templates)
+
+        # Strip email tracking/lure placeholders before sending to browser
+        safe_html = (
+            template['body_html']
+            .replace('{TRACKING_PIXEL}', '')
+            .replace('{LURE_LINK}', '#')
+            .replace('{EMPLOYEE_NAME}', 'Employee')
+            .replace('{EMPLOYEE_EMAIL}', 'employee@company.com')
+        )
+        template['body_html'] = safe_html
+
+        return Response(template)
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
