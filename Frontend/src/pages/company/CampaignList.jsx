@@ -50,6 +50,7 @@ import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 import { campaignsAPI, companiesAPI } from '../../api';
 import { useAuth } from '../../contexts';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 // Status configuration (labelKey used for i18n)
 const STATUS_CONFIG = {
@@ -719,7 +720,10 @@ function CampaignList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.title')}</h1>
+            <HelpTooltip i18nKey="tooltips.campaignList" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('campaign.subtitle')}</p>
         </div>
         <div className="flex gap-3">

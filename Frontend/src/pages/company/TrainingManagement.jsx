@@ -34,6 +34,7 @@ import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { trainingAPI, companiesAPI } from '../../api';
 import { useAuth } from '../../contexts';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 const STATUS_COLORS = {
   ASSIGNED: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200',
@@ -360,7 +361,10 @@ function TrainingManagement() {
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('training.management')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('training.management')}</h1>
+            <HelpTooltip i18nKey="tooltips.trainingManagement" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('training.managementDesc')}</p>
         </div>
         <div className="flex gap-3">

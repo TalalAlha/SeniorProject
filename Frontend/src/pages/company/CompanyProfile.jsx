@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts';
 import { authAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 import { changeLanguage } from '../../i18n';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -253,7 +254,10 @@ function CompanyProfile() {
     <div className="fade-in max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
+          <HelpTooltip i18nKey="tooltips.companyProfile" />
+        </div>
         <p className="text-gray-600 dark:text-gray-300 mt-1">{t('profile.subtitle')}</p>
       </div>
 
@@ -452,7 +456,7 @@ function CompanyProfile() {
                     }}
                     className={clsx('input pr-10', passwordErrors.old_password && 'border-danger-500')}
                     disabled={savingPassword}
-                    placeholder="Enter current password"
+                    placeholder={t('profile.enterCurrentPassword')}
                   />
                   <button
                     type="button"
@@ -480,7 +484,7 @@ function CompanyProfile() {
                     }}
                     className={clsx('input pr-10', passwordErrors.new_password && 'border-danger-500')}
                     disabled={savingPassword}
-                    placeholder="Enter new password"
+                    placeholder={t('profile.enterNewPassword')}
                   />
                   <button
                     type="button"
@@ -538,7 +542,7 @@ function CompanyProfile() {
                     }}
                     className={clsx('input pr-10', passwordErrors.confirm_password && 'border-danger-500')}
                     disabled={savingPassword}
-                    placeholder="Confirm new password"
+                    placeholder={t('profile.confirmNewPassword')}
                   />
                   <button
                     type="button"

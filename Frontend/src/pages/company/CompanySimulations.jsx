@@ -61,6 +61,7 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 import { simulationsAPI, companiesAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 import { useAuth } from '../../contexts';
 
 // Status configuration (labelKey for i18n)
@@ -1241,7 +1242,10 @@ function CompanySimulations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('simulation.title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('simulation.title')}</h1>
+            <HelpTooltip i18nKey="tooltips.companySimulations" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('simulation.subtitle')}</p>
         </div>
         <div className="flex gap-3">

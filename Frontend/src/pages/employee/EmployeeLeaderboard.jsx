@@ -23,6 +23,7 @@ import { Trophy, Medal, Award, RefreshCw, AlertCircle, TrendingUp, Users, Info }
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { gamificationAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 const PERIODS = {
   weekly: { key: 'weekly', labelKey: 'leaderboard.weekly' },
@@ -134,7 +135,10 @@ function EmployeeLeaderboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('nav.leaderboard')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('nav.leaderboard')}</h1>
+            <HelpTooltip i18nKey="tooltips.employeeLeaderboard" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('leaderboard.subtitle')}</p>
         </div>
         <button onClick={fetchData} className="btn-secondary flex items-center gap-2 self-start">

@@ -62,6 +62,7 @@ import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 import { companiesAPI } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 // ── Constants ──────────────────────────────────────────────
 
@@ -936,7 +937,10 @@ function UserManagement() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.users.title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.users.title')}</h1>
+            <HelpTooltip i18nKey="tooltips.userManagement" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('admin.users.subtitle')}</p>
         </div>
         <div className="flex gap-3">

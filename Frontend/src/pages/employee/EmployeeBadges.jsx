@@ -24,6 +24,7 @@ import { Award, Trophy, Star, Lock, RefreshCw, AlertCircle, X } from 'lucide-rea
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { gamificationAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 // Rarity order and styling
 const RARITY_CONFIG = {
@@ -180,9 +181,12 @@ function EmployeeBadges() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('nav.badges')} & {t('nav.leaderboard')}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {t('nav.badges')} & {t('nav.leaderboard')}
+            </h1>
+            <HelpTooltip i18nKey="tooltips.employeeBadges" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('badge.subtitle')}</p>
         </div>
         <button onClick={fetchData} className="btn-secondary flex items-center gap-2 self-start">

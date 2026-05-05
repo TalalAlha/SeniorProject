@@ -22,6 +22,7 @@ import { ArrowLeft, Save, Loader2, Mail, Target, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { campaignsAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 function CampaignCreate() {
   const { t } = useTranslation();
@@ -98,7 +99,10 @@ function CampaignCreate() {
             <Target className="h-6 w-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.createCampaign')}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('campaign.createCampaign')}</h1>
+              <HelpTooltip i18nKey="tooltips.campaignCreate" />
+            </div>
             <p className="text-gray-500 dark:text-gray-400">Create a new email awareness campaign</p>
           </div>
         </div>

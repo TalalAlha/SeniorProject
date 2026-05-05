@@ -23,6 +23,7 @@ import { BookOpen, Clock, CheckCircle, AlertCircle, Play, RefreshCw } from 'luci
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { campaignsAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 // Status constants matching backend
 const QUIZ_STATUS = {
@@ -131,7 +132,10 @@ function EmployeeQuizzes() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('quiz.title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('quiz.title')}</h1>
+            <HelpTooltip i18nKey="tooltips.employeeQuizzes" />
+          </div>
           <p className="text-gray-600 dark:text-gray-400 mt-1">{t('quiz.quizSubtitle')}</p>
         </div>
         <button

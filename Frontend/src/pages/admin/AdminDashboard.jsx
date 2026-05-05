@@ -37,6 +37,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts';
 import { analyticsAPI, companiesAPI, campaignsAPI, simulationsAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -278,9 +279,12 @@ function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
+            </h1>
+            <HelpTooltip i18nKey="tooltips.adminDashboard" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('admin.dashboard.subtitle')}</p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">

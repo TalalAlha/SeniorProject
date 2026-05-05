@@ -49,6 +49,7 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import { analyticsAPI, campaignsAPI, simulationsAPI, trainingAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 import {
   LineChart,
   Line,
@@ -835,7 +836,10 @@ function CompanyAnalytics() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('analytics.title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('analytics.title')}</h1>
+            <HelpTooltip i18nKey="tooltips.companyAnalytics" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('analytics.lastPeriodLabel', { label: periodLabel })}</p>
         </div>
         <button

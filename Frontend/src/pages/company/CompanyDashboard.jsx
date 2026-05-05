@@ -38,6 +38,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts';
 import { companiesAPI, campaignsAPI, simulationsAPI, analyticsAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -383,9 +384,12 @@ function CompanyDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {t('dashboard.welcome')}, {user?.first_name || 'Admin'}!
+            </h1>
+            <HelpTooltip i18nKey="tooltips.companyDashboard" />
+          </div>
           <p className="text-gray-600 dark:text-gray-300 mt-1">{t('dashboard.companyOverview')}</p>
         </div>
         <button onClick={fetchDashboardData} className="btn-secondary flex items-center gap-2 self-start">

@@ -34,6 +34,7 @@ import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { simulationsAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -189,7 +190,10 @@ export default function SimulationAnalytics() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Simulations
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{a.campaign_name || 'Simulation Analytics'}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{a.campaign_name || 'Simulation Analytics'}</h1>
+            <HelpTooltip i18nKey="tooltips.simulationAnalytics" />
+          </div>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
             {a.template_name}
             {a.attack_vector && <span className="mx-2">·</span>}

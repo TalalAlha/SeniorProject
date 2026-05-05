@@ -20,6 +20,7 @@ import { ArrowLeft, Save, Loader2, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { companiesAPI } from '../../api';
+import HelpTooltip from '../../components/common/HelpTooltip';
 
 const INDUSTRY_OPTIONS = [
   { value: 'TECH', label: 'Technology' },
@@ -128,7 +129,10 @@ function CompanyCreate() {
           <div className="p-3 rounded-lg bg-primary-100">
             <Building2 className="h-6 w-6 text-primary-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Company</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Company</h1>
+            <HelpTooltip i18nKey="tooltips.companyCreate" />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
