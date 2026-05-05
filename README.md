@@ -7,13 +7,9 @@
 
 ## The Team
 
-This platform was designed, built, and shipped by three computer science seniors who refused to do a boring capstone project.
-
-| | Name | Role |
-|---|---|---|
-| 🧠 | **Emad Saeed Alzahrani** | Backend architecture, simulations engine, ML integration |
-| ⚙️ | **Talal Abid Alharbi** | Accounts, companies, analytics, notifications, frontend infra & auth |
-| 🎨 | **Thamer Musaad Alkahtani** | Campaigns, training, gamification, community portal |
+- **Emad Saeed Alzahrani**
+- **Talal Abid Alharbi**
+- **Thamer Musaad Alkahtani**
 
 ---
 
