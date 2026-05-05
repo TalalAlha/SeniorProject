@@ -1,23 +1,23 @@
 # PhishAware — Frontend
 
-React 19 + Vite single-page application for the PhishAware cybersecurity awareness platform. Role-based routing, JWT auth with automatic refresh, bilingual UI (English + Arabic with RTL), and live campaign analytics.
+React 19 + Vite SPA for the PhishAware cybersecurity awareness platform — role-based routing across four user types, JWT auth with automatic token refresh, full bilingual support with Arabic RTL, and live simulation analytics that update in real time.
 
 ---
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| Framework | React 19 |
-| Build Tool | Vite 7 |
-| Routing | React Router 6 (createBrowserRouter) |
-| Styling | Tailwind CSS 3 |
-| HTTP Client | Axios (with JWT refresh interceptor) |
-| Charts | Recharts |
-| Icons | Lucide React |
-| i18n | i18next + react-i18next (English + Arabic, RTL-aware) |
-| Toasts | react-hot-toast |
-| Dates | date-fns |
+| Technology | Purpose |
+|---|---|
+| React 19 | UI framework |
+| Vite 7 | Build tool + dev server |
+| React Router 6 | Client-side routing (`createBrowserRouter`) |
+| Tailwind CSS 3 | Utility-first styling |
+| Axios | HTTP client + JWT interceptors |
+| Recharts | Analytics charts |
+| Lucide React | Icon set |
+| i18next | Internationalization (EN + AR) |
+| react-hot-toast | Toast notifications |
+| date-fns | Date formatting |
 
 ---
 
@@ -27,30 +27,38 @@ React 19 + Vite single-page application for the PhishAware cybersecurity awarene
 Frontend/
 ├── src/
 │   ├── api/
-│   │   ├── axios.js          Axios instance + JWT request/response interceptors
-│   │   ├── endpoints.js      All API endpoint functions grouped by resource
-│   │   ├── notifications.js  Notification-specific helpers
-│   │   └── index.js          Re-exports
+│   │   ├── axios.js           — Axios instance + JWT interceptors + auto-refresh
+│   │   ├── endpoints.js       — all API functions grouped by resource
+│   │   ├── notifications.js   — notification helpers
+│   │   └── index.js
 │   ├── contexts/
-│   │   └── index.jsx         AuthContext, USER_ROLES, login/logout helpers
+│   │   └── index.jsx          — AuthContext, USER_ROLES, login/logout
 │   ├── routes/
-│   │   ├── index.jsx         createBrowserRouter configuration
-│   │   └── ProtectedRoute.jsx ProtectedRoute / PublicRoute / GuestRoute guards
+│   │   ├── index.jsx          — createBrowserRouter config
+│   │   └── ProtectedRoute.jsx — ProtectedRoute, PublicRoute, GuestRoute guards
 │   ├── layouts/
-│   │   ├── DashboardLayout.jsx  Sidebar + topbar shell for authenticated pages
-│   │   └── PublicLayout.jsx     Navbar + footer shell for public pages
+│   │   ├── DashboardLayout.jsx  — sidebar + topbar for authenticated pages
+│   │   └── PublicLayout.jsx     — navbar + footer for public pages
 │   ├── pages/
-│   │   ├── auth/             Login, RegisterCompany, VerifyEmail, AcceptInvitation, ForgotPassword, ResetPassword
-│   │   ├── public/           PublicHome, TrainingTopics, TopicTraining, PublicQuiz, CommunityPortal, SimulationCaught, Unauthorized, NotFound
-│   │   ├── employee/         Dashboard, Quizzes, TakeQuiz, Training, TakeTraining, Badges, Leaderboard, Profile
-│   │   ├── company/          Dashboard, Campaigns, Simulations, SimulationAnalytics, Employees, Training, Analytics, Profile
-│   │   └── admin/            Dashboard, CompanyList, CompanyCreate, PlatformAnalytics, UserManagement
-│   ├── components/           Shared UI
-│   ├── hooks/                Custom hooks
-│   ├── i18n/                 English + Arabic translations
-│   ├── utils/                Helpers
-│   └── main.jsx              App entry
-├── public/                   Static assets
+│   │   ├── auth/         — Login, RegisterCompany, VerifyEmail, AcceptInvitation,
+│   │   │                   ForgotPassword, ResetPassword
+│   │   ├── public/       — LandingPage, PublicHome, TrainingTopics, TopicTraining,
+│   │   │                   PublicQuiz, CommunityPortal, SimulationCaught,
+│   │   │                   Unauthorized, NotFound
+│   │   ├── employee/     — Dashboard, Quizzes, TakeQuiz, Training, TakeTraining,
+│   │   │                   Badges, Leaderboard, Profile
+│   │   ├── company/      — Dashboard, Campaigns, CampaignCreate, CampaignDetails,
+│   │   │                   Simulations, SimulationCreate, SimulationAnalytics,
+│   │   │                   Employees, Training, Analytics, Profile
+│   │   └── admin/        — Dashboard, CompanyList, CompanyCreate,
+│   │                       PlatformAnalytics, UserManagement
+│   ├── components/       — shared UI: NotificationDropdown, PasswordRequirements,
+│   │                       Logo, common/, training/
+│   ├── hooks/            — custom React hooks
+│   ├── i18n/             — English + Arabic translation files
+│   ├── utils/            — shared helpers
+│   └── main.jsx
+├── public/
 ├── index.html
 ├── vite.config.js
 ├── tailwind.config.js
@@ -67,9 +75,9 @@ Frontend/
 npm install
 ```
 
-### 2. Configure environment variables
+### 2. Environment variables
 
-Create `.env` in `Frontend/`:
+Create a `.env` file inside `Frontend/`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api/v1
@@ -78,193 +86,99 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 ### 3. Run
 
 ```bash
-npm run dev       # Dev server at http://localhost:5173
-npm run build     # Production build → dist/
-npm run preview   # Preview production build
-npm run lint      # ESLint
+npm run dev
 ```
 
----
-
-## Routing
-
-React Router 6 with three role-based route groups protected by `ProtectedRoute`. Guest routes redirect authenticated users to their role dashboard; public routes redirect authenticated users away from auth pages.
-
-### Public routes (no auth)
-
-| Path | Page | Description |
-|------|------|-------------|
-| `/` | PublicHome | Landing page |
-| `/training` | TrainingTopics | Public cybersecurity topics |
-| `/training/:topic` | TopicTraining | Topic content |
-| `/quiz` | PublicQuiz | Public awareness quiz |
-| `/community` | CommunityPortal | Community portal |
-| `/login` | LoginPage | Login form |
-| `/register` → `/register/company` | — | Alias redirect |
-| `/register/company` | RegisterCompany | Company self-registration |
-| `/verify-email/:token` | VerifyEmailPage | Email verification via UUID |
-| `/accept-invitation/:token` | AcceptInvitation | Employee sets password |
-| `/forgot-password` | ForgotPassword | Request password reset |
-| `/reset-password/:token` | ResetPassword | Set new password |
-| `/simulation/caught/:token` | SimulationCaught | Educational landing after clicking a phishing lure |
-| `/simulation/error`, `/simulation/expired` | NotFoundPage | Simulation error states |
-| `/unauthorized` | UnauthorizedPage | Access denied |
-| `*` | NotFoundPage | 404 |
-
-### Employee routes — `/employee/*` (role: `EMPLOYEE`)
-
-| Path | Page |
-|------|------|
-| `/employee/dashboard` | EmployeeDashboard |
-| `/employee/quizzes` | EmployeeQuizzes |
-| `/employee/quizzes/:id` | TakeQuiz |
-| `/employee/training` | EmployeeTraining |
-| `/employee/training/:id` | TakeTraining |
-| `/employee/badges` | EmployeeBadges |
-| `/employee/leaderboard` | EmployeeLeaderboard |
-| `/employee/profile` | EmployeeProfile |
-
-### Company Admin routes — `/company/*` (role: `COMPANY_ADMIN`)
-
-| Path | Page |
-|------|------|
-| `/company/dashboard` | CompanyDashboard |
-| `/company/campaigns` | CampaignList |
-| `/company/campaigns/create` | CampaignCreate |
-| `/company/campaigns/:id` | CampaignDetails |
-| `/company/simulations` | CompanySimulations |
-| `/company/simulations/:id/analytics` | SimulationAnalytics (polls every 15s) |
-| `/company/employees` | CompanyEmployees |
-| `/company/training` | TrainingManagement |
-| `/company/analytics` | CompanyAnalytics |
-| `/company/profile` | CompanyProfile |
-
-### Super Admin routes — `/admin/*` (role: `SUPER_ADMIN`)
-
-| Path | Page |
-|------|------|
-| `/admin/dashboard` | AdminDashboard |
-| `/admin/companies` | CompanyList |
-| `/admin/companies/create` | CompanyCreate |
-| `/admin/analytics` | PlatformAnalytics |
-| `/admin/users` | UserManagement |
-| `/admin/profile` | EmployeeProfile (reused) |
+The dev server starts at `http://localhost:5173`. The backend must also be running — see [Backend/README.md](../Backend/README.md).
 
 ---
 
-## Authentication
+## Role-Based Routing
 
-Managed via `AuthContext` ([src/contexts/index.jsx](src/contexts/index.jsx)).
+The app serves four distinct user types, each with their own set of routes and UI. Route guards are enforced by `ProtectedRoute`, `PublicRoute`, and `GuestRoute` components in `src/routes/ProtectedRoute.jsx`.
 
-- JWT access and refresh tokens stored in `localStorage`
-- Axios request interceptor attaches the access token to every request
-- Axios response interceptor catches `401`, calls the refresh endpoint, retries the original request, and logs out + redirects to `/login` if refresh fails
-- `ProtectedRoute` reads the user role from context and redirects unauthorized users to `/unauthorized`
-- `PublicRoute` sends already-authenticated users to their role dashboard
-- `GuestRoute` renders the public layout for anyone (auth optional)
+### 🔴 ADMIN — Platform superuser
+Full visibility across all companies on the platform.
+- Company list and creation
+- Platform-wide analytics
+- User management
 
----
+### 🟠 COMPANY — Company administrator
+Runs the full security awareness lifecycle for their organization.
+- Company dashboard with risk and engagement stats
+- Phishing simulation campaigns — create, send, and view analytics
+- Awareness campaigns — create and track quiz-based campaigns
+- Employee management — invite, view, and monitor employees
+- Training management — assign modules, track completion
+- Analytics — 7d / 30d / 90d trend views, CSV export
+- Profile management
 
-## API Client
+### 🟢 EMPLOYEE — End user
+The person actually getting trained.
+- Personal dashboard with risk score and recent activity
+- Quizzes — take awareness campaign quizzes
+- Training — view assigned and optional modules
+- Badges — view earned badges and points history
+- Leaderboard — compete with colleagues
+- Profile management
 
-All calls are defined in [src/api/endpoints.js](src/api/endpoints.js), grouped by resource. Examples:
-
-```js
-// Auth
-authAPI.login(credentials)
-authAPI.register(data)
-authAPI.verifyEmail(token)
-authAPI.resendVerification(email)
-authAPI.requestPasswordReset(email)
-authAPI.resetPassword(token, password)
-authAPI.getProfile()
-authAPI.updateProfile(data)
-authAPI.changePassword(data)
-
-// Companies
-companiesAPI.getMyCompany()
-companiesAPI.getStats(id)
-companiesAPI.getUsers(id, params)
-
-// Employees
-employeesAPI.invite(data)
-employeesAPI.getInvitationDetails(token)
-employeesAPI.acceptInvitation(token, data)
-employeesAPI.getPending()
-employeesAPI.resend(id)
-employeesAPI.cancel(id)
-
-// Simulations
-simulationsAPI.getCampaigns()
-simulationsAPI.createCampaign(data)
-simulationsAPI.send(id)
-simulationsAPI.getSimulationFeedback(token, lang)
-
-// Assessments / AI
-assessmentsAPI.generateEmails(payload)
-
-// Campaigns (classification quizzes)
-campaignsAPI.list()
-campaignsAPI.assignToEmployees(id, payload)
-campaignsAPI.getStatistics(id)
-
-// Training
-trainingAPI.getMyTrainings()
-trainingAPI.startTraining(id)
-trainingAPI.getQuiz(id)
-trainingAPI.submitQuiz(id, answers)
-trainingAPI.getRiskScore()
-
-// Gamification
-gamificationAPI.getBadges()
-gamificationAPI.getLeaderboard(params)
-gamificationAPI.getMyPoints()
-
-// Analytics
-analyticsAPI.getOverview()
-analyticsAPI.getTrends(params)
-analyticsAPI.exportCSV(params)
-
-// Notifications
-notificationsAPI.getAll()
-notificationsAPI.getUnreadCount()
-notificationsAPI.markRead(id)
-notificationsAPI.markAllRead()
-notificationsAPI.clearAll()
-```
+### 🌐 Public / Guest — No auth required
+- Landing page
+- Community Portal (Daily Phishing Challenge, MENA Threat Watch, URL Inspector, Security Glossary, Trusted Resources)
+- Training Topics and Public Quiz
+- SimulationCaught — the page employees land on after clicking a phishing link
 
 ---
 
-## Internationalization
+## Auth Flow
 
-- English and Arabic, handled with `i18next` + `i18next-browser-languagedetector`
-- Language auto-detected from browser; user can switch at runtime from the UI
-- RTL layout applied automatically when Arabic is active (via Tailwind's `dir` utilities and `html[dir]` attribute)
-- Backend content (simulation templates, training modules, quiz questions) is also bilingual — the API returns the appropriate language based on the request
+Authentication is JWT-based with automatic token management:
 
----
-
-## Notable Pages
-
-### `/simulation/caught/:token` — SimulationCaught
-Public page (no auth). Loaded when an employee clicks a phishing lure. Fetches educational feedback from `GET /simulations/feedback/<token>/` and displays the red flags the employee missed, a plain-language explanation, and next steps.
-
-### `/accept-invitation/:token` — AcceptInvitation
-Public page (no auth). Validates the invitation token, shows the inviting company's name and the pre-filled email, and lets the employee set their password. On success the account activates and verification is skipped (invite token proves ownership).
-
-### `/company/simulations/:id/analytics` — SimulationAnalytics
-Polls the backend every 15 seconds for live stats: emails sent, opened, clicked, reported. Charts click rate over time and per-employee breakdown.
-
-### `/company/employees` — CompanyEmployees
-Employee management hub. Lists active employees with risk scores; invite modal sends the invitation email; pending invitations support resend (rotates token) and cancel.
-
-### `/company/campaigns/*` — Awareness Campaigns
-Classification quiz campaigns. Admins create, assign, and view per-campaign statistics (completion rate, average score, risk distribution).
+- **Storage**: Access token + refresh token stored in `localStorage`
+- **Auto-refresh**: The Axios instance in `src/api/axios.js` intercepts 401 responses, silently requests a new access token using the refresh token, and retries the original request — no visible interruption to the user
+- **Context**: `AuthContext` (in `src/contexts/index.jsx`) provides the current user object, role, and `login`/`logout` functions app-wide via React context
+- **Email verification gate**: Unverified accounts are blocked from logging in; the login page shows an amber banner with a one-click resend option
+- **Invitation accept flow**: `/accept-invitation/:token` is a public route — employees can activate their accounts without being logged in first
 
 ---
 
-## Environment Variables
+## Key Pages
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_BASE_URL` | Backend API base URL | `http://localhost:8000/api/v1` |
+### SimulationCaught — `/simulation/caught/:token`
+The most important page in the app. When an employee clicks a phishing link in a simulation email, they land here instead of wherever the link pretended to go. The page fetches the feedback for that specific simulation link and shows the employee every red flag they missed, with a plain-language explanation of why each one was suspicious. Education at the moment of failure — not in a compliance training three weeks later.
+
+### SimulationAnalytics
+The live operations center for a phishing campaign. Shows real-time open rate, click rate, and report rate with per-employee detail. **Auto-refreshes every 15 seconds** so admins watching a live campaign don't need to reload. Charts built with Recharts.
+
+### TakeQuiz
+The awareness campaign experience. Employees are shown email samples one at a time and classify each as phishing or legitimate. Timed, scored per question, and feeds directly into the employee's risk profile. Designed to build genuine intuition, not just click through a checklist.
+
+### CommunityPortal
+The public face of the platform. No login required. Features:
+- **Daily Phishing Challenge** — a fresh example to spot every day
+- **MENA Threat Watch** — regional threat intelligence and news
+- **URL Inspector** — analyze suspicious links without clicking them
+- **Security Glossary** — plain-English definitions for security terms
+- **Trusted Resources** — curated links to reputable security organizations
+
+---
+
+## Bilingual / RTL
+
+Every page, every role, every feature is available in English and Arabic. Language switching is handled by i18next. When Arabic is selected:
+
+- The UI direction flips to RTL automatically
+- All text strings load from the Arabic translation files in `src/i18n/`
+- Layout, flex direction, icon placement, and text alignment all respond to the RTL context
+
+Arabic was not bolted on after the fact. The component structure was designed to support bidirectionality from the start.
+
+---
+
+## Built by
+
+**Emad Saeed Alzahrani · Talal Abid Alharbi · Thamer Musaad Alkahtani**
+
+Senior capstone project, 2025–2026.
+
+If the UI made you want to build something similar, the least you can do is star the repo. ⭐

@@ -1,260 +1,106 @@
-# PhishAware
+# PhishAware 🎣
 
-A multi-tenant cybersecurity awareness platform that protects organizations from phishing attacks through AI-generated simulations, targeted training, and continuous risk scoring.
-
-Senior Project — 2025/2026 — **Talal · Emad · Thameer**
-
----
-
-## Overview
-
-PhishAware lets company administrators launch realistic phishing simulation campaigns, assess employee awareness through classification quizzes, assign remediation training based on risk, and track security posture through real-time analytics. The platform is fully bilingual (English + Arabic with RTL support), multi-tenant, and powered by a pair of in-house LSTM models that generate phishing and legitimate emails on demand.
+> **Train your team before attackers do.**
+> A full-stack cybersecurity awareness platform with real phishing simulations, AI-generated emails, gamified training, and dashboards that tell you exactly who clicked.
 
 ---
 
-## Repository Layout
+## The Team
+
+This platform was designed, built, and shipped by three computer science seniors who refused to do a boring capstone project.
+
+| | Name | Role |
+|---|---|---|
+| 🧠 | **Emad Saeed Alzahrani** | Backend architecture, simulations engine, ML integration |
+| ⚙️ | **Talal Abid Alharbi** | Accounts, companies, analytics, notifications, frontend infra & auth |
+| 🎨 | **Thamer Musaad Alkahtani** | Campaigns, training, gamification, community portal |
+
+---
+
+## What is PhishAware?
+
+PhishAware is a multi-tenant cybersecurity awareness SaaS. Company admins register on the platform, invite their employees, then run the full security awareness lifecycle: launch phishing simulations using real emails with pixel and link tracking, run quiz-based awareness campaigns, assign targeted training modules based on each employee's risk score, and track everything through live analytics dashboards. Employees earn badges, accumulate points, and compete on a leaderboard — because the only way to get people to care about security is to make it interesting. The whole platform is fully bilingual in English and Arabic with proper RTL support throughout.
+
+---
+
+## Repo Layout
 
 ```
-SeniorProject/
-├── Backend/        Django REST Framework API + PyTorch ML models
-├── Frontend/       React 19 + Vite SPA
-└── README.md
+PhishAware/
+├── Backend/    — Django REST API, LSTM models, email system
+└── Frontend/   — React 19 SPA, role-based routing, bilingual UI
 ```
-
-The frontend consumes the backend exclusively through a versioned REST API (`/api/v1/...`) secured with JWT access + refresh tokens.
 
 ---
 
-## Core Capabilities
+## Features
 
-### Phishing Simulations
-- Launch campaigns using seeded templates **or** generate fresh emails with the trained LSTM model (English + Arabic)
-- Dispatch real emails via SendGrid SMTP relay
-- Track pixel opens, lure-link clicks, credential submissions, and employee "report phishing" actions
-- Educational landing page shows the red flags an employee missed after a click
+### 🎯 Phishing Simulations — The Flagship
+This is the whole point. Build a campaign, upload your employee CSV, and PhishAware sends *real* phishing emails through SendGrid. Every email contains an invisible tracking pixel and a lure link. When an employee opens the email, clicks the link, or reports it as suspicious — we know. Stats update in real time via Django post_save signals. And when an employee does click? They land on a custom **"You got caught"** page that explains exactly which red flags they missed. Education at the moment of failure, not three weeks later in a boring seminar.
 
-### Awareness Campaigns
-- Quiz-based classification exercises where employees label emails as phishing or legitimate
-- Per-question scoring with full breakdown on completion
-- Admin statistics: completion rate, average score, risk distribution
+### 🤖 AI Email Generation — The Plot Twist
+PhishAware ships with **two custom-trained LSTM models** — one for English, one for Arabic. Not a GPT wrapper. Not a prompt template. A real from-scratch PyTorch architecture (~3 layers, 512 hidden units) trained on 14,000 English and 10,000 Arabic phishing and legitimate emails. The models generate brand-new, realistic phishing email content on demand via the `/api/v1/assessments/` endpoint. Building this from scratch, for Arabic specifically, is something almost no student project has ever done.
 
-### Training & Remediation
-- 3 seeded bilingual modules (Email Security, Mobile Security, Social Engineering), each with a 5-question quiz
-- Individual or bulk assignment with due dates and overdue tracking
-- Quiz results automatically update the employee's risk score
+### 📋 Awareness Campaigns
+Quiz-based email classification campaigns. Employees receive real email samples and have to label each one: phishing or legitimate? Each question is scored, results are tracked, and the data feeds into the employee's risk profile. This is how you build genuine intuition, not checkbox compliance.
 
-### Risk Scoring
-- Per-employee score recalculated via Django `post_save` signals on every tracking event
-- Inputs: simulation behavior, quiz performance, training completion
-- Historical score timeline preserved
+### 📚 Training & Remediation
+Three bilingual training modules: Email Security, Mobile Security, and Social Engineering. Each module has interactive content and a quiz at the end. The system auto-assigns modules based on risk score — employees who fail simulations or score poorly in campaigns get remediation training automatically. No manual intervention needed.
 
-### Analytics
-- Company and platform overview dashboards
-- Time-series trends (7d / 30d / 90d)
-- Risk distribution, high-risk employee lists, training effectiveness
-- CSV export
+### 📊 Risk Scoring
+Every employee has a dynamic risk score computed from three inputs: simulation behavior (did they click? report? ignore?), quiz performance, and training completion. Scores are recalculated in real time via Django `post_save` signals. The system maintains a historical timeline so admins can see whether employees are actually improving.
 
-### Gamification
-- Badge catalog with automatic + bulk-admin award flows
-- Points ledger with user summary and transaction history
-- Company leaderboard with filtering by period
+### 📈 Analytics
+Company admins get dashboards with open rates, click rates, report rates, and risk trends across 7-day, 30-day, and 90-day windows. Platform admins see aggregate stats across all companies. Everything is exportable to CSV.
 
-### Notifications
-- 36 platform events surfaced in-app: training deadlines, simulation actions, score changes, admin alerts, new company registrations, and more
+### 🏆 Gamification
+Badges. Points. Leaderboards. Employees earn rewards for completing training, reporting phishing attempts, and improving their risk scores. Because the security tool that nobody uses is useless.
 
-### Public Community Portal
-- Authless training topics, public quiz, and resources at the root domain
+### 🔔 Notifications
+36 distinct event types trigger in-app notifications — simulation sends, quiz completions, badge awards, training assignments, and more. Everyone stays informed without constant email noise.
+
+### 🌐 Community Portal
+A fully public section of the platform — no account required. Features a Daily Phishing Challenge, MENA Threat Watch, URL Inspector, Security Glossary, and curated Trusted Resources. Good for the broader community, good for SEO, and a great way to demo the platform without a login.
+
+### 📧 Employee Invitation System
+Admins invite employees by email. The invitation link is valid for 7 days, leads to a branded accept page, and activates the account on the spot — no separate email verification step needed. Built with a clean token-based flow that handles expiry gracefully.
+
+### ✉️ Email Verification
+Registration triggers a verification email via SendGrid. Unverified accounts are blocked from logging in with a clear amber banner and a one-click resend option. Staff accounts bypass verification automatically.
+
+### 🌍 Bilingual / RTL
+Every page, every role, every feature — in English and Arabic. The frontend auto-flips to RTL layout when Arabic is selected. This was not an afterthought; it was designed in from day one.
 
 ---
 
 ## Tech Stack
 
-| Layer | Stack |
-|-------|-------|
-| Backend | Python 3.11+, Django 5.x, Django REST Framework 3.x, SimpleJWT |
-| AI | PyTorch 2.x, custom LSTM (3-layer, 512 hidden, 256 embedding) |
-| Database | SQLite (development) · PostgreSQL-ready (production) |
-| Email | SendGrid via Django SMTP backend |
-| API Docs | drf-yasg (Swagger UI + ReDoc) |
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.11, Django 5.x, Django REST Framework |
+| Auth | SimpleJWT |
+| AI / ML | PyTorch (custom LSTM, EN + AR) |
 | Frontend | React 19, Vite 7, React Router 6 |
 | Styling | Tailwind CSS 3 |
 | Charts | Recharts |
-| i18n | i18next + react-i18next (English + Arabic, RTL-aware) |
-| HTTP | Axios with JWT refresh interceptor |
+| i18n | i18next |
+| Email | SendGrid SMTP relay |
+| Database | SQLite (dev) / PostgreSQL-ready (prod) |
+| API Docs | drf-yasg (Swagger + ReDoc) |
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- A SendGrid account with a verified sender (optional for local dev — emails will still log)
+The setup guides live in their respective directories:
 
-### Backend
-
-```bash
-cd Backend
-python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-pip install torch                 # Required for AI email generation
-```
-
-Create `Backend/.env`:
-
-```env
-SECRET_KEY=your-django-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-FRONTEND_URL=http://localhost:5173
-
-EMAIL_HOST=smtp.sendgrid.net
-EMAIL_PORT=587
-EMAIL_HOST_USER=apikey
-EMAIL_HOST_PASSWORD=your-sendgrid-api-key
-DEFAULT_FROM_EMAIL=PhishAware <no-reply@yourdomain.com>
-SENDGRID_VERIFIED_SENDER=no-reply@yourdomain.com
-```
-
-Migrate, seed, and run:
-
-```bash
-python manage.py migrate
-python manage.py seed_simulation_templates   # 15 templates (8 EN + 7 AR)
-python manage.py seed_training               # 3 bilingual training modules
-python manage.py createsuperuser             # Super Admin account
-python manage.py runserver
-```
-
-Backend: `http://localhost:8000` · API: `http://localhost:8000/api/v1/` · Docs: `http://localhost:8000/api/docs/`
-
-### Frontend
-
-```bash
-cd Frontend
-npm install
-```
-
-Create `Frontend/.env`:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
-```
-
-```bash
-npm run dev
-```
-
-Frontend: `http://localhost:5173`
+- **Backend setup** → [Backend/README.md](Backend/README.md)
+- **Frontend setup** → [Frontend/README.md](Frontend/README.md)
 
 ---
 
-## User Roles
+## About This Project
 
-| Role | Scope |
-|------|-------|
-| `SUPER_ADMIN` | Platform-wide: all companies, global templates, platform analytics |
-| `COMPANY_ADMIN` | Own company only: employees, simulations, campaigns, training, analytics |
-| `EMPLOYEE` | Self-service: training, quizzes, risk score, badges, leaderboard |
+PhishAware was built as a senior capstone project at [University Name] by Emad, Talal, and Thamer. The scope — a full SaaS platform with custom-trained neural networks, a real email dispatch system, and a bilingual React frontend — is what happens when a team decides the bar should be higher than "it works on localhost."
 
-Employees are invitation-only — admins send a 7-day UUID token via email; the account activates on acceptance (verification is skipped because the invite itself proves email ownership).
-
----
-
-## API Surface
-
-All endpoints live under `/api/v1/`:
-
-| Prefix | Purpose |
-|--------|---------|
-| `/auth/` | Register, login, token refresh, email verification, password reset, profile |
-| `/employees/` | Invite, list pending, resend, cancel, accept invitation |
-| `/companies/` | Registration, stats, users, CSV import, activate/deactivate |
-| `/campaigns/` | Awareness campaigns and employee classification quizzes |
-| `/assessments/` | Reusable email templates + **AI email generation** |
-| `/simulations/` | Templates, campaigns, send, tracking (link, report, credentials, feedback) |
-| `/training/` | Modules, assignments, quizzes, risk scores |
-| `/gamification/` | Badges, points, leaderboard |
-| `/analytics/` | Dashboard, trends, risk analytics, CSV export |
-| `/notifications/` | User notification feed |
-| `/community/` | Public community portal (no auth) |
-
-Full endpoint reference: [Backend/README.md](Backend/README.md)
-
----
-
-## Project Structure
-
-```
-Backend/
-├── apps/
-│   ├── accounts/        Auth, registration, invitations, password reset
-│   ├── assessments/     Email templates + AI email generation endpoint
-│   ├── analytics/       Dashboards, trends, risk analytics, CSV export
-│   ├── campaigns/       Awareness campaigns and classification quizzes
-│   ├── community/       Public community portal
-│   ├── companies/       Company CRUD, users, CSV import
-│   ├── core/            Shared permissions, email helpers, HTML templates
-│   ├── gamification/    Badges, points, leaderboard
-│   ├── notifications/   36-type notification system
-│   ├── simulations/     Live phishing simulations and tracking
-│   └── training/        Modules, quizzes, risk scores, assignments
-├── ml_models/           LSTM phishing email generators (EN + AR, PyTorch)
-├── phishaware_backend/  Django settings, root urls
-├── requirements.txt
-└── manage.py
-
-Frontend/
-├── src/
-│   ├── api/             Axios client + endpoint definitions
-│   ├── contexts/        AuthContext
-│   ├── components/      Shared UI
-│   ├── hooks/           Custom hooks
-│   ├── i18n/            English + Arabic translations
-│   ├── layouts/         DashboardLayout, PublicLayout
-│   ├── pages/           auth, public, employee, company, admin
-│   ├── routes/          React Router + role guards
-│   └── utils/
-├── public/
-└── package.json
-```
-
----
-
-## AI Email Generation
-
-Two LSTM models (one English, one Arabic) generate phishing and legitimate emails on demand.
-
-- Location: [Backend/ml_models/](Backend/ml_models/)
-- Trained weights: `phishing_lstm_en.pth` (14k samples), `phishing_lstm_ar.pth` (10k samples)
-- Vocabularies: `vocab_en.json`, `vocab_ar.json`
-- Architecture: 3-layer LSTM, 256 embedding, 512 hidden, 0.3 dropout
-- Entry point: `EmailGenerator.generate_email(email_type, language)` in [email_generator.py](Backend/ml_models/email_generator.py)
-- Exposed via `POST /api/v1/assessments/ai/generate-emails/`
-
-Models are loaded lazily (thread-safe singleton) on the first request.
-
----
-
-## Useful Management Commands
-
-```bash
-# Test all email templates end-to-end
-python manage.py test_email --to you@example.com --type all
-
-# Trigger scheduled training reminder notifications
-python manage.py send_training_reminders
-
-# Audit the notification system
-python manage.py audit_notifications
-
-# Reset training data
-python manage.py clean_training
-```
-
----
-
-## License
-
-Academic senior project — all rights reserved by the authors.
+If you made it this far, consider starring the repo. It means a lot to the engineers who built it. ⭐
