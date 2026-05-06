@@ -67,12 +67,12 @@ import { useAuth } from '../../contexts';
 // Status configuration (labelKey for i18n)
 const STATUS_CONFIG = {
   DRAFT: { labelKey: 'campaign.status.draft', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: FileText },
-  READY: { labelKey: 'simulation.statusReady', color: 'bg-primary-50 text-primary-700', icon: Check },
+  READY: { labelKey: 'simulation.statusReady', color: 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300', icon: Check },
   SCHEDULED: { labelKey: 'simulation.statusScheduled', color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400', icon: Clock },
-  SENT: { labelKey: 'simulation.statusSent', color: 'bg-warning-50 text-warning-700', icon: Send },
-  IN_PROGRESS: { labelKey: 'simulation.statusInProgress', color: 'bg-warning-50 text-warning-700', icon: Play },
-  ACTIVE: { labelKey: 'campaign.status.active', color: 'bg-success-50 text-success-700', icon: Play },
-  COMPLETED: { labelKey: 'campaign.status.completed', color: 'bg-primary-100 text-primary-800', icon: CheckCircle },
+  SENT: { labelKey: 'simulation.statusSent', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', icon: Send },
+  IN_PROGRESS: { labelKey: 'simulation.statusInProgress', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', icon: Play },
+  ACTIVE: { labelKey: 'campaign.status.active', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400', icon: Play },
+  COMPLETED: { labelKey: 'campaign.status.completed', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300', icon: CheckCircle },
 };
 
 // Modal Component
@@ -180,10 +180,10 @@ function DropdownMenu({ trigger, items }) {
 // Stat Card Component
 function StatCard({ icon: Icon, label, value, color = 'primary', subtext }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
   };
 
   return (
@@ -676,11 +676,11 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
             </div>
           ) : sendSuccess ? (
             <div className="space-y-6">
-              <div className="w-20 h-20 bg-success-50 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="w-10 h-10 text-success-600" />
+              <div className="w-20 h-20 bg-success-50 dark:bg-success-900/30 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-10 h-10 text-success-600 dark:text-success-400" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-success-700 mb-2">Simulation Launched!</h3>
+                <h3 className="text-2xl font-bold text-success-700 dark:text-success-400 mb-2">Simulation Launched!</h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   {sentCount > 0 ? `Emails sent to ${sentCount} employee${sentCount !== 1 ? 's' : ''}` : 'Emails are being delivered to employees'}
                 </p>
@@ -700,11 +700,11 @@ function CreateSimulationModal({ isOpen, onClose, onSuccess }) {
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="w-20 h-20 bg-danger-50 rounded-full flex items-center justify-center mx-auto">
-                <AlertCircle className="w-10 h-10 text-danger-600" />
+              <div className="w-20 h-20 bg-danger-50 dark:bg-danger-900/30 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="w-10 h-10 text-danger-600 dark:text-danger-400" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-danger-700 mb-2">Launch Failed</h3>
+                <h3 className="text-2xl font-bold text-danger-700 dark:text-danger-400 mb-2">Launch Failed</h3>
                 <p className="text-gray-600 dark:text-gray-300">{errorMessage || 'Failed to send emails. Please try again.'}</p>
               </div>
               <div className="flex gap-3 justify-center">
@@ -940,16 +940,16 @@ function SimulationDetailsModal({ isOpen, onClose, simulation, onRefresh }) {
                       {employeeResults.map((result) => {
                         const lastActivity = result.clicked_at || result.sent_at;
                         const riskColors = {
-                          LOW: 'bg-success-50 text-success-700',
-                          MEDIUM: 'bg-warning-50 text-warning-700',
-                          HIGH: 'bg-orange-50 text-orange-700 dark:text-orange-400',
-                          CRITICAL: 'bg-danger-50 text-danger-700',
+                          LOW: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400',
+                          MEDIUM: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400',
+                          HIGH: 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400',
+                          CRITICAL: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400',
                         };
                         const statusColors = {
-                          SENT: 'bg-success-50 text-success-700',
+                          SENT: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400',
                           PENDING: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
-                          DELIVERED: 'bg-primary-50 text-primary-700',
-                          FAILED: 'bg-danger-50 text-danger-700',
+                          DELIVERED: 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300',
+                          FAILED: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400',
                         };
                         return (
                           <tr key={result.employee_id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -1035,8 +1035,8 @@ function SimulationCard({ simulation, onView, onDelete, onDownload, onMarkSent, 
   return (
     <div className="card group">
       <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-lg bg-primary-100">
-          <Mail className="h-6 w-6 text-primary-600" />
+        <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+          <Mail className="h-6 w-6 text-primary-600 dark:text-primary-400" />
         </div>
         <div className="flex items-center gap-2">
           <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full', status.color)}>

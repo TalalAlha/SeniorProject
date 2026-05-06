@@ -27,8 +27,7 @@ function PublicLayout() {
 
   const navLinks = [
     { name: t('nav.home'), path: '/' },
-    { name: t('nav.training'), path: '/training' },
-    { name: t('nav.quizzes'), path: '/quiz' },
+    { name: t('nav.learn'), path: '/training' },
     { name: t('nav.community'), path: '/community' },
   ];
 
@@ -202,12 +201,7 @@ function PublicLayout() {
                 </li>
                 <li>
                   <Link to="/training" className="text-gray-400 hover:text-white transition-colors text-sm">
-                    {t('nav.training')}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/quiz" className="text-gray-400 hover:text-white transition-colors text-sm">
-                    {t('nav.quizzes')}
+                    {t('nav.learn')}
                   </Link>
                 </li>
                 <li>

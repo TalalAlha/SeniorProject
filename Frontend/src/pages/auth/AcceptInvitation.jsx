@@ -16,7 +16,7 @@
  *   POST /api/v1/employees/invite/{token}/accept/  → activate account with password
  */
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Check, X, Loader2, Eye, EyeOff } from 'lucide-react';
 import Logo from '../../components/Logo';
 import PasswordRequirements from '../../components/PasswordRequirements';
@@ -165,7 +165,9 @@ function AcceptInvitation() {
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/50 p-8">
         {/* Header */}
         <div className="text-center mb-6">
-          <Logo variant="vertical" className="h-20 w-auto mx-auto mb-4" />
+          <Link to="/" className="inline-block mb-4" aria-label="PhishAware home">
+            <Logo variant="vertical" className="h-20 w-auto mx-auto" />
+          </Link>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">You're Invited!</h2>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
             Join <span className="font-semibold text-gray-900 dark:text-white">{company_name}</span> on PhishAware

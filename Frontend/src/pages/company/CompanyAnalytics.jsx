@@ -50,6 +50,7 @@ import clsx from 'clsx';
 import { format } from 'date-fns';
 import { analyticsAPI, campaignsAPI, simulationsAPI, trainingAPI } from '../../api';
 import HelpTooltip from '../../components/common/HelpTooltip';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   LineChart,
   Line,
@@ -556,6 +557,7 @@ function ChartTooltip({ active, payload, label, formatter }) {
 
 function CompanyAnalytics() {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   // State
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -905,9 +907,9 @@ function CompanyAnalytics() {
           {trendLineData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendLineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
                 <Tooltip content={<ChartTooltip />} />
                 <Line
                   type="monotone"
@@ -961,12 +963,12 @@ function CompanyAnalytics() {
                     );
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: isDark ? '#d1d5db' : '#374151' }} />
                 {/* Center text */}
-                <text x="50%" y="47%" textAnchor="middle" className="fill-gray-900 text-2xl font-bold">
+                <text x="50%" y="47%" textAnchor="middle" className="fill-gray-900 dark:fill-white text-2xl font-bold">
                   {riskDistTotal}
                 </text>
-                <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 text-xs">
+                <text x="50%" y="56%" textAnchor="middle" className="fill-gray-500 dark:fill-gray-400 text-xs">
                   {t('analytics.employees')}
                 </text>
               </PieChart>
@@ -984,11 +986,11 @@ function CompanyAnalytics() {
           {activityBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={activityBarData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
+                <YAxis tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
                 <Tooltip content={<ChartTooltip />} />
-                <Legend />
+                <Legend wrapperStyle={{ color: isDark ? '#d1d5db' : '#374151' }} />
                 <Bar dataKey="completions" name={t('analytics.trainingCompletions')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="clicks" name={t('analytics.simulationClicks')} fill="#EF4444" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -1006,9 +1008,9 @@ function CompanyAnalytics() {
           {trainingBarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={trainingBarData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} unit="%" />
-                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} unit="%" />
+                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} stroke={isDark ? '#4b5563' : '#e5e7eb'} />
                 <Tooltip
                   content={<ChartTooltip formatter={(v) => `${Math.round(v)}%`} />}
                 />

@@ -28,11 +28,11 @@ import HelpTooltip from '../../components/common/HelpTooltip';
 
 // Rarity order and styling
 const RARITY_CONFIG = {
-  COMMON: { order: 1, labelKey: 'badge.rarityCommon', color: 'gray', bgClass: 'bg-gray-100 dark:bg-gray-700', textClass: 'text-gray-600 dark:text-gray-300', borderClass: 'border-gray-300 dark:border-gray-600' },
-  UNCOMMON: { order: 2, labelKey: 'badge.rarityUncommon', color: 'green', bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400', borderClass: 'border-green-300 dark:border-green-600' },
-  RARE: { order: 3, labelKey: 'badge.rarityRare', color: 'blue', bgClass: 'bg-blue-100 dark:bg-blue-900/30', textClass: 'text-blue-600 dark:text-blue-400', borderClass: 'border-blue-300 dark:border-blue-600' },
-  EPIC: { order: 4, labelKey: 'badge.rarityEpic', color: 'purple', bgClass: 'bg-purple-100 dark:bg-purple-900/30', textClass: 'text-purple-600 dark:text-purple-400', borderClass: 'border-purple-300 dark:border-purple-600' },
-  LEGENDARY: { order: 5, labelKey: 'badge.rarityLegendary', color: 'yellow', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-yellow-400 dark:border-yellow-600' },
+  COMMON:    { order: 1, labelKey: 'badge.rarityCommon',    color: 'gray',   bgClass: 'bg-gray-100 dark:bg-gray-700',         textClass: 'text-gray-600 dark:text-gray-300',     borderClass: 'border-gray-300 dark:border-gray-600',     gradientClass: 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800' },
+  UNCOMMON:  { order: 2, labelKey: 'badge.rarityUncommon',  color: 'green',  bgClass: 'bg-green-100 dark:bg-green-900/30',    textClass: 'text-green-600 dark:text-green-400',   borderClass: 'border-green-300 dark:border-green-600',   gradientClass: 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/40' },
+  RARE:      { order: 3, labelKey: 'badge.rarityRare',      color: 'blue',   bgClass: 'bg-blue-100 dark:bg-blue-900/30',      textClass: 'text-blue-600 dark:text-blue-400',     borderClass: 'border-blue-300 dark:border-blue-600',     gradientClass: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/40' },
+  EPIC:      { order: 4, labelKey: 'badge.rarityEpic',      color: 'purple', bgClass: 'bg-purple-100 dark:bg-purple-900/30',  textClass: 'text-purple-600 dark:text-purple-400', borderClass: 'border-purple-300 dark:border-purple-600', gradientClass: 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/40' },
+  LEGENDARY: { order: 5, labelKey: 'badge.rarityLegendary', color: 'yellow', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30',  textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-yellow-400 dark:border-yellow-600', gradientClass: 'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-900/40' },
 };
 
 // Pick the localised badge field for the current language, falling back to English.
@@ -260,7 +260,7 @@ function EmployeeBadges() {
                           className={clsx(
                             'text-center p-4 rounded-lg border-2 transition-all hover:scale-105 cursor-pointer',
                             badge.earned
-                              ? `bg-gradient-to-br from-${config.color}-50 to-${config.color}-100 ${config.borderClass}`
+                              ? `${config.gradientClass} ${config.borderClass}`
                               : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 opacity-60'
                           )}
                         >

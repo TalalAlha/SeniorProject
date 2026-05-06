@@ -31,6 +31,7 @@ import AcceptInvitation from '../pages/auth/AcceptInvitation';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import ResetPassword from '../pages/auth/ResetPassword';
 import CommunityPortal from '../pages/public/CommunityPortal';
+import ServicesPage from '../pages/public/ServicesPage';
 import UnauthorizedPage from '../pages/public/UnauthorizedPage';
 import NotFoundPage from '../pages/public/NotFoundPage';
 import SimulationCaught from '../pages/public/SimulationCaught';
@@ -80,6 +81,7 @@ const router = createBrowserRouter([
       { path: 'training/:topic', element: <TopicTraining /> },
       { path: 'quiz', element: <PublicQuiz /> },
       { path: 'community', element: <CommunityPortal /> },
+      { path: 'services', element: <ServicesPage /> },
     ],
   },
 

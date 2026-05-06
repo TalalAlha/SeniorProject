@@ -258,8 +258,8 @@ function PublicQuiz() {
 
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {passed
-                ? (i18n.language === 'ar' ? 'أحسنت!' : 'Great Job!')
-                : (i18n.language === 'ar' ? 'حاول مرة أخرى!' : 'Keep Learning!')
+                ? t('public.quiz.greatJob')
+                : t('public.quiz.keepLearning')
               }
             </h2>
 
@@ -268,14 +268,11 @@ function PublicQuiz() {
             </div>
 
             <p className="text-gray-600 dark:text-gray-300 mb-2">
-              {score} / {questions.length} {i18n.language === 'ar' ? 'إجابات صحيحة' : 'correct answers'}
+              {score} / {questions.length} {t('public.quiz.correctAnswers')}
             </p>
 
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
-              {passed
-                ? (i18n.language === 'ar' ? 'لديك وعي جيد بالتهديدات السيبرانية!' : 'You have good awareness of cyber threats!')
-                : (i18n.language === 'ar' ? 'راجع مواد التدريب وحاول مرة أخرى' : 'Review the training materials and try again')
-              }
+              {passed ? t('public.quiz.passedMessage') : t('public.quiz.failedMessage')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -284,19 +281,19 @@ function PublicQuiz() {
                 className="btn-outline inline-flex items-center justify-center gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                {i18n.language === 'ar' ? 'أعد الاختبار' : 'Retake Quiz'}
+                {t('public.quiz.retake')}
               </button>
               <button
                 onClick={handleBackToTopics}
                 className="btn-secondary inline-flex items-center justify-center"
               >
-                {i18n.language === 'ar' ? 'اختبارات أخرى' : 'Other Quizzes'}
+                {t('public.quiz.otherAssessments')}
               </button>
               <Link
                 to={`/training/${selectedTopic}`}
                 className="btn-primary inline-flex items-center justify-center"
               >
-                {i18n.language === 'ar' ? 'راجع التدريب' : 'Review Training'}
+                {t('public.quiz.reviewTraining')}
               </Link>
             </div>
           </div>
@@ -316,7 +313,7 @@ function PublicQuiz() {
               onClick={handleBackToTopics}
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 transition-colors"
             >
-              {i18n.language === 'ar' ? 'العودة للاختبارات' : 'Back to quizzes'}
+              {t('public.quiz.backToList')}
             </button>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {currentQuestion + 1} / {questions.length}
@@ -387,7 +384,7 @@ function PublicQuiz() {
             <div className="mt-6 flex justify-end">
               <button onClick={handleNext} className="btn-primary">
                 {currentQuestion + 1 >= questions.length
-                  ? (i18n.language === 'ar' ? 'عرض النتائج' : 'View Results')
+                  ? t('public.quiz.viewResults')
                   : t('common.next')
                 }
                 <ArrowRight className={`h-4 w-4 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />

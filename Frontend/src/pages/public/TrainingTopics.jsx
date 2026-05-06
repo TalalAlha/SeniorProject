@@ -1,8 +1,9 @@
 /**
- * TrainingTopics — Public training catalogue page (/training).
+ * TrainingTopics — Public Learn & Practice hub (/training).
  *
- * Lists the three available phishing-awareness topic areas (Email, SMS, Voice).
- * Accessible to unauthenticated visitors and all authenticated roles.
+ * Lists the three threat topic areas (Email phishing, SMS, Voice). Each card
+ * offers two paths: "Start Training" (interactive lesson) or "Take Assessment"
+ * (skip-to-questions quiz on that topic). Accessible to anyone — no auth.
  */
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +11,10 @@ import {
   Mail,
   Smartphone,
   Phone,
-  ChevronRight,
   Shield,
   ArrowRight,
+  BookOpen,
+  ClipboardCheck,
 } from 'lucide-react';
 
 function TrainingTopics() {
@@ -26,9 +28,7 @@ function TrainingTopics() {
       title: t('public.topics.phishing.title'),
       description: t('public.topics.phishing.description'),
       examples: t('public.topics.phishing.examples'),
-      link: '/training/phishing',
       color: 'from-blue-500 to-blue-600 dark:from-blue-800 dark:to-blue-900',
-      iconBg: 'bg-blue-100 text-blue-600',
       borderColor: 'border-blue-200 dark:border-blue-800',
     },
     {
@@ -37,9 +37,7 @@ function TrainingTopics() {
       title: t('public.topics.smishing.title'),
       description: t('public.topics.smishing.description'),
       examples: t('public.topics.smishing.examples'),
-      link: '/training/smishing',
       color: 'from-emerald-500 to-emerald-600 dark:from-emerald-800 dark:to-emerald-900',
-      iconBg: 'bg-emerald-100 text-emerald-600',
       borderColor: 'border-emerald-200 dark:border-emerald-800',
     },
     {
@@ -48,9 +46,7 @@ function TrainingTopics() {
       title: t('public.topics.vishing.title'),
       description: t('public.topics.vishing.description'),
       examples: t('public.topics.vishing.examples'),
-      link: '/training/vishing',
       color: 'from-purple-500 to-purple-600 dark:from-purple-800 dark:to-purple-900',
-      iconBg: 'bg-purple-100 text-purple-600',
       borderColor: 'border-purple-200 dark:border-purple-800',
     },
   ];
@@ -65,15 +61,15 @@ function TrainingTopics() {
             <span className="text-sm text-blue-100">{t('public.hero.badge')}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            {t('public.topics.title')}
+            {t('public.learn.title')}
           </h1>
           <p className="text-lg text-blue-100 max-w-2xl mx-auto">
-            {t('public.topics.subtitle')}
+            {t('public.learn.subtitle')}
           </p>
         </div>
       </section>
 
-      {/* Topics Grid */}
+      {/* Topics list */}
       <section className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
@@ -94,7 +90,7 @@ function TrainingTopics() {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 p-8">
+                    <div className="flex-1 p-8 flex flex-col">
                       <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
                         {topic.description}
                       </p>
@@ -106,38 +102,33 @@ function TrainingTopics() {
                         <p className="text-gray-700 dark:text-gray-200">{topic.examples}</p>
                       </div>
 
-                      <Link
-                        to={topic.link}
-                        className="btn-primary inline-flex items-center"
-                      >
-                        {t('public.topics.learnMore')}
-                        <ArrowRight className={`h-4 w-4 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
-                      </Link>
+                      <div className="flex flex-col sm:flex-row gap-3 mt-auto">
+                        <Link
+                          to={`/training/${topic.id}`}
+                          className="btn-primary flex-1 justify-center"
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          <span className={isRTL ? 'mr-2' : 'ml-2'}>
+                            {t('public.topics.startTraining')}
+                          </span>
+                        </Link>
+                        <Link
+                          to={`/quiz?topic=${topic.id}`}
+                          className="btn-outline flex-1 justify-center"
+                        >
+                          <ClipboardCheck className="h-4 w-4" />
+                          <span className={isRTL ? 'mr-2' : 'ml-2'}>
+                            {t('public.topics.takeAssessment')}
+                          </span>
+                          <ArrowRight className={`h-4 w-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-12 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            {t('public.quiz.title')}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            {t('public.quiz.subtitle')}
-          </p>
-          <Link
-            to="/quiz"
-            className="btn-primary inline-flex items-center text-lg px-8 py-3"
-          >
-            {t('public.hero.takeQuiz')}
-            <ArrowRight className={`h-5 w-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
-          </Link>
         </div>
       </section>
     </div>

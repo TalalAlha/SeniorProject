@@ -66,14 +66,14 @@ import HelpTooltip from '../../components/common/HelpTooltip';
 // Role configuration
 const ROLE_CONFIG = {
   EMPLOYEE: { labelKey: 'employee.roleEmployee', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' },
-  COMPANY_ADMIN: { labelKey: 'employee.roleAdmin', color: 'bg-primary-100 text-primary-700' },
+  COMPANY_ADMIN: { labelKey: 'employee.roleAdmin', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' },
 };
 
 // Risk level configuration
 const getRiskConfig = (score) => {
-  if (score <= 30) return { level: 'LOW', labelKey: 'employee.riskLevels.low', color: 'bg-success-50 text-success-700', bgColor: 'bg-success-500' };
-  if (score <= 70) return { level: 'MEDIUM', labelKey: 'employee.riskLevels.medium', color: 'bg-warning-50 text-warning-700', bgColor: 'bg-warning-500' };
-  return { level: 'HIGH', labelKey: 'employee.riskLevels.high', color: 'bg-danger-50 text-danger-700', bgColor: 'bg-danger-500' };
+  if (score <= 30) return { level: 'LOW', labelKey: 'employee.riskLevels.low', color: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400', bgColor: 'bg-success-500' };
+  if (score <= 70) return { level: 'MEDIUM', labelKey: 'employee.riskLevels.medium', color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400', bgColor: 'bg-warning-500' };
+  return { level: 'HIGH', labelKey: 'employee.riskLevels.high', color: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400', bgColor: 'bg-danger-500' };
 };
 
 // Modal Component
@@ -201,10 +201,10 @@ function DropdownMenu({ trigger, items }) {
 // Stat Card Component
 function StatCard({ icon: Icon, label, value, color = 'primary', trend, subtext }) {
   const colorClasses = {
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    danger: 'bg-danger-50 text-danger-600',
+    primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+    success: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400',
+    warning: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400',
+    danger: 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400',
   };
 
   return (
@@ -481,7 +481,7 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-xl font-semibold">
+          <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-semibold">
             {employee.first_name?.[0]}{employee.last_name?.[0]}
           </div>
           <div className="flex-1">
@@ -495,7 +495,7 @@ function EmployeeDetailsModal({ isOpen, onClose, employee }) {
               </span>
               <span className={clsx(
                 'text-xs font-medium px-2 py-1 rounded-full',
-                employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
+                employee.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
               )}>
                 {employee.is_active ? t('employee.statusActive') : t('employee.statusInactive')}
               </span>
@@ -1095,7 +1095,7 @@ function CompanyEmployees() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-medium">
+                          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-medium">
                             {employee.first_name?.[0]}{employee.last_name?.[0]}
                           </div>
                           <span className="font-medium text-gray-900 dark:text-white">
@@ -1134,7 +1134,7 @@ function CompanyEmployees() {
                       <td className="px-4 py-3">
                         <span className={clsx(
                           'text-xs font-medium px-2 py-1 rounded-full',
-                          employee.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                          employee.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                         )}>
                           {employee.is_active ? t('employee.statusActive') : t('employee.statusInactive')}
                         </span>
@@ -1243,7 +1243,7 @@ function CompanyEmployees() {
                     <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center text-warning-600 font-medium text-sm">
+                          <div className="w-10 h-10 rounded-full bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center text-warning-600 dark:text-warning-400 font-medium text-sm">
                             {(inv.first_name?.[0] || inv.email[0]).toUpperCase()}
                           </div>
                           <span className="font-medium text-gray-900 dark:text-white">
@@ -1263,14 +1263,14 @@ function CompanyEmployees() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleResendInvitation(inv.id, inv.email)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-lg transition-colors"
                           >
                             <Send className="h-3.5 w-3.5" />
                             {t('employee.resend')}
                           </button>
                           <button
                             onClick={() => setCancellingInvitation(inv)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-danger-600 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-900/20 hover:bg-danger-100 dark:hover:bg-danger-900/40 rounded-lg transition-colors"
                           >
                             <X className="h-3.5 w-3.5" />
                             {t('common.cancel')}

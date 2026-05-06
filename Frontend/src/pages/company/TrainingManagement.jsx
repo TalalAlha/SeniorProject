@@ -38,10 +38,10 @@ import HelpTooltip from '../../components/common/HelpTooltip';
 
 const STATUS_COLORS = {
   ASSIGNED: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200',
-  IN_PROGRESS: 'bg-primary-50 text-primary-700',
-  COMPLETED: 'bg-success-50 text-success-700',
-  PASSED: 'bg-success-50 text-success-700',
-  FAILED: 'bg-danger-50 text-danger-700',
+  IN_PROGRESS: 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300',
+  COMPLETED: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400',
+  PASSED: 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400',
+  FAILED: 'bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400',
   EXPIRED: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
 };
 
@@ -80,8 +80,8 @@ function TrainingCard({ module, onViewDetails, onAssign, isAr }) {
     labelKey: null,
     label: module.category || 'Training',
     icon: BookOpen,
-    iconColor: 'text-primary-600',
-    bgColor: 'bg-primary-50',
+    iconColor: 'text-primary-600 dark:text-primary-400',
+    bgColor: 'bg-primary-50 dark:bg-primary-900/30',
   };
   const CategoryIcon = cat.icon;
   const catLabel = cat.labelKey ? t(cat.labelKey) : cat.label;
@@ -96,7 +96,7 @@ function TrainingCard({ module, onViewDetails, onAssign, isAr }) {
         </div>
         <span className={clsx(
           'inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full',
-          module.is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
+          module.is_active ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
         )}>
           {module.is_active ? t('common.active') : t('common.inactive')}
         </span>

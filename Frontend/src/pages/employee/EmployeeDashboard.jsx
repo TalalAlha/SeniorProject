@@ -42,10 +42,10 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 // Risk score configuration
 const RISK_CONFIG = {
-  LOW: { min: 0, max: 30, labelKey: 'dashboard.riskLevels.low', color: 'success', bgColor: 'bg-success-500', textColor: 'text-success-600' },
-  MEDIUM: { min: 31, max: 60, labelKey: 'dashboard.riskLevels.medium', color: 'warning', bgColor: 'bg-warning-500', textColor: 'text-warning-600' },
-  HIGH: { min: 61, max: 80, labelKey: 'dashboard.riskLevels.high', color: 'orange', bgColor: 'bg-orange-500', textColor: 'text-orange-600' },
-  CRITICAL: { min: 81, max: 100, labelKey: 'dashboard.riskLevels.critical', color: 'danger', bgColor: 'bg-danger-500', textColor: 'text-danger-600' },
+  LOW:      { min: 0,  max: 30,  labelKey: 'dashboard.riskLevels.low',      color: 'success', bgColor: 'bg-success-500', textColor: 'text-success-600 dark:text-success-400' },
+  MEDIUM:   { min: 31, max: 60,  labelKey: 'dashboard.riskLevels.medium',   color: 'warning', bgColor: 'bg-warning-500', textColor: 'text-warning-600 dark:text-warning-400' },
+  HIGH:     { min: 61, max: 80,  labelKey: 'dashboard.riskLevels.high',     color: 'orange',  bgColor: 'bg-orange-500',  textColor: 'text-orange-600 dark:text-orange-400' },
+  CRITICAL: { min: 81, max: 100, labelKey: 'dashboard.riskLevels.critical', color: 'danger',  bgColor: 'bg-danger-500',  textColor: 'text-danger-600 dark:text-danger-400' },
 };
 
 // Circular Progress Gauge Component
@@ -109,10 +109,10 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
           </span>
         ) : (
           <span className={clsx('inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium',
-            riskLevel === 'LOW' && 'bg-success-100 text-success-700',
-            riskLevel === 'MEDIUM' && 'bg-warning-100 text-warning-700',
-            riskLevel === 'HIGH' && 'bg-orange-100 text-orange-700',
-            riskLevel === 'CRITICAL' && 'bg-danger-100 text-danger-700'
+            riskLevel === 'LOW' && 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
+            riskLevel === 'MEDIUM' && 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
+            riskLevel === 'HIGH' && 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+            riskLevel === 'CRITICAL' && 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400'
           )}>
             <AlertTriangle className="h-4 w-4" />
             {t(config.labelKey)}
@@ -125,7 +125,7 @@ function RiskScoreGauge({ score, riskLevel, requiresRemediation, isNewUser }) {
         </p>
       )}
       {requiresRemediation && !isNewUser && (
-        <div className="mt-3 p-3 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-700 flex items-start gap-2">
+        <div className="mt-3 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-700 rounded-lg text-sm text-danger-700 dark:text-danger-400 flex items-start gap-2">
           <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <span>{t('dashboard.actionRequired')}</span>
         </div>

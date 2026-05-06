@@ -128,7 +128,9 @@ const RegisterPage = () => {
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg dark:shadow-gray-900/50">
         {/* Header */}
         <div className="text-center">
-          <Logo variant="vertical" className="h-24 w-auto mx-auto mb-4" />
+          <Link to="/" className="inline-block mb-4" aria-label="PhishAware home">
+            <Logo variant="vertical" className="h-24 w-auto mx-auto" />
+          </Link>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Create your account</p>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Already have an account?{' '}

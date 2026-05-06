@@ -123,7 +123,9 @@ const RegisterCompany = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <Logo variant="vertical" className="h-24 w-auto mx-auto mb-4" />
+          <Link to="/" className="inline-block mb-4" aria-label="PhishAware home">
+            <Logo variant="vertical" className="h-24 w-auto mx-auto" />
+          </Link>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('auth.registerYourCompany')}</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">{t('auth.registerCompanySubtitle')}</p>
         </div>

@@ -243,9 +243,9 @@ class CompanyViewSet(viewsets.ModelViewSet):
         # Training stats
         try:
             from apps.training.models import RemediationTraining
-            trainings = RemediationTraining.objects.filter(employee__company=company)
+            trainings = RemediationTraining.objects.filter(company=company)
             total_training = trainings.count()
-            completed_training = trainings.filter(status='COMPLETED').count()
+            completed_training = trainings.filter(status__in=['COMPLETED', 'PASSED']).count()
             training_rate = (completed_training / total_training * 100) if total_training > 0 else None
         except Exception:
             training_rate = None
