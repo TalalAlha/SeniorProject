@@ -317,7 +317,7 @@
       "how3Title": "Launch a simulation",
       "how3Desc": "Pick a phishing template, choose who to target, and click send. Real emails go out via SendGrid with tracking built in.",
       "how4Title": "Track and remediate",
-      "how4Desc": "Watch the live analytics dashboard. Auto-assign training to employees who clicked. Repeat next month.",
+      "how4Desc": "Watch the live analytics dashboard. Assign remediation training to employees who clicked. Repeat next month.",
       "metricsTitle": "Metrics that actually matter",
       "metricsSubtitle": "Everything you need to prove the program works — and pinpoint who needs help.",
       "metric1": "Per-employee click & report rates",
