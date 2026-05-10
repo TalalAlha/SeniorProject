@@ -558,7 +558,7 @@ function CompanyProfile() {
                 {passwordData.confirm_password && passwordData.new_password === passwordData.confirm_password && (
                   <p className="text-sm text-success-600 mt-1 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
-                    {t('auth.passwordsMatch') || 'Passwords match'}
+                    {t('profile.passwordsMatch')}
                   </p>
                 )}
               </div>

@@ -22,6 +22,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import Company
 from .serializers import (
+    PublicCompanyListSerializer,
     CompanyListSerializer,
     CompanyDetailSerializer,
     CompanyCreateSerializer,
@@ -71,6 +72,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
             return CompanyCreateSerializer
         elif self.action == 'retrieve':
             return CompanyDetailSerializer
+        # Anonymous list (registration page) gets a minimal projection that
+        # does not leak email / risk scores / headcount.
+        if self.action == 'list' and not self.request.user.is_authenticated:
+            return PublicCompanyListSerializer
         return CompanyListSerializer
 
     def get_queryset(self):
@@ -596,10 +601,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 existing.append(email)
                 continue
 
-            # Determine role
-            role = row.get('role', '').strip().upper()
-            if role not in ['COMPANY_ADMIN', 'EMPLOYEE']:
-                role = default_role
+            # Bulk CSV import only creates EMPLOYEEs. Any other role in the
+            # file is silently coerced — admin promotions go through a
+            # dedicated path so they can be audited.
+            role = 'EMPLOYEE'
 
             try:
                 user = User.objects.create(
@@ -797,7 +802,7 @@ def register_company(request):
 
     company_name = request.data.get('company_name', '').strip()
     company_website = request.data.get('company_website', '').strip()
-    admin_email = request.data.get('admin_email', '').strip()
+    admin_email = request.data.get('admin_email', '').strip().lower()
     admin_password = request.data.get('admin_password', '')
     admin_first_name = request.data.get('admin_first_name', '').strip()
     admin_last_name = request.data.get('admin_last_name', '').strip()
@@ -809,22 +814,24 @@ def register_company(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if Company.objects.filter(name__iexact=company_name).exists():
-        return Response(
-            {'error': 'A company with that name already exists.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if User.objects.filter(email=admin_email).exists():
-        return Response(
-            {'error': 'A user with that email already exists.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
     try:
         validate_password(admin_password)
     except DjangoValidationError as exc:
         return Response({'error': ' '.join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Use a single generic error for both "company name taken" and "email
+    # already registered" so an attacker cannot enumerate existing tenants
+    # or admin accounts via this endpoint. The ambiguity costs us a bit of
+    # UX, but the registration workflow recovers via the verification email.
+    if (
+        Company.objects.filter(name__iexact=company_name).exists()
+        or User.objects.filter(email__iexact=admin_email).exists()
+    ):
+        return Response(
+            {'error': 'Unable to register with the supplied details. '
+                      'If you already have an account, please log in or reset your password.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     with transaction.atomic():
         company = Company.objects.create(
@@ -847,19 +854,14 @@ def register_company(request):
         )
 
     # Send verification email (non-critical — log but don't roll back on failure)
-    _logger.info('=' * 60)
-    _logger.info('REGISTRATION: user=%s company=%s token=%s',
-                 admin_email, company_name, admin_user.verification_token)
-    _logger.info('FRONTEND_URL=%s', settings.FRONTEND_URL)
-    _logger.info('EMAIL_BACKEND=%s', settings.EMAIL_BACKEND)
-    _logger.info('DEFAULT_FROM_EMAIL=%s', settings.DEFAULT_FROM_EMAIL)
+    # NOTE: never log the verification token — it is a bearer credential.
+    _logger.info('REGISTRATION: user=%s company=%s', admin_email, company_name)
     try:
         from apps.core.emails import send_verification_email, _send_in_background
         _send_in_background(send_verification_email, admin_user, str(admin_user.verification_token))
-        _logger.info('REGISTRATION: verification email queued for background delivery to %s', admin_email)
+        _logger.info('REGISTRATION: verification email queued for %s', admin_email)
     except Exception as exc:
-        _logger.error('REGISTRATION: exception while queuing verification email to %s: %s', admin_email, exc, exc_info=True)
-    _logger.info('=' * 60)
+        _logger.error('REGISTRATION: failed to queue verification email to %s: %s', admin_email, exc, exc_info=True)
 
     return Response(
         {

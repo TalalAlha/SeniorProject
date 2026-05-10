@@ -9,6 +9,7 @@ import csv
 import io
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from apps.core.csv_utils import csv_safe_row
 from .models import SimulationCampaign, EmailSimulation
 
 User = get_user_model()
@@ -143,8 +144,10 @@ def generate_email_package(campaign: SimulationCampaign) -> str:
         subject = subject.replace('{{employee_first_name}}', employee_first_name)
         subject = subject.replace('{{company_name}}', campaign.company.name)
 
-        # Write row to CSV
-        writer.writerow([
+        # Write row to CSV. csv_safe_row neutralises any leading
+        # `=`/`+`/`-`/`@` so an attacker-controlled employee name cannot
+        # inject a formula into the admin's spreadsheet.
+        writer.writerow(csv_safe_row([
             employee.email,
             employee_name,
             phishing_link_url,
@@ -154,7 +157,7 @@ def generate_email_package(campaign: SimulationCampaign) -> str:
             template.sender_name,
             template.sender_email,
             template.reply_to_email or ''
-        ])
+        ]))
 
     # Get CSV content
     csv_content = output.getvalue()

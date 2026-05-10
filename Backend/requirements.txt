@@ -1,12 +1,17 @@
 # Core Django and DRF
-Django>=5.0,<6.0
-djangorestframework>=3.14,<4.0
+# Pinned to 5.2 LTS — covers CVE-2024-27351 / 39329 / 41989 / 42005 / 45230 /
+# 45231 / 53907 and the 2025 advisories (32873, 48432, 57833).
+Django>=5.2.7,<5.3
+# 3.15.2 patches CVE-2024-21520 (XSS in HTML renderer).
+djangorestframework>=3.15.2,<4.0
 
 # JWT Authentication
-djangorestframework-simplejwt>=5.3,<6.0
+# 5.3.1 patches CVE-2024-22513 (refresh-token survives password change).
+djangorestframework-simplejwt>=5.3.1,<6.0
 
 # CORS headers for React frontend
-django-cors-headers>=4.3,<5.0
+# 4.4.0 patches a dev-mode log-injection issue.
+django-cors-headers>=4.4.0,<5.0
 
 # Environment variables
 python-decouple>=3.8
@@ -18,10 +23,11 @@ python-decouple>=3.8
 # Pillow>=10.0
 
 # API documentation
-drf-yasg>=1.21,<2.0
+# drf-yasg is feature-frozen; consider migrating to drf-spectacular.
+drf-yasg>=1.21.7,<2.0
 
 # Utilities
-python-dateutil>=2.8
+python-dateutil>=2.9
 
 # For data validation
 validators>=0.22

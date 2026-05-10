@@ -214,15 +214,13 @@ function PublicHome() {
                   )}
                 </div>
 
-                {!isAuthenticated && (
-                  <Link
-                    to="/services"
-                    className="mt-4 inline-flex items-center justify-center gap-1 text-sm text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-medium transition-colors"
-                  >
-                    {t('public.landing.company.learnMore')}
-                    <ArrowRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
-                  </Link>
-                )}
+                <Link
+                  to="/services"
+                  className="mt-4 inline-flex items-center justify-center gap-1 text-sm text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-medium transition-colors"
+                >
+                  {t('public.landing.company.learnMore')}
+                  <ArrowRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                </Link>
               </div>
             </div>
 

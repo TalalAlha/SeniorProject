@@ -10,6 +10,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import DOMPurify from 'dompurify';
 import {
   Shield, Search, ExternalLink, ChevronDown, ChevronUp,
   AlertTriangle, CheckCircle, XCircle, Globe,
@@ -17,6 +18,18 @@ import {
   CreditCard, Smartphone, Moon, Users,
 } from 'lucide-react';
 import { communityAPI } from '../../api';
+
+// Sanitiser config: allow the email-style markup we render in the daily
+// challenge but strip <script>, event handlers, and `javascript:` URLs.
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'a', 'b', 'br', 'div', 'em', 'i', 'img', 'li', 'ol', 'p', 'span',
+    'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul', 'h1',
+    'h2', 'h3', 'h4', 'hr',
+  ],
+  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'style', 'class'],
+  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
+};
 
 // ---------------------------------------------------------------------------
 // Static bilingual data (MENA-specific content, not fetched)
@@ -258,11 +271,15 @@ function DailyChallenge({ t, lang }) {
           </div>
         </div>
 
-        {/* Email body — full height, scaled down slightly */}
+        {/* Email body — full height, scaled down slightly. Sanitised
+            with DOMPurify so a malicious template body cannot execute
+            scripts in the page that holds our auth tokens. */}
         <div
           className="bg-white dark:bg-gray-900 text-sm"
           style={{ zoom: 0.85 }}
-          dangerouslySetInnerHTML={{ __html: challenge.body_html }}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(challenge.body_html || '', SANITIZE_CONFIG),
+          }}
         />
       </div>
 

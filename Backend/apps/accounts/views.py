@@ -17,8 +17,24 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
-from rest_framework.decorators import api_view, permission_classes as fn_permission_classes
+
+def _blacklist_all_refresh_tokens(user):
+    """Invalidate every outstanding refresh token for `user`.
+
+    Called whenever the credential surface changes (password change/reset)
+    so a stolen refresh token cannot survive a rotation.
+    """
+    for ot in OutstandingToken.objects.filter(user=user):
+        BlacklistedToken.objects.get_or_create(token=ot)
+
+from rest_framework.decorators import (
+    api_view,
+    permission_classes as fn_permission_classes,
+    throttle_classes as fn_throttle_classes,
+)
+from rest_framework.throttling import ScopedRateThrottle
 
 from apps.core.emails import (
     send_verification_email,
@@ -50,6 +66,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
     # Swap in the custom serializer that adds role, email, and company_id to the token
     serializer_class = CustomTokenObtainPairSerializer
+    # Throttle credential-stuffing attempts per IP/user.
+    throttle_scope = 'login'
 
 
 class RegisterView(generics.CreateAPIView):
@@ -59,6 +77,7 @@ class RegisterView(generics.CreateAPIView):
     # Registration is open to the public; no authentication required
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
+    throttle_scope = 'register'
 
     def create(self, request, *args, **kwargs):
         """Validate registration data, create the user, and dispatch a verification email."""
@@ -110,10 +129,12 @@ class LogoutView(views.APIView):
                 {'message': 'Logged out successfully.'},
                 status=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             # Covers invalid token format, already-blacklisted tokens, etc.
+            # Don't echo the raw exception text to clients.
+            logger.exception('Logout failed for user_id=%s', getattr(request.user, 'id', None))
             return Response(
-                {'error': str(e)},
+                {'error': 'Invalid or expired token.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -158,6 +179,7 @@ class VerifyEmailView(views.APIView):
     """Confirm email ownership using the UUID token from the verification email."""
 
     permission_classes = [AllowAny]
+    throttle_scope = 'resend_verification'
 
     def post(self, request, token):
         try:
@@ -186,7 +208,10 @@ class VerifyEmailView(views.APIView):
 
         user.is_verified = True
         user.is_active = True  # activates accounts created inactive (e.g. company admins)
-        user.save(update_fields=['is_verified', 'is_active'])
+        # Rotate the verification token so the link cannot be reused
+        # (defense in depth — `is_verified` already gates re-use).
+        user.verification_token = uuid.uuid4()
+        user.save(update_fields=['is_verified', 'is_active', 'verification_token'])
 
         # Send branded welcome email to newly verified company admins.
         # Dispatched in the background so the verify request can return
@@ -208,6 +233,12 @@ class ResendVerificationView(views.APIView):
     """Issue a fresh verification token and resend the verification email."""
 
     permission_classes = [AllowAny]
+    throttle_scope = 'resend_verification'
+
+    # Single response used for every outcome — prevents account enumeration.
+    GENERIC_RESPONSE = {
+        'message': 'If this email is registered and unverified, a new verification link has been sent.'
+    }
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -218,19 +249,13 @@ class ResendVerificationView(views.APIView):
             )
 
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
-            # Don't reveal whether the address is registered (security)
-            return Response(
-                {'message': 'If this email is registered, a new verification link has been sent.'},
-                status=status.HTTP_200_OK,
-            )
+            return Response(self.GENERIC_RESPONSE, status=status.HTTP_200_OK)
 
         if user.is_verified:
-            return Response(
-                {'message': 'This email is already verified. You can log in now.'},
-                status=status.HTTP_200_OK,
-            )
+            # Same generic response — don't disclose verified-vs-unknown.
+            return Response(self.GENERIC_RESPONSE, status=status.HTTP_200_OK)
 
         # Rotate token so old links can't be reused
         user.verification_token = uuid.uuid4()
@@ -244,10 +269,7 @@ class ResendVerificationView(views.APIView):
         # behavior while no longer making the user wait on SMTP.
         _send_in_background(send_verification_email, user, str(user.verification_token))
 
-        return Response(
-            {'message': 'Verification email sent! Please check your inbox.'},
-            status=status.HTTP_200_OK,
-        )
+        return Response(self.GENERIC_RESPONSE, status=status.HTTP_200_OK)
 
 
 class ChangePasswordView(views.APIView):
@@ -264,6 +286,11 @@ class ChangePasswordView(views.APIView):
         user.set_password(serializer.validated_data['new_password'])
         user.save()
 
+        # Invalidate all outstanding refresh tokens — a stolen token must
+        # not survive a password rotation. Mirrors the fix for the simplejwt
+        # advisory tracked as CVE-2024-22513.
+        _blacklist_all_refresh_tokens(user)
+
         # Notify user of password change
         try:
             from apps.notifications.services import NotificationService
@@ -272,7 +299,7 @@ class ChangePasswordView(views.APIView):
             logger.warning('Failed to create password-changed notification: %s', exc)
 
         return Response(
-            {'message': 'Password changed successfully.'},
+            {'message': 'Password changed successfully. Please log in again on other devices.'},
             status=status.HTTP_200_OK
         )
 
@@ -284,6 +311,7 @@ class InviteEmployeeView(views.APIView):
     """Send a token-based invitation email to a new employee."""
 
     permission_classes = [IsAuthenticated]
+    throttle_scope = 'invite'
 
     def post(self, request):
         if not request.user.is_company_admin:
@@ -307,9 +335,17 @@ class InviteEmployeeView(views.APIView):
         if not email:
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(email=email).exists():
+        existing = User.objects.filter(email__iexact=email).first()
+        if existing:
+            # Reveal "already in your company" but never confirm membership
+            # of a different tenant — that would be a cross-tenant leak.
+            if existing.company_id == company.id:
+                return Response(
+                    {'error': 'This email is already a member of your company.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             return Response(
-                {'error': 'A user with this email already exists.'},
+                {'error': 'Unable to send invitation to this address.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -499,6 +535,7 @@ class ResendInvitationView(views.APIView):
     """Regenerate the invitation token and resend the invitation email."""
 
     permission_classes = [IsAuthenticated]
+    throttle_scope = 'invite'
 
     def post(self, request, user_id):
         if not request.user.is_company_admin:
@@ -568,6 +605,7 @@ class CancelInvitationView(views.APIView):
 
 @api_view(['POST'])
 @fn_permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def request_password_reset(request):
     """Send a password reset email (always returns 200 to avoid email enumeration)."""
     email = request.data.get('email', '').strip().lower()
@@ -601,6 +639,7 @@ def request_password_reset(request):
 
 @api_view(['POST'])
 @fn_permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def reset_password(request, token):
     """Reset user password using a previously issued token."""
     try:
@@ -637,7 +676,17 @@ def reset_password(request, token):
     user.password_reset_token_created = None
     user.save(update_fields=['password', 'password_reset_token', 'password_reset_token_created'])
 
+    # Invalidate all outstanding refresh tokens — a stolen token must not
+    # survive a password reset.
+    _blacklist_all_refresh_tokens(user)
+
     return Response(
         {'message': 'Password reset successfully! You can now log in.'},
         status=status.HTTP_200_OK,
     )
+
+
+# Apply throttle scopes to function-based views (ScopedRateThrottle reads
+# `throttle_scope` from the wrapped callable).
+request_password_reset.throttle_scope = 'password_reset'
+reset_password.throttle_scope = 'password_reset'

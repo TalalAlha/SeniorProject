@@ -27,8 +27,15 @@ class UserSerializer(serializers.ModelSerializer):
             'role', 'company', 'company_name', 'preferred_language',
             'is_active', 'is_verified', 'date_joined', 'last_login'
         ]
-        # These fields are managed by the system and must never be writable via the API
-        read_only_fields = ['id', 'date_joined', 'last_login']
+        # These fields are managed by the system and must never be writable
+        # via the API. Including role/company/is_active/is_verified here is
+        # belt-and-braces — the view currently uses UserUpdateSerializer for
+        # writes, but a future refactor that swaps in this serializer would
+        # otherwise silently expose role escalation.
+        read_only_fields = [
+            'id', 'email', 'role', 'company', 'company_name',
+            'is_active', 'is_verified', 'date_joined', 'last_login',
+        ]
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -47,6 +54,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'email', 'password', 'password_confirm', 'first_name', 'last_name',
             'phone_number', 'preferred_language'
         ]
+
+    def validate_email(self, value):
+        """Canonicalise to lowercase before downstream uniqueness checks."""
+        return value.strip().lower()
 
     def validate(self, attrs):
         """Validate that passwords match if password_confirm is provided."""
@@ -121,11 +132,14 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True)
     # validate_password runs Django's AUTH_PASSWORD_VALIDATORS against the value
     new_password = serializers.CharField(required=True, write_only=True, validators=[validate_password])
-    new_password_confirm = serializers.CharField(required=True, write_only=True)
+    # Optional: the SPA already enforces matching passwords client-side, but
+    # if a client sends this we still verify the values match.
+    new_password_confirm = serializers.CharField(required=False, write_only=True)
 
     def validate(self, attrs):
-        """Ensure new_password and new_password_confirm are identical."""
-        if attrs['new_password'] != attrs['new_password_confirm']:
+        """Ensure new_password and new_password_confirm are identical when both are sent."""
+        confirm = attrs.get('new_password_confirm')
+        if confirm is not None and attrs['new_password'] != confirm:
             raise serializers.ValidationError({"new_password": "Password fields didn't match."})
         return attrs
 

@@ -23,16 +23,30 @@ const api = axios.create({
 });
 
 // Token management
-const getAccessToken = () => localStorage.getItem('access_token');
+//
+// Access tokens live in sessionStorage so they don't survive a tab close
+// (limits replay window if the device is shared). Refresh tokens still
+// live in localStorage to support the "stay signed in" UX — this is the
+// best we can do without server-side cookie support; once the backend
+// switches to httpOnly cookies, both should move there.
+//
+// We also clean up any access token that an older build wrote to
+// localStorage so users don't have a stale long-lived secret hanging
+// around after this upgrade.
+if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
+  localStorage.removeItem('access_token');
+}
+
+const getAccessToken = () => sessionStorage.getItem('access_token');
 const getRefreshToken = () => localStorage.getItem('refresh_token');
 const setTokens = (access, refresh) => {
-  localStorage.setItem('access_token', access);
+  sessionStorage.setItem('access_token', access);
   if (refresh) {
     localStorage.setItem('refresh_token', refresh);
   }
 };
 const clearTokens = () => {
-  localStorage.removeItem('access_token');
+  sessionStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('user');
 };

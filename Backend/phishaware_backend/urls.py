@@ -38,7 +38,10 @@ schema_view = get_schema_view(
         license=openapi.License(name="MIT License"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],
+    # Schema is no longer public — only Django staff can read API docs.
+    # This prevents anonymous attackers from harvesting the full request
+    # surface (drf-yasg has historically published every parameter shape).
+    permission_classes=[permissions.IsAdminUser],
 )
 
 urlpatterns = [

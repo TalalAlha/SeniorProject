@@ -6,9 +6,15 @@ Part of the 'simulations' app.
 """
 
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import (
+    action,
+    api_view,
+    permission_classes,
+    throttle_classes as fn_throttle_classes,
+)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.throttling import ScopedRateThrottle
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
@@ -923,6 +929,7 @@ def get_client_ip(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def track_link_click_view(request, link_token):
     """
     Log LINK_CLICKED event and redirect to React frontend landing page.
@@ -943,8 +950,10 @@ def track_link_click_view(request, link_token):
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
         return HttpResponseRedirect(f'{frontend_url}/simulation/expired')
 
-    # Check if tracking is enabled
-    if email_sim.campaign.track_link_clicks:
+    # Check if tracking is enabled. Only emit one LINK_CLICKED event per
+    # simulation — mail security gateways and link-preview systems re-fetch
+    # the URL aggressively, and unbounded inserts inflate storage and noise.
+    if email_sim.campaign.track_link_clicks and not email_sim.was_clicked:
         # Log the tracking event
         TrackingEvent.objects.create(
             email_simulation=email_sim,
@@ -1005,6 +1014,7 @@ def track_link_click_view(request, link_token):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def landing_page_view(request, link_token):
     """
     Display "You've been caught" educational landing page.
@@ -1026,15 +1036,21 @@ def landing_page_view(request, link_token):
     template = email_sim.campaign.template
     campaign = email_sim.campaign
 
-    # Log landing page view event
-    TrackingEvent.objects.create(
+    # Log landing page view event only the first time — link previewers and
+    # mail gateways re-fetch the URL repeatedly otherwise.
+    already_viewed = TrackingEvent.objects.filter(
         email_simulation=email_sim,
-        campaign=campaign,
-        employee=email_sim.employee,
         event_type='LANDING_PAGE_VIEWED',
-        ip_address=get_client_ip(request),
-        user_agent=request.META.get('HTTP_USER_AGENT', '')
-    )
+    ).exists()
+    if not already_viewed:
+        TrackingEvent.objects.create(
+            email_simulation=email_sim,
+            campaign=campaign,
+            employee=email_sim.employee,
+            event_type='LANDING_PAGE_VIEWED',
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
 
     # Determine language - check query param first, then employee preference
     lang_param = request.GET.get('lang')
@@ -1079,6 +1095,7 @@ def landing_page_view(request, link_token):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def report_phishing_view(request, link_token):
     """
     Handle employee reporting a phishing email.
@@ -1164,16 +1181,21 @@ def report_phishing_view(request, link_token):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def simulation_feedback_view(request, link_token):
     """
     Return template feedback data for the React "caught" landing page.
 
     Called by SimulationCaught.jsx after an employee clicks a phishing link.
     Returns red flags, explanation, and template metadata.
+
+    The response intentionally omits employee identifiers (name, email
+    prefix) — anyone holding the link token (mail forwards, link-preview
+    services, browser history) could otherwise enumerate that PII.
     """
     try:
         email_sim = EmailSimulation.objects.select_related(
-            'campaign__template', 'employee'
+            'campaign__template'
         ).get(link_token=link_token)
     except EmailSimulation.DoesNotExist:
         return Response({'error': 'Invalid simulation link.'}, status=status.HTTP_404_NOT_FOUND)
@@ -1196,14 +1218,13 @@ def simulation_feedback_view(request, link_token):
         'red_flags': template.red_flags or [],
         'explanation': explanation,
         'language': lang,
-        'employee_name': email_sim.employee.get_full_name() or email_sim.employee.email.split('@')[0].title(),
         'was_clicked': email_sim.was_clicked,
-        'status': email_sim.status,
     }, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@fn_throttle_classes([ScopedRateThrottle])
 def credentials_submitted_view(request, link_token):
     """
     Handle fake credential submission from landing page.
@@ -1259,3 +1280,12 @@ def credentials_submitted_view(request, link_token):
                    'Please review the security training materials.',
         'was_simulation': True
     }, status=status.HTTP_200_OK)
+
+
+# Throttle scopes for the public tracking endpoints. ScopedRateThrottle
+# reads `throttle_scope` from the wrapped function.
+track_link_click_view.throttle_scope = 'tracking'
+landing_page_view.throttle_scope = 'tracking'
+report_phishing_view.throttle_scope = 'tracking'
+credentials_submitted_view.throttle_scope = 'tracking'
+simulation_feedback_view.throttle_scope = 'feedback'

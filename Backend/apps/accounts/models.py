@@ -18,8 +18,11 @@ class UserManager(BaseUserManager):
         """Create and save a regular user with the given email and password."""
         if not email:
             raise ValueError(_('The Email field must be set'))
-        # Lowercase the domain part of the address for consistent storage
-        email = self.normalize_email(email)
+        # Fully lowercase the address (Django's normalize_email only
+        # lowercases the domain). Everything that touches user lookup uses
+        # `email__iexact`, so storing the canonical lowercase form prevents
+        # duplicate accounts that differ only in case.
+        email = self.normalize_email(email).lower()
         user = self.model(email=email, **extra_fields)
         # Hash the password before persisting; set_password handles None safely
         user.set_password(password)

@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 
+from apps.core.csv_utils import csv_safe_row
 from .serializers import (
     DashboardOverviewSerializer,
     DashboardTrendsSerializer,
@@ -468,8 +469,10 @@ class CampaignAnalyticsViewSet(viewsets.ViewSet):
             serializer = CampaignListAnalyticsSerializer(data)
             return Response(serializer.data)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
     def retrieve(self, request, pk=None):
         """Get detailed analytics for a specific campaign."""
@@ -600,8 +603,10 @@ class CampaignAnalyticsViewSet(viewsets.ViewSet):
 
         except Campaign.DoesNotExist:
             return Response({'error': 'Campaign not found'}, status=404)
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
 
 class SimulationAnalyticsViewSet(viewsets.ViewSet):
@@ -694,8 +699,10 @@ class SimulationAnalyticsViewSet(viewsets.ViewSet):
             serializer = SimulationListAnalyticsSerializer(data)
             return Response(serializer.data)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
     def retrieve(self, request, pk=None):
         """Get detailed analytics for a specific simulation."""
@@ -799,8 +806,10 @@ class SimulationAnalyticsViewSet(viewsets.ViewSet):
 
         except SimulationCampaign.DoesNotExist:
             return Response({'error': 'Simulation not found'}, status=404)
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
 
 class RiskAnalyticsViewSet(viewsets.ViewSet):
@@ -870,8 +879,10 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
             serializer = RiskDistributionSerializer(data)
             return Response(serializer.data)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
     @action(detail=False, methods=['get'])
     def trends(self, request):
@@ -964,8 +975,10 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
             serializer = RiskTrendSerializer(data)
             return Response(serializer.data)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
     @action(detail=False, methods=['get'])
     def high_risk_employees(self, request):
@@ -1024,8 +1037,10 @@ class RiskAnalyticsViewSet(viewsets.ViewSet):
             serializer = HighRiskEmployeeSerializer(employees, many=True)
             return Response(serializer.data)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
 
 class TrainingAnalyticsViewSet(viewsets.ViewSet):
@@ -1163,8 +1178,10 @@ class TrainingAnalyticsViewSet(viewsets.ViewSet):
             serializer = TrainingAnalyticsSummarySerializer(data)
             return Response(serializer.data)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('Analytics endpoint failed')
+            return Response({'error': 'Internal server error.'}, status=500)
 
     @action(detail=False, methods=['get'])
     def effectiveness(self, request):
@@ -1236,8 +1253,13 @@ class ExportViewSet(viewsets.ViewSet):
 
             return response
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception('CSV export failed')
+            return Response(
+                {'error': 'Export failed. Please try again or contact support.'},
+                status=500,
+            )
 
     def _export_campaigns(self, writer, company_filter, start_date, end_date, include_pii):
         """Export campaign results to CSV."""
@@ -1270,7 +1292,7 @@ class ExportViewSet(viewsets.ViewSet):
             ]
             if include_pii:
                 row = [r.employee.email, r.employee.get_full_name()] + row
-            writer.writerow(row)
+            writer.writerow(csv_safe_row(row))
             count += 1
 
         return count
@@ -1307,7 +1329,7 @@ class ExportViewSet(viewsets.ViewSet):
             ]
             if include_pii:
                 row = [e.employee.email, e.employee.get_full_name()] + row
-            writer.writerow(row)
+            writer.writerow(csv_safe_row(row))
             count += 1
 
         return count
@@ -1336,7 +1358,7 @@ class ExportViewSet(viewsets.ViewSet):
             ]
             if include_pii:
                 row = [s.employee.email, s.employee.get_full_name()] + row
-            writer.writerow(row)
+            writer.writerow(csv_safe_row(row))
             count += 1
 
         return count
@@ -1370,7 +1392,7 @@ class ExportViewSet(viewsets.ViewSet):
             ]
             if include_pii:
                 row = [t.employee.email, t.employee.get_full_name()] + row
-            writer.writerow(row)
+            writer.writerow(csv_safe_row(row))
             count += 1
 
         return count
@@ -1397,7 +1419,7 @@ class ExportViewSet(viewsets.ViewSet):
             ]
             if include_pii:
                 row = [u.email, u.first_name, u.last_name] + row
-            writer.writerow(row)
+            writer.writerow(csv_safe_row(row))
             count += 1
 
         return count

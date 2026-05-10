@@ -19,6 +19,7 @@ via python-decouple and must never be committed to version control.
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,12 +32,31 @@ sys.path.insert(0, str(BASE_DIR / 'apps'))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-&+jx(5h3-uiue7c&#mlh&fy36_apxb!hazdmophn#%934475^a')
+# Dev fallback is intentionally an obvious "django-insecure-" string. The
+# guard below makes the app refuse to boot in production with that value.
+SECRET_KEY = config(
+    'SECRET_KEY',
+    default='django-insecure-dev-only-do-not-use-in-production',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()],
+)
+
+# Hard fail if a production deployment forgot to override these.
+if not DEBUG:
+    if SECRET_KEY.startswith('django-insecure-'):
+        raise ImproperlyConfigured(
+            'SECRET_KEY must be set to a non-default value when DEBUG=False. '
+            'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(64))"'
+        )
+    if not ALLOWED_HOSTS or ALLOWED_HOSTS == ['localhost', '127.0.0.1']:
+        raise ImproperlyConfigured('ALLOWED_HOSTS must be set explicitly when DEBUG=False.')
 
 
 # Application definition
@@ -196,12 +216,40 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/min',
+        'user': '600/min',
+        # Sensitive scopes — applied per-view via `throttle_scope`.
+        'login': '10/min',
+        'register': '10/hour',
+        'password_reset': '5/hour',
+        'resend_verification': '5/hour',
+        'invite': '60/hour',
+        'tracking': '120/hour',
+        'feedback': '60/hour',
+    },
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'DATE_FORMAT': '%Y-%m-%d',
     'TIME_FORMAT': '%H:%M:%S',
 }
 
 # JWT Configuration
+# Use a dedicated signing key so a leak of one secret doesn't compromise both
+# Django's signed cookies and JWTs. Falls back to SECRET_KEY only when the
+# dedicated key is not provided (preserves dev compatibility).
+JWT_SIGNING_KEY = config('JWT_SIGNING_KEY', default=SECRET_KEY)
+
+if not DEBUG and JWT_SIGNING_KEY == SECRET_KEY:
+    raise ImproperlyConfigured(
+        'JWT_SIGNING_KEY must be set to its own value when DEBUG=False '
+        '(do not reuse SECRET_KEY).'
+    )
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -209,7 +257,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': JWT_SIGNING_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
@@ -255,6 +303,9 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# Bound the worst case so a hung SMTP connection doesn't pin a background
+# thread for minutes. SendGrid normally accepts within 1–3 seconds.
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=20, cast=int)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='PhishAware <noreply@phishaware.com>')
 SENDGRID_VERIFIED_SENDER = config('SENDGRID_VERIFIED_SENDER', default='')
 
@@ -298,14 +349,27 @@ LOGGING = {
     },
 }
 
-# Security Settings (Development)
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True  # Only for development
-else:
-    # Production security settings
+# Security Settings
+# Always-on hardening (safe in dev too):
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# CSRF trusted origins mirror the CORS allowlist — needed when the SPA does
+# state-changing requests with credentials enabled.
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default=','.join(CORS_ALLOWED_ORIGINS),
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()],
+)
+
+if not DEBUG:
+    # Production-only hardening
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
