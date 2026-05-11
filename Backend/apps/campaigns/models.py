@@ -6,6 +6,8 @@ AI-generated email pools, assign quizzes to employees, and track results.
 Part of the 'campaigns' app.
 """
 
+from decimal import Decimal
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -60,8 +62,8 @@ class Campaign(models.Model):
         _('phishing email ratio'),
         max_digits=3,
         decimal_places=2,
-        validators=[MinValueValidator(0.2), MaxValueValidator(0.8)],
-        default=0.5,
+        validators=[MinValueValidator(Decimal("0.2")), MaxValueValidator(Decimal("0.8"))],
+        default=Decimal("0.5"),
         help_text=_('Ratio of phishing emails (0.2-0.8, e.g., 0.5 = 50%)')
     )
     english_ratio = models.DecimalField(

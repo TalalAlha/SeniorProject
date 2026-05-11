@@ -34,3 +34,9 @@ validators>=0.22
 
 # Email / SendGrid (uses Django SMTP backend — no extra SDK needed)
 # sendgrid>=6.0  # Optional: only needed if using the SendGrid Web API directly
+
+# Testing
+pytest==8.3.3
+pytest-django==4.9.0
+coverage==7.6.4
+locust==2.32.4
