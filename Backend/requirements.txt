@@ -16,8 +16,19 @@ django-cors-headers>=4.4.0,<5.0
 # Environment variables
 python-decouple>=3.8
 
-# Database (PostgreSQL for production - install separately when needed)
-# psycopg2-binary==2.9.9
+# Database — psycopg2-binary required for PostgreSQL in production.
+# dj-database-url parses DATABASE_URL env var so the same code works
+# locally on SQLite (no env var) and in production on PostgreSQL.
+psycopg2-binary>=2.9.9,<3.0
+dj-database-url>=2.1.0,<3.0
+
+# Production server + static file serving
+gunicorn>=21.2.0,<23.0
+whitenoise>=6.7.0,<7.0
+
+# PyTorch CPU-only build for the LSTM email generator (~200MB vs ~2GB CUDA build).
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0,<3.0
 
 # Image handling (optional for now - can add later if needed)
 # Pillow>=10.0
