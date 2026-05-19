@@ -9,7 +9,7 @@
 
 - **Emad Saeed Alzahrani**
 - **Talal Abid Alharbi**
-- **Thamer Musaad Alkahtani**
+- **Thamer Musaad Alkhatheri**
 
 ---
 
