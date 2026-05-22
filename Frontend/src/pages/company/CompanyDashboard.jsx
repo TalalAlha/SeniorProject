@@ -510,7 +510,7 @@ function CompanyDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link to="/company/campaigns/create" className="card-hover flex items-center justify-between group">
+        <Link to="/company/campaigns" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30">
               <Target className="h-6 w-6 text-primary-600 dark:text-primary-400" />
@@ -523,7 +523,7 @@ function CompanyDashboard() {
           <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
         </Link>
 
-        <Link to="/company/simulations/create" className="card-hover flex items-center justify-between group">
+        <Link to="/company/simulations" className="card-hover flex items-center justify-between group">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20">
               <Mail className="h-6 w-6 text-warning-600 dark:text-warning-400" />
