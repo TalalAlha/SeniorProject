@@ -47,10 +47,14 @@ function PhoneSMS({ label, type, sender, message, time, children }) {
     {children}
   </div>);
 }
-function RevealFlags({ flags, revealed, onReveal }) {
-  if (!revealed) return (<div style={{ padding: "0 14px 14px" }}><button onClick={onReveal} style={{ width: "100%", padding: "10px 16px", background: "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.15))", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, cursor: "pointer", color: C.red, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🔍 Click to reveal red flags</button></div>);
-  return (<div style={{ padding: "0 14px 14px" }}><div style={{ background: C.redBg, border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px" }}>
-    {flags.map((f, i) => (<FadeIn key={i} delay={i * 200}><div style={{ display: "flex", gap: 8, marginBottom: i < flags.length - 1 ? 6 : 0, fontSize: 12, color: C.text }}><span style={{ color: C.red, flexShrink: 0 }}>✕</span><span>{f}</span></div></FadeIn>))}
+function RevealFlags({ flags, revealed, onReveal, type = "fake" }) {
+  const isReal = type === "real";
+  if (!revealed) return (<div style={{ padding: "0 14px 14px" }}><button onClick={onReveal} style={{ width: "100%", padding: "10px 16px", background: isReal ? "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.15))" : "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.15))", border: isReal ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(239,68,68,0.3)", borderRadius: 10, cursor: "pointer", color: isReal ? C.green : C.red, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>{isReal ? "🔍 Click to reveal good signs" : "🔍 Click to reveal red flags"}</button></div>);
+  return (<div style={{ padding: "0 14px 14px" }}><div style={{ background: isReal ? C.greenBg : C.redBg, border: isReal ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px" }}>
+    {flags.map((f, i) => {
+      const text = f.replace(/^✅ /, '');
+      return (<FadeIn key={i} delay={i * 200}><div style={{ display: "flex", gap: 8, marginBottom: i < flags.length - 1 ? 6 : 0, fontSize: 12, color: C.text }}><span style={{ color: isReal ? C.green : C.red, flexShrink: 0 }}>{isReal ? "✓" : "✕"}</span><span>{text}</span></div></FadeIn>);
+    })}
   </div></div>);
 }
 function GreenBlock({ items }) {
@@ -111,7 +115,7 @@ function Scene1() {
       <FadeIn delay={400}>
         <PhoneSMS label="✅ REAL" type="real" sender="Nafath - National" time="10:34 AM"
           message={<>Your code: <b>123456</b><br/><span style={{color:C.green}}>Do not share this code with anyone</span><br/>Valid for 2 minutes</>}>
-          <RevealFlags revealed={revR} onReveal={() => setRevR(true)} flags={["✅ Official sender name","✅ Warning: Do not share","✅ No links at all","✅ Clean proper formatting"]} />
+          <RevealFlags revealed={revR} onReveal={() => setRevR(true)} type="real" flags={["✅ Official sender name","✅ Warning: Do not share","✅ No links at all","✅ Clean proper formatting"]} />
         </PhoneSMS>
       </FadeIn>
     </div>
@@ -231,7 +235,7 @@ function Scene6({ onComplete = () => {} }) {
   const [sel, setSel] = useState(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
-  const qs = [{"t":"Which Nafath message is real?","opts":[{"text":"Code 123456 — Click: bit.ly/nfth","c":false,"ex":"Nafath NEVER sends links!"},{"text":"Code 123456 — Do not share","c":true,"ex":"Correct!"}]},{"t":"Email from absher@outlook.com — real or fake?","opts":[{"text":"Real","c":false,"ex":"Absher uses .gov.sa only!"},{"text":"Fake","c":true,"ex":"Correct!"}]},{"t":"Bank calls for your CVV — what to do?","opts":[{"text":"Give the number","c":false,"ex":"Banks NEVER ask for CVV!"},{"text":"Hang up, call bank","c":true,"ex":"Correct!"}]},{"t":"Unrequested Nafath code — what does it mean?","opts":[{"text":"System error","c":false,"ex":"Someone is trying to hack you!"},{"text":"Hacking attempt!","c":true,"ex":"Correct! Change password now."}]},{"t":"Link ending in .gov.sa — always safe?","opts":[{"text":"Yes always","c":false,"ex":"Check the FULL domain!"},{"text":"Must verify","c":true,"ex":"Correct!"}]}];
+  const qs = [{"t":"Which Nafath message is real?","opts":[{"text":"Code 123456 — Click: bit.ly/nfth","c":false,"ex":"Nafath NEVER sends links!"},{"text":"Code 123456 — Do not share","c":true,"ex":"Correct!"}]},{"t":"Email from absher@outlook.com — real or fake?","opts":[{"text":"Real","c":false,"ex":"Absher uses .gov.sa only!"},{"text":"Fake","c":true,"ex":"Correct!"}]},{"t":"Bank calls for your CVV — what to do?","opts":[{"text":"Give the number","c":false,"ex":"Banks NEVER ask for CVV!"},{"text":"Hang up, call bank","c":true,"ex":"Correct!"}]},{"t":"Unrequested Nafath code — what does it mean?","opts":[{"text":"System error","c":false,"ex":"Someone is trying to hack you!"},{"text":"Hacking attempt!","c":true,"ex":"Correct! Change password now."}]},{"t":"Link ending in .gov.sa — always safe?","opts":[{"text":"Yes always","c":false,"ex":"Check the FULL domain!"},{"text":"Must verify","c":true,"ex":"Correct!"}]},{"t":"What should you do if you receive a suspicious SMS from a bank?","opts":[{"text":"Click the link to check","c":false,"ex":"Never click links in unexpected SMS!"},{"text":"Call the official number on your card","c":true,"ex":"Correct!"}]}];
   const [answers, setAnswers] = useState({});
   const handleSel = (oi) => { if (sel !== null) return; setSel(oi); const isCorrect = qs[cq].opts[oi].c; if (isCorrect) setScore(s => s + 1); setAnswers(prev => ({ ...prev, [cq]: { selected: oi, correct: isCorrect } })); };
   const handleNext = () => { if (cq < qs.length - 1) { setCq(c => c + 1); setSel(null); } else setDone(true); };

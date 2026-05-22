@@ -47,10 +47,14 @@ function PhoneSMS({ label, type, sender, message, time, children }) {
     {children}
   </div>);
 }
-function RevealFlags({ flags, revealed, onReveal }) {
-  if (!revealed) return (<div style={{ padding: "0 14px 14px" }}><button onClick={onReveal} style={{ width: "100%", padding: "10px 16px", background: "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.15))", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, cursor: "pointer", color: C.red, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🔍 اكتشف العلامات التحذيرية</button></div>);
-  return (<div style={{ padding: "0 14px 14px" }}><div style={{ background: C.redBg, border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px" }}>
-    {flags.map((f, i) => (<FadeIn key={i} delay={i * 200}><div style={{ display: "flex", gap: 8, marginBottom: i < flags.length - 1 ? 6 : 0, fontSize: 12, color: C.text }}><span style={{ color: C.red, flexShrink: 0 }}>✕</span><span>{f}</span></div></FadeIn>))}
+function RevealFlags({ flags, revealed, onReveal, type = "fake" }) {
+  const isReal = type === "real";
+  if (!revealed) return (<div style={{ padding: "0 14px 14px" }}><button onClick={onReveal} style={{ width: "100%", padding: "10px 16px", background: isReal ? "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.15))" : "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.15))", border: isReal ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(239,68,68,0.3)", borderRadius: 10, cursor: "pointer", color: isReal ? C.green : C.red, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>{isReal ? "🔍 اكتشف العلامات الإيجابية" : "🔍 اكتشف العلامات التحذيرية"}</button></div>);
+  return (<div style={{ padding: "0 14px 14px" }}><div style={{ background: isReal ? C.greenBg : C.redBg, border: isReal ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 14px" }}>
+    {flags.map((f, i) => {
+      const text = f.replace(/^✅ /, '');
+      return (<FadeIn key={i} delay={i * 200}><div style={{ display: "flex", gap: 8, marginBottom: i < flags.length - 1 ? 6 : 0, fontSize: 12, color: C.text }}><span style={{ color: isReal ? C.green : C.red, flexShrink: 0 }}>{isReal ? "✓" : "✕"}</span><span>{text}</span></div></FadeIn>);
+    })}
   </div></div>);
 }
 function GreenBlock({ items }) {
@@ -111,7 +115,7 @@ function Scene1() {
       <FadeIn delay={400}>
         <PhoneSMS label="✅ حقيقي" type="real" sender="نفاذ الوطني - Nafath" time="10:34 AM"
           message={<>كود التحقق: <b>123456</b><br/><span style={{color:C.green}}>لا تشارك هذا الكود مع أي شخص</span><br/>صالح لمدة دقيقتين</>}>
-          <RevealFlags revealed={revR} onReveal={() => setRevR(true)} flags={["✅ اسم المرسل الرسمي","✅ تحذير: لا تشارك الكود","✅ لا توجد روابط","✅ لغة عربية صحيحة"]} />
+          <RevealFlags revealed={revR} onReveal={() => setRevR(true)} type="real" flags={["✅ اسم المرسل رسمي","✅ تحذير: لا تشارك الرمز","✅ لا توجد روابط إطلاقاً","✅ تنسيق نظيف وسليم"]} />
         </PhoneSMS>
       </FadeIn>
     </div>
@@ -231,7 +235,7 @@ function Scene6({ onComplete = () => {} }) {
   const [sel, setSel] = useState(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
-  const qs = [{"t":"أي رسالة نفاذ حقيقية؟","opts":[{"text":"كود 123456 — انقر: bit.ly/nfth","c":false,"ex":"نفاذ لا يرسل روابط أبداً!"},{"text":"كود 123456 — لا تشارك هذا الكود","c":true,"ex":"صحيح!"}]},{"t":"إيميل من absher@outlook.com — حقيقي أم مزيف؟","opts":[{"text":"حقيقي","c":false,"ex":"أبشر يستخدم .gov.sa فقط!"},{"text":"مزيف","c":true,"ex":"صحيح!"}]},{"t":"البنك يتصل ويطلب CVV — ماذا تفعل؟","opts":[{"text":"أعطيهم الرقم","c":false,"ex":"البنوك لا تطلب CVV أبداً!"},{"text":"أغلق واتصل بالبنك","c":true,"ex":"صحيح!"}]},{"t":"وصلك رمز نفاذ لم تطلبه — ماذا يعني؟","opts":[{"text":"خطأ من النظام","c":false,"ex":"شخص يحاول اختراق حسابك!"},{"text":"محاولة اختراق!","c":true,"ex":"صحيح! غيّر كلمة المرور."}]},{"t":"رابط .gov.sa — آمن دائماً؟","opts":[{"text":"نعم دائماً","c":false,"ex":"تحقق من العنوان كاملاً!"},{"text":"يجب التحقق","c":true,"ex":"صحيح!"}]}];
+  const qs = [{"t":"أي رسالة نفاذ حقيقية؟","opts":[{"text":"كود 123456 — انقر: bit.ly/nfth","c":false,"ex":"نفاذ لا يرسل روابط أبداً!"},{"text":"كود 123456 — لا تشارك هذا الكود","c":true,"ex":"صحيح!"}]},{"t":"إيميل من absher@outlook.com — حقيقي أم مزيف؟","opts":[{"text":"حقيقي","c":false,"ex":"أبشر يستخدم .gov.sa فقط!"},{"text":"مزيف","c":true,"ex":"صحيح!"}]},{"t":"البنك يتصل ويطلب CVV — ماذا تفعل؟","opts":[{"text":"أعطيهم الرقم","c":false,"ex":"البنوك لا تطلب CVV أبداً!"},{"text":"أغلق واتصل بالبنك","c":true,"ex":"صحيح!"}]},{"t":"وصلك رمز نفاذ لم تطلبه — ماذا يعني؟","opts":[{"text":"خطأ من النظام","c":false,"ex":"شخص يحاول اختراق حسابك!"},{"text":"محاولة اختراق!","c":true,"ex":"صحيح! غيّر كلمة المرور."}]},{"t":"رابط .gov.sa — آمن دائماً؟","opts":[{"text":"نعم دائماً","c":false,"ex":"تحقق من العنوان كاملاً!"},{"text":"يجب التحقق","c":true,"ex":"صحيح!"}]},{"t":"ماذا تفعل إذا وصلتك رسالة مشبوهة من البنك؟","opts":[{"text":"الضغط على الرابط للتحقق","c":false,"ex":"لا تضغط على الروابط في الرسائل غير المتوقعة!"},{"text":"الاتصال بالرقم الرسمي خلف البطاقة","c":true,"ex":"صحيح!"}]}];
   const [answers, setAnswers] = useState({});
   const handleSel = (oi) => { if (sel !== null) return; setSel(oi); const isCorrect = qs[cq].opts[oi].c; if (isCorrect) setScore(s => s + 1); setAnswers(prev => ({ ...prev, [cq]: { selected: oi, correct: isCorrect } })); };
   const handleNext = () => { if (cq < qs.length - 1) { setCq(c => c + 1); setSel(null); } else setDone(true); };
