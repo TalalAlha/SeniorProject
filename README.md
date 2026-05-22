@@ -9,7 +9,7 @@
 
 - **Emad Saeed Alzahrani**
 - **Talal Abid Alharbi**
-- **Thamer Musaad Alkahtani**
+- **Thamer Musaad Alkhatheri**
 
 ---
 
@@ -94,7 +94,7 @@ The setup guides live in their respective directories:
 - **Frontend setup** → [Frontend/README.md](Frontend/README.md)
 
 ---
-
+========================================================================================
 ## About This Project
 
 PhishAware was built as a senior capstone project at [University Name] by Emad, Talal, and Thamer. The scope — a full SaaS platform with custom-trained neural networks, a real email dispatch system, and a bilingual React frontend — is what happens when a team decides the bar should be higher than "it works on localhost."
