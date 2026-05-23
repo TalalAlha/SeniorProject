@@ -1,102 +1,109 @@
-# PhishAware 🎣
+<div align="center">
 
-> **Train your team before attackers do.**
-> A full-stack cybersecurity awareness platform with real phishing simulations, AI-generated emails, gamified training, and dashboards that tell you exactly who clicked.
+# 🎣 PhishAware
 
----
+### **Train your team before attackers do.**
 
-## The Team
+*A full-stack cybersecurity awareness platform with real phishing simulations,*
+*AI-generated emails, gamified training, and dashboards that tell you exactly who clicked.*
 
-- **Emad Saeed Alzahrani**
-- **Talal Abid Alharbi**
-- **Thamer Musaad Alkhatheri**
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![PyTorch](https://img.shields.io/badge/PyTorch-LSTM-EE4C2C?logo=pytorch&logoColor=white)
+![Bilingual](https://img.shields.io/badge/🌐-EN%20%2B%20AR%20RTL-success)
 
----
-
-## What is PhishAware?
-
-PhishAware is a multi-tenant cybersecurity awareness SaaS. Company admins register on the platform, invite their employees, then run the full security awareness lifecycle: launch phishing simulations using real emails with pixel and link tracking, run quiz-based awareness campaigns, assign targeted training modules based on each employee's risk score, and track everything through live analytics dashboards. Employees earn badges, accumulate points, and compete on a leaderboard — because the only way to get people to care about security is to make it interesting. The whole platform is fully bilingual in English and Arabic with proper RTL support throughout.
+</div>
 
 ---
 
-## Repo Layout
+## ✨ What makes it cool
+
+> 🎯 **Real phishing emails.** Tracking pixels. Lure links. Live click feed.
+> 🤖 **Custom LSTMs** (English + Arabic) — built from scratch in PyTorch. No GPT wrapper.
+> 📊 **Live risk scores** that recalculate the second an employee clicks.
+> 🏆 **Gamified** with badges, points & leaderboards — because nobody finishes boring training.
+> 🌍 **Fully bilingual** with proper RTL — designed in, not bolted on.
+
+---
+
+## 🗂️ Repo Layout
 
 ```
 PhishAware/
-├── Backend/    — Django REST API, LSTM models, email system
-└── Frontend/   — React 19 SPA, role-based routing, bilingual UI
+├── 🐍 Backend/    Django REST API · LSTM models · Email system
+└── ⚛️  Frontend/   React 19 SPA · Role-based routing · Bilingual UI
 ```
 
 ---
 
-## Features
+## 🚀 Quick Start
 
-### 🎯 Phishing Simulations — The Flagship
-This is the whole point. Build a campaign, upload your employee CSV, and PhishAware sends *real* phishing emails through SendGrid. Every email contains an invisible tracking pixel and a lure link. When an employee opens the email, clicks the link, or reports it as suspicious — we know. Stats update in real time via Django post_save signals. And when an employee does click? They land on a custom **"You got caught"** page that explains exactly which red flags they missed. Education at the moment of failure, not three weeks later in a boring seminar.
+| Step | Where to go |
+|---|---|
+| 🐍 **Backend setup** | [Backend/README.md](Backend/README.md) |
+| ⚛️ **Frontend setup** | [Frontend/README.md](Frontend/README.md) |
 
-### 🤖 AI Email Generation — The Plot Twist
-PhishAware ships with **two custom-trained LSTM models** — one for English, one for Arabic. Not a GPT wrapper. Not a prompt template. A real from-scratch PyTorch architecture (~3 layers, 512 hidden units) trained on 14,000 English and 10,000 Arabic phishing and legitimate emails. The models generate brand-new, realistic phishing email content on demand via the `/api/v1/assessments/` endpoint. Building this from scratch, for Arabic specifically, is something almost no student project has ever done.
+---
+
+## 🎁 Feature Highlights
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🎯 Phishing Simulations
+Real emails. Real tracking. Real "caught" page that teaches at the moment of failure.
+
+### 🤖 AI Email Generator
+Two custom-trained LSTMs (EN + AR) generate fresh phishing content on demand.
 
 ### 📋 Awareness Campaigns
-Quiz-based email classification campaigns. Employees receive real email samples and have to label each one: phishing or legitimate? Each question is scored, results are tracked, and the data feeds into the employee's risk profile. This is how you build genuine intuition, not checkbox compliance.
+Quiz-based email classification that builds genuine intuition.
 
 ### 📚 Training & Remediation
-Three bilingual training modules: Email Security, Mobile Security, and Social Engineering. Each module has interactive content and a quiz at the end. The system auto-assigns modules based on risk score — employees who fail simulations or score poorly in campaigns get remediation training automatically. No manual intervention needed.
+Auto-assigned modules based on each employee's risk score.
+
+</td>
+<td width="50%" valign="top">
 
 ### 📊 Risk Scoring
-Every employee has a dynamic risk score computed from three inputs: simulation behavior (did they click? report? ignore?), quiz performance, and training completion. Scores are recalculated in real time via Django `post_save` signals. The system maintains a historical timeline so admins can see whether employees are actually improving.
+Composite score from simulations + quizzes + training. Recalculated live.
 
 ### 📈 Analytics
-Company admins get dashboards with open rates, click rates, report rates, and risk trends across 7-day, 30-day, and 90-day windows. Platform admins see aggregate stats across all companies. Everything is exportable to CSV.
+7d / 30d / 90d dashboards with CSV export and real-time updates.
 
 ### 🏆 Gamification
-Badges. Points. Leaderboards. Employees earn rewards for completing training, reporting phishing attempts, and improving their risk scores. Because the security tool that nobody uses is useless.
-
-### 🔔 Notifications
-36 distinct event types trigger in-app notifications — simulation sends, quiz completions, badge awards, training assignments, and more. Everyone stays informed without constant email noise.
+Badges, points, leaderboards — the carrot to security's stick.
 
 ### 🌐 Community Portal
-A fully public section of the platform — no account required. Features a Daily Phishing Challenge, MENA Threat Watch, URL Inspector, Security Glossary, and curated Trusted Resources. Good for the broader community, good for SEO, and a great way to demo the platform without a login.
+Public-facing: Daily Challenge · MENA Threat Watch · URL Inspector · Glossary.
 
-### 📧 Employee Invitation System
-Admins invite employees by email. The invitation link is valid for 7 days, leads to a branded accept page, and activates the account on the spot — no separate email verification step needed. Built with a clean token-based flow that handles expiry gracefully.
-
-### ✉️ Email Verification
-Registration triggers a verification email via SendGrid. Unverified accounts are blocked from logging in with a clear amber banner and a one-click resend option. Staff accounts bypass verification automatically.
-
-### 🌍 Bilingual / RTL
-Every page, every role, every feature — in English and Arabic. The frontend auto-flips to RTL layout when Arabic is selected. This was not an afterthought; it was designed in from day one.
+</td>
+</tr>
+</table>
 
 ---
 
-## Tech Stack
+## 🧰 Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | Python 3.11, Django 5.x, Django REST Framework |
-| Auth | SimpleJWT |
-| AI / ML | PyTorch (custom LSTM, EN + AR) |
-| Frontend | React 19, Vite 7, React Router 6 |
-| Styling | Tailwind CSS 3 |
-| Charts | Recharts |
-| i18n | i18next |
-| Email | SendGrid SMTP relay |
-| Database | SQLite (dev) / PostgreSQL-ready (prod) |
-| API Docs | drf-yasg (Swagger + ReDoc) |
+| **Backend** | **Frontend** | **AI / Infra** |
+|:---:|:---:|:---:|
+| Python 3.11 | React 19 | PyTorch (custom LSTM) |
+| Django 5 + DRF | Vite 7 | SendGrid SMTP |
+| SimpleJWT | Tailwind 3 | SQLite → PostgreSQL |
+| drf-yasg (Swagger) | i18next + RTL | 14k EN + 10k AR dataset |
 
 ---
 
-## Quick Start
+## 👥 The Team
 
-The setup guides live in their respective directories:
+<div align="center">
 
-- **Backend setup** → [Backend/README.md](Backend/README.md)
-- **Frontend setup** → [Frontend/README.md](Frontend/README.md)
+**Emad Saeed Alzahrani** · **Talal Abid Alharbi** · **Thamer Musaad Alkhatheri**
 
----
-========================================================================================
-## About This Project
+*Senior capstone — built because the bar should be higher than "it works on localhost."*
 
-PhishAware was built as a senior capstone project at [University Name] by Emad, Talal, and Thamer. The scope — a full SaaS platform with custom-trained neural networks, a real email dispatch system, and a bilingual React frontend — is what happens when a team decides the bar should be higher than "it works on localhost."
+⭐ **If PhishAware caught your eye, drop us a star.** ⭐
 
-If you made it this far, consider starring the repo. It means a lot to the engineers who built it. ⭐
+</div>
