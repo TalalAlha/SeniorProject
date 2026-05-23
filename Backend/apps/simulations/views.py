@@ -22,6 +22,7 @@ from django.db.models import Q, Avg, F
 from django.db import transaction
 from django.urls import reverse
 from django.conf import settings
+import html
 
 from .models import (
     SimulationTemplate,
@@ -453,8 +454,8 @@ class SimulationCampaignViewSet(viewsets.ModelViewSet):
         body_html = template.body_html
         body_html = body_html.replace('{TRACKING_PIXEL}', '')  # Pixel removed – strip placeholder
         body_html = body_html.replace('{LURE_LINK}', phishing_link_url)
-        body_html = body_html.replace('{EMPLOYEE_NAME}', email_simulation.employee.get_full_name())
-        body_html = body_html.replace('{EMPLOYEE_EMAIL}', email_simulation.employee.email)
+        body_html = body_html.replace('{EMPLOYEE_NAME}', html.escape(email_simulation.employee.get_full_name()))
+        body_html = body_html.replace('{EMPLOYEE_EMAIL}', html.escape(email_simulation.employee.email))
 
         # Plain text version
         body_plain = template.body_plain or ''

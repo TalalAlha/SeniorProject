@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.db import transaction
 import random
 import logging
+import html
 
 logger = logging.getLogger(__name__)
 
@@ -375,7 +376,7 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
         for q in questions_data:
             # Mutate serialized data in-place; original EmailTemplate record is unchanged
             if q.get('email_body'):
-                q['email_body'] = q['email_body'].replace('{employee_name}', employee_name)
+                q['email_body'] = q['email_body'].replace('{employee_name}', html.escape(employee_name))
 
         return Response({
             'quiz_id': quiz.id,

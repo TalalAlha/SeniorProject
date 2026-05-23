@@ -7,6 +7,7 @@ and other simulation-related operations.
 
 import csv
 import io
+import html
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from apps.core.csv_utils import csv_safe_row
@@ -108,17 +109,17 @@ def generate_email_package(campaign: SimulationCampaign) -> str:
         body_html = template.body_html
         body_html = body_html.replace('{TRACKING_PIXEL}', tracking_pixel_html)
         body_html = body_html.replace('{LURE_LINK}', phishing_link_url)
-        body_html = body_html.replace('{EMPLOYEE_NAME}', employee_name)
-        body_html = body_html.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
-        body_html = body_html.replace('{EMPLOYEE_EMAIL}', employee.email)
-        body_html = body_html.replace('{COMPANY_NAME}', campaign.company.name)
+        body_html = body_html.replace('{EMPLOYEE_NAME}', html.escape(employee_name))
+        body_html = body_html.replace('{EMPLOYEE_FIRST_NAME}', html.escape(employee_first_name))
+        body_html = body_html.replace('{EMPLOYEE_EMAIL}', html.escape(employee.email))
+        body_html = body_html.replace('{COMPANY_NAME}', html.escape(campaign.company.name))
         # Also handle {{lowercase}} variant placeholders
         body_html = body_html.replace('{{tracking_pixel}}', tracking_pixel_html)
         body_html = body_html.replace('{{phishing_link}}', phishing_link_url)
-        body_html = body_html.replace('{{employee_name}}', employee_name)
-        body_html = body_html.replace('{{employee_first_name}}', employee_first_name)
-        body_html = body_html.replace('{{employee_email}}', employee.email)
-        body_html = body_html.replace('{{company_name}}', campaign.company.name)
+        body_html = body_html.replace('{{employee_name}}', html.escape(employee_name))
+        body_html = body_html.replace('{{employee_first_name}}', html.escape(employee_first_name))
+        body_html = body_html.replace('{{employee_email}}', html.escape(employee.email))
+        body_html = body_html.replace('{{company_name}}', html.escape(campaign.company.name))
 
         # Replace placeholders in plain text body — {UPPERCASE} format
         body_plain = template.body_plain or ''
@@ -233,17 +234,17 @@ def generate_email_package_json(campaign: SimulationCampaign) -> list:
         body_html = template.body_html
         body_html = body_html.replace('{TRACKING_PIXEL}', tracking_pixel_html)
         body_html = body_html.replace('{LURE_LINK}', phishing_link_url)
-        body_html = body_html.replace('{EMPLOYEE_NAME}', employee_name)
-        body_html = body_html.replace('{EMPLOYEE_FIRST_NAME}', employee_first_name)
-        body_html = body_html.replace('{EMPLOYEE_EMAIL}', employee.email)
-        body_html = body_html.replace('{COMPANY_NAME}', campaign.company.name)
+        body_html = body_html.replace('{EMPLOYEE_NAME}', html.escape(employee_name))
+        body_html = body_html.replace('{EMPLOYEE_FIRST_NAME}', html.escape(employee_first_name))
+        body_html = body_html.replace('{EMPLOYEE_EMAIL}', html.escape(employee.email))
+        body_html = body_html.replace('{COMPANY_NAME}', html.escape(campaign.company.name))
         # Also handle {{lowercase}} variant placeholders
         body_html = body_html.replace('{{tracking_pixel}}', tracking_pixel_html)
         body_html = body_html.replace('{{phishing_link}}', phishing_link_url)
-        body_html = body_html.replace('{{employee_name}}', employee_name)
-        body_html = body_html.replace('{{employee_first_name}}', employee_first_name)
-        body_html = body_html.replace('{{employee_email}}', employee.email)
-        body_html = body_html.replace('{{company_name}}', campaign.company.name)
+        body_html = body_html.replace('{{employee_name}}', html.escape(employee_name))
+        body_html = body_html.replace('{{employee_first_name}}', html.escape(employee_first_name))
+        body_html = body_html.replace('{{employee_email}}', html.escape(employee.email))
+        body_html = body_html.replace('{{company_name}}', html.escape(campaign.company.name))
 
         # Replace placeholders in plain text — {UPPERCASE} format
         body_plain = template.body_plain or ''
