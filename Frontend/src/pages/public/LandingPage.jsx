@@ -121,7 +121,7 @@ function LandingPage() {
             Ready to secure your organization?
           </h2>
           <p className="text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of companies in the MENA region who trust PhishAware to protect their employees from phishing threats.
+            Join hundreds of companies in Saudi Arabia who trust PhishAware to protect their employees from phishing threats.
           </p>
           <Link
             to="/register"

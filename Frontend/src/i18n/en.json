@@ -99,7 +99,7 @@
   "landing": {
     "hero": {
       "title": "Protect Your Organization from Phishing Attacks",
-      "subtitle": "PhishAware helps organizations in the MENA region build a security-aware culture through training, simulations, and continuous assessment.",
+      "subtitle": "PhishAware helps organizations in Saudi Arabia build a security-aware culture through training, simulations, and continuous assessment.",
       "cta": "Get Started",
       "learnMore": "Learn More"
     },
@@ -107,7 +107,7 @@
       "title": "Why Choose PhishAware?",
       "training": {
         "title": "Interactive Training",
-        "description": "Engaging training modules tailored for the MENA region with Arabic language support."
+        "description": "Engaging training modules tailored for Saudi Arabia with Arabic language support."
       },
       "simulations": {
         "title": "Phishing Simulations",
@@ -126,13 +126,13 @@
   "public": {
     "landing": {
       "badge": "Cybersecurity Awareness Platform",
-      "heroTitle": "Phishing simulation & awareness training, built for the MENA region",
+      "heroTitle": "Phishing simulation & awareness training, built for Saudi Arabia",
       "heroSubtitle": "PhishAware helps companies train their teams against phishing — and gives the community free tools to spot scams.",
       "chooseYourPath": "Choose your path",
       "chooseYourPathSubtitle": "PhishAware serves two audiences. Pick the one that fits you.",
       "company": {
         "label": "For Companies",
-        "badge": "Built for MENA · Bilingual",
+        "badge": "Built for Saudi Arabia · Bilingual",
         "tagline": "Run phishing simulations. Train your team. Track who's improving.",
         "feature1Title": "Realistic Phishing Simulations",
         "feature1Desc": "Send realistic phishing emails to your employees — link clicks and report-button actions captured in real time so you see who's vulnerable.",
@@ -161,7 +161,7 @@
         "feature3Desc": "Paste any suspicious link and analyze it without clicking — check the domain and safety signals before you trust it.",
         "feature4Title": "Security Glossary",
         "feature4Desc": "Plain-language definitions of cybersecurity terms in English and Arabic — look up jargon when you hit it.",
-        "feature5Title": "MENA Threat Watch",
+        "feature5Title": "Saudi Threat Watch",
         "feature5Desc": "Regional threat news and curated trusted resources from the NCA, SAMA, and Saudi CERT.",
         "primaryCta": "Explore Community Portal",
         "secondaryCta": "Start Learning"
@@ -298,7 +298,7 @@
       "diffSubtitle": "A complete awareness lifecycle, not a slide deck.",
       "diff1Title": "Real Simulations, Not Theory",
       "diff1Desc": "Send realistic phishing emails to your employees. See who clicks, who reports, who ignores — captured in real time.",
-      "diff2Title": "MENA-Context Templates",
+      "diff2Title": "Saudi-Context Templates",
       "diff2Desc": "Pre-built templates referencing Absher, Nafath, SAMA, SADAD, and Saudi Post — the brands scammers actually impersonate.",
       "diff3Title": "AI-Generated Content",
       "diff3Desc": "Two custom-trained LSTM models (English + Arabic) generate fresh phishing scenarios, so employees can't memorize specific emails.",
@@ -787,7 +787,7 @@
   },
   "community": {
     "title": "Community Portal",
-    "subtitle": "MENA-focused cybersecurity awareness — real threats, real tools, two languages",
+    "subtitle": "Saudi-focused cybersecurity awareness — real threats, real tools, two languages",
     "readMore": "Read More",
     "challenge": {
       "title": "Daily Phishing Challenge",
@@ -808,7 +808,7 @@
       }
     },
     "threatWatch": {
-      "title": "MENA Threat Watch",
+      "title": "Saudi Threat Watch",
       "subtitle": "Real phishing campaigns actively targeting users in Saudi Arabia, UAE, and across the region",
       "learnMore": "What to do",
       "redFlagsLabel": "Red flags"

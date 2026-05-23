@@ -1,3 +1,6 @@
+# Brute-force / account lockout protection
+django-axes>=7.0.0,<8.0
+
 # Core Django and DRF
 # Pinned to 5.2 LTS — covers CVE-2024-27351 / 39329 / 41989 / 42005 / 45230 /
 # 45231 / 53907 and the 2025 advisories (32873, 48432, 57833).

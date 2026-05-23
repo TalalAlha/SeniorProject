@@ -76,6 +76,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
 
+    # Brute-force protection
+    'axes',
+
     # Local apps
     'apps.core',
     'apps.accounts',
@@ -99,6 +102,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
 
 # WhiteNoise serves Django static files in production so we don't need nginx
@@ -398,3 +402,13 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# django-axes: lock out IPs after 5 failed login attempts within 1 hour
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # hours
+AXES_LOCKOUT_PARAMETERS = ['ip_address']
+AXES_RESET_ON_SUCCESS = True
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
