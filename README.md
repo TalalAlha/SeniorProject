@@ -103,7 +103,7 @@ Public-facing: Daily Challenge · MENA Threat Watch · URL Inspector · Glossary
 
 <div align="center">
 
-**Emad Saeed Alzahrani** · **Talal Abid Alharbi** · **Thamer Musaad Alkhatheri**
+**Emad Alzahrani** · **Talal Alharbi** · **Thamer Alkhatheri**
 
 *Senior capstone — built because the bar should be higher than "it works on localhost."*
 
