@@ -1,6 +1,11 @@
 <div align="center">
 
-# ⚛️ PhishAware — Frontend
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/logo/logo-horizontal-dark.png">
+  <img src="public/logo/logo-horizontal.png" alt="PhishAware" width="380">
+</picture>
+
+# Frontend
 
 ### *The face of the phish.*
 

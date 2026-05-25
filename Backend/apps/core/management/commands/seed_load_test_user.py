@@ -1,6 +1,9 @@
 """
 Management command to seed load-test users for Locust.
 
+LOCAL DEVELOPMENT ONLY — DO NOT RUN IN PRODUCTION.
+Creates accounts with a fixed, publicly-known password for performance testing.
+
 Creates:
   - Company:       "PhishAware Load Test Co"
   - Employee user: loadtest.employee@phishaware.com / LoadTest123!

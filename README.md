@@ -1,6 +1,9 @@
 <div align="center">
 
-# 🎣 PhishAware
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Frontend/public/logo/logo-horizontal-dark.png">
+  <img src="Frontend/public/logo/logo-horizontal.png" alt="PhishAware" width="420">
+</picture>
 
 ### **Train your team before attackers do.**
 

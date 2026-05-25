@@ -1,6 +1,11 @@
 <div align="center">
 
-# 🐍 PhishAware — Backend
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../Frontend/public/logo/logo-horizontal-dark.png">
+  <img src="../Frontend/public/logo/logo-horizontal.png" alt="PhishAware" width="380">
+</picture>
+
+# Backend
 
 ### *The brains behind the phish.*
 
