@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishAware — Senior Capstone Project</title>
+  <meta name="description" content="PhishAware is a full-stack cybersecurity awareness platform with real phishing simulations, AI-generated emails, and gamified training. Senior capstone project — source on GitHub.">
+  <meta property="og:title" content="PhishAware — Senior Capstone Project">
+  <meta property="og:description" content="Train your team before attackers do. Source code on GitHub.">
+  <meta property="og:image" content="logo-horizontal.png">
+  <link rel="icon" type="image/png" href="logo-icon.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --bg-soft: #111827;
+      --bg-card: #161e2e;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --text-dim: #9ca3af;
+      --accent: #22d3ee;
+      --accent-soft: rgba(34, 211, 238, 0.1);
+      --warn: #fbbf24;
+      --warn-soft: rgba(251, 191, 36, 0.1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.08), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(99, 102, 241, 0.06), transparent 40%);
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+
+    .hero img.logo {
+      max-width: 440px;
+      width: 90%;
+      height: auto;
+      margin-bottom: 32px;
+    }
+
+    .hero .tagline {
+      font-size: 1.5rem;
+      color: var(--text-dim);
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* Status banner */
+    .status-banner {
+      max-width: 720px;
+      margin: 0 auto 40px;
+      background: var(--warn-soft);
+      border: 1px solid var(--warn);
+      border-radius: 12px;
+      padding: 20px 24px;
+      text-align: left;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .status-banner .icon { font-size: 1.5rem; flex-shrink: 0; }
+    .status-banner h2 {
+      font-size: 1.1rem;
+      color: var(--warn);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .status-banner p { color: var(--text); font-size: 0.95rem; }
+
+    /* CTA buttons */
+    .cta-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(34, 211, 238, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Section headings */
+    section { padding: 60px 0; }
+
+    h2.section-title {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 48px;
+      font-weight: 700;
+    }
+
+    h2.section-title .accent { color: var(--accent); }
+
+    /* Feature grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .feature {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .feature .icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .feature h3 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .feature p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    /* Stack */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .stack-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .stack-col h3 {
+      color: var(--accent);
+      margin-bottom: 16px;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stack-col ul { list-style: none; }
+    .stack-col li {
+      padding: 6px 0;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .stack-col li:last-child { border-bottom: none; }
+
+    /* Team */
+    .team {
+      text-align: center;
+    }
+    .team-names {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .team-name {
+      font-size: 1.15rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .team-caption {
+      color: var(--text-dim);
+      margin-top: 24px;
+      font-style: italic;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      margin-top: 40px;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 20px 40px; }
+      .hero .tagline { font-size: 1.2rem; }
+      h2.section-title { font-size: 1.6rem; margin-bottom: 32px; }
+      .stack-grid { grid-template-columns: 1fr; }
+      section { padding: 40px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero container">
+    <img src="logo-horizontal-dark.png" alt="PhishAware" class="logo">
+    <p class="tagline">Train your team before attackers do.</p>
+
+    <div class="badge-row">
+      <span class="badge">Python 3.11</span>
+      <span class="badge">Django 5</span>
+      <span class="badge">React 19</span>
+      <span class="badge">PyTorch LSTM</span>
+      <span class="badge">EN + AR (RTL)</span>
+    </div>
+
+    <div class="status-banner">
+      <span class="icon">📦</span>
+      <div>
+        <h2>The live demo has been retired</h2>
+        <p>PhishAware was a senior capstone project. The hosted instance has been shut down, but the full source code, architecture, and documentation remain available on GitHub for anyone interested in how it was built.</p>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="https://github.com/TalalAlha/SeniorProject" class="btn btn-primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#features" class="btn btn-secondary">Learn more ↓</a>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="container">
+      <h2 class="section-title">What <span class="accent">PhishAware</span> did</h2>
+      <div class="features">
+        <div class="feature">
+          <span class="icon">🎯</span>
+          <h3>Phishing Simulations</h3>
+          <p>Real emails with tracking pixels and lure links. Teaches at the moment of failure with a "caught" page that explains the red flags.</p>
+        </div>
+        <div class="feature">
+          <span class="icon">🤖</span>
+          <h3>AI Email Generator</h3>
+          <p>Two custom-trained LSTM models (English + Arabic) built from scratch in PyTorch. No third-party LLM wrapper.</p>
+        </div>
+        <div class="feature">
+          <span class="icon">📊</span>
+          <h3>Live Risk Scoring</h3>
+          <p>Per-employee risk score recalculated the moment a tracking event fires. Composite of simulations, quizzes, and training.</p>
+        </div>
+        <div class="feature">
+          <span class="icon">📚</span>
+          <h3>Adaptive Training</h3>
+          <p>Modules auto-assigned based on each employee's risk score — high-risk users get more targeted remediation.</p>
+        </div>
+        <div class="feature">
+          <span class="icon">🏆</span>
+          <h3>Gamification</h3>
+          <p>Badges, points, and leaderboards drive engagement. Because nobody finishes boring security training.</p>
+        </div>
+        <div class="feature">
+          <span class="icon">🌐</span>
+          <h3>Fully Bilingual</h3>
+          <p>English and Arabic with proper RTL layout — designed in from day one, not bolted on as an afterthought.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Tech <span class="accent">Stack</span></h2>
+      <div class="stack-grid">
+        <div class="stack-col">
+          <h3>Backend</h3>
+          <ul>
+            <li>Python 3.11</li>
+            <li>Django 5 + DRF</li>
+            <li>SimpleJWT</li>
+            <li>SendGrid SMTP</li>
+            <li>SQLite → PostgreSQL</li>
+          </ul>
+        </div>
+        <div class="stack-col">
+          <h3>Frontend</h3>
+          <ul>
+            <li>React 19</li>
+            <li>Vite 7</li>
+            <li>Tailwind 3</li>
+            <li>React Router 6</li>
+            <li>i18next + RTL</li>
+          </ul>
+        </div>
+        <div class="stack-col">
+          <h3>AI / Data</h3>
+          <ul>
+            <li>PyTorch (custom LSTM)</li>
+            <li>14k EN samples</li>
+            <li>10k AR samples</li>
+            <li>Bilingual tokenizer</li>
+            <li>Trained from scratch</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="team">
+    <div class="container">
+      <h2 class="section-title">The <span class="accent">Team</span></h2>
+      <div class="team-names">
+        <div class="team-name">Emad Alzahrani</div>
+        <div class="team-name">Talal Alharbi</div>
+        <div class="team-name">Thamer Alkhatheri</div>
+      </div>
+      <p class="team-caption">Senior capstone — built because the bar should be higher than "it works on localhost."</p>
+
+      <div class="cta-row" style="margin-top: 40px;">
+        <a href="https://github.com/TalalAlha/SeniorProject" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Browse the source on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Emad Alzahrani · Talal Alharbi · Thamer Alkhatheri · Released under the <a href="https://github.com/TalalAlha/SeniorProject/blob/main/LICENSE">MIT License</a></p>
+  </footer>
+
+</body>
+</html>
